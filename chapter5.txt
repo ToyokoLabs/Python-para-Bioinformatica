@@ -1,0 +1,798 @@
+{:: encoding="UTF-8" /}
+
+# Manejo de archivos
+
+Leer y guardar archivos es una parte importante en la mayoría de los programas. Este capítulo muestra cómo leer y escribir cualquier archivo de texto. Para los propósitos de este libro, "leer un archivo de texto" es el proceso de ingresar los datos de un archivo a un programa. El proceso de determinar la estructura sintáctica de una expresión para recuperar una parte específica para un análisis posterior se denomina **parsing** (análisis).
+Tomemos, por ejemplo, un archivo como este:
+
+{line-numbers=off,lang=text}
+```
+1867864656,1,BOT,[T/C],0009803928,Homo sapiens
+1867864658,10,BOT,[A/T],0021792978,Homo sapiens
+1867864660,100,BOT,[A/G],0069608915,Homo sapiens
+```
+
+En cada línea, hay diferentes unidades de datos delimitadas por comas (a menudo llamadas data points). Cuando se lee el archivo, Python reconocerá cada línea como una cadena, por lo que existe la necesidad de un paso adicional para reconocer cada uno de los seis data points en dicho archivo. En este paso se está analizando (**parsing**). El paso del análisis depende del formato de los datos, por lo que no existe un método universal para analizar el texto. En la sección sobre [archivos CSV](#seccionCSV) veremos cómo analizar datos separados por un carácter especial, como una coma, un punto y coma o el carácter de tabulación (comúnmente llamados archivos CSV o TSV). Hay otros formatos que son adecuados para el intercambio de datos, como JSON y XML, que también serán cubiertos en este libro.
+
+## LEYENDO ARCHIVOS
+
+Leer un archivo en Python en un proceso de tres pasos:
+
+1) Abrir el archivo: Hay una función incluída en Python llamada **open** (abrir) que crea un "file handle". Este identificador de archivo se utiliza para referirse al archivo durante la vida útil del mismo. La función **open** toma dos parámetros: nombre del archivo y modo de apertura. El nombre del archivo es una cadena con el nombre del archivo, en la mayoría de los casos, incluye la ruta del sistema. Cuando se incluye la ruta del sistema, el programa usa esa ruta absoluta (**absolute path**). En caso de que solo ingrese el nombre del archivo (sin ninguna ruta), se asume una ruta relativa.[^nota5-1] El segundo parámetro tiene los siguientes parámetros válidos: "r" para leer, "w" para escribir y "a" para agregar datos en el final de un archivo. El valor predeterminado es "r". Si deseas abrir un archivo para lectura y escritura, usaremos "r +".
+Usando **open** creamos un identificador de archivo o *file handle* que se usa para leer un archivo:
+
+[^nota5-1]: Usaremos **os.getcwd()** en caso que necesitemos saber la ruta actual.
+
+{linenos=off}
+    >>> file_handle = open('readme.txt', 'r')
+
+Como podemos ver aquí, file_handle **no es un archivo sino una referencia a este**:
+
+{linenos=off}
+    >>> file_handle
+    <_io.TextIOWrapper name='readme.txt' mode='r' encoding='UTF-8'>
+
+2) Leer el archivo: Una vez que se abre el archivo podemos leer su contenido. El identificador de archivo tiene varios métodos para leer un archivo; veamos los más utilizados:
+**read(n)**: Lee *n* bytes del archivo. Sin parámetros lee todo el archivo.[^nota5-2]
+
+[^nota5-2]: Debido a la cantidad de memoria que puede necesitar no es recomendable leer todo el archivo de esta manera, a menos que esté seguro del tamaño del archivo. Para procesar archivos grandes, hay mejores estrategias como leer una línea a la vez.
+
+**readline()**: Devuelve una cadena con solo una línea del archivo, incluyendo '\ n ' como marcador de final de línea. Cuando llega al final del archivo, devuelve una cadena vacía.
+
+**readlines()**: Devuelve una lista donde cada elemento es una cadena con una línea del archivo.
+
+Leyendo un archivo llamado `seqA.fas` con *read()*:
+
+{linenos=off}
+    >>> file_handle = open('seqA.fas', 'r')
+    >>> file_handle.read()
+    >O00626|HUMAN Small inducible cytokine A22.
+    MARLQTALLVVLVLLAVALQATEAGPYGANMEDSVCCRDYVRYRLPLRVVKHFYWTSDS<=
+    CPRPGVVLLTFRDKEICADPR
+    VPWVKMILNKLSQ
+
+3) Cerrar el archivo. Una vez que hayamos terminado con el archivo, lo cerramos aplicando la función **close()** al *file handle*, por ejemplo `file_handle.close()`. Si no lo cerramos Python lo cerrará después de la ejecución del programa. Sin embargo, en la mayoría de los casos, es mejor cerrar el archivo ni bien no sea necesario porque la cantidad de archivos abiertos es un recurso limitado. Una forma de asegurar que el archivo se cierre es usar un bloque **with**. En lugar de:
+
+{linenos=off}
+    file_handle = open('readme.txt', 'r')
+    text = file_handle.read()
+    file_handle.close()
+
+podemos hacer esto:
+
+{linenos=off}
+        with open('readme.txt', 'r') as file_handle:
+          file_handle.read()
+        # de aca en adelante, el archivo esta cerrado
+
+### Ejemplo de manejador de archivo
+
+Supongamos que tenemos un archivo llamado `seqA.fas` que contiene:[^nota5-3]
+
+[^nota5-3]: Este es un archivo FASTA con una entrada. La primera línea tiene un ">" seguido de un nombre de secuencia y una descripción. Las líneas siguientes tienen la secuencia (ADN o aminoácidos). Para obtener más información sobre los archivos FASTA, ver <http://www.ncbi.nlm.nih.gov/BLAST/fasta.shtml>.
+
+{line-numbers=off}
+```
+>O00626|HUMAN Small inducible cytokine A22.
+MARLQTALLVVLVLLAVALQATEAGPYGANMEDSVCCRDYVRYRLPLRVVKHFYWTSDS<=
+CPRPGVVLLTFRDKEICADPR
+VPWVKMILNKLSQ
+```
+
+De este archivo necesitamos el nombre y la secuencia. Una primera aproximación es leer el archivo con **read()**:
+
+{line-numbers=off}
+```
+>>> with open('seqA.fas', 'r') as file_handle:
+... file_handle.read()
+...
+'>O00626|HUMAN Small inducible cytokineA22.\nMARLQTALLVVLVL<=
+LAVALQATEAGPYGANMEDSVCCRDYVRYRLPLRVVKHFYWTSDSCPRPGVVLLTFRDK<=
+EICADPR\nVPWVKMILNKLSQ\n'
+```
+
+En este caso mi objetivo es tener dos variables, una con el nombre de la secuencia y la otra con la secuencia misma. En el listado 5.1 podemos ver una forma de hacerlo usando **read()**:
+
+**Listado 5.1:** `firstread.py`: Primer intento de leer un archivo FASTA.
+
+```
+with open('samples/seqA.fas') as fh:
+  my_file = fh.read()
+name = my_file.split('\n')[0][1:]
+sequence = ''.join(my_file.split('\n')[1:])
+print('The name is : {0}'.format(name))
+print('The sequence is: {0}'.format(sequence))
+```
+
+La primera línea abre el archivo en modo de lectura y crea un identificador de archivo que llamamos `fh` (file handle). En la línea dos, todo el archivo se lee con **read()** y la cadena resultante se almacena en la memoria del sistema con el nombre `my_file`. El siguiente paso es separar los nombres de las secuencias. Desde el nombre que aparece después del símbolo ">" y antes de '\ n', esta información se puede utilizar para obtener los datos que queremos (línea 3). La secuencia se obtiene uniendo los elementos resultantes de la división de la cadena `my_file`, pero sin el primer elemento.
+El problema con este código es que utiliza la función **read()** para leer todo el archivo a la vez. Este es un problema potencial si no hay suficiente memoria disponible para acomodar el contenido del archivo. Por esto es mejor usar **readline()** para recorrer las líneas en un objeto archivo.
+
+**Listado 5.2:** `fastaread.py`: Leer secuencialmente un archivo FASTA.
+
+```
+sequence = ''
+with open('samples/seqA.fas') as fh:
+  name = fh.readline()[1:-1]
+  for line in fh:
+    sequence += line.replace('\n','')
+print('The name is : {0}'.format(name))
+print('The sequence is: {0}'.format(sequence))
+```
+
+
+**Explicación del código:** Este programa agrega a nuestro programa para calcular la carga neta de proteínas (Listado 4.14) la capacidad de usar, como datos de entrada, una secuencia en formato FASTA, en lugar de ingresarla manualmente. En la línea 3 tomamos la primera línea con **readline()** para recuperar el nombre de la secuencia (*O00626* | *HUMAN Small inducible cytokineA22*.) y lo llamamos `name`. La fórmula **for x in filehandle** (línea 4) es la forma más eficiente de recorrer todas las líneas de un archivo.
+
+**Listado 5.3:** `netchargefile.py`: Calcular la carga neta leyendo el input desde un archivo.
+
+```
+sequence = ''
+charge = -0.002
+aa_charge = {'C':-.045, 'D':-.999, 'E':-.998, 'H':.091, 'K':1, 'R':1, 'Y':-.001}
+with open('prot.fas') as fh:
+  fh.readline()
+  for line in fh:
+    sequence += line[:-1].upper()
+for aa in sequence:
+  charge += aa_charge.get(aa,0)
+print(charge)
+```
+
+**Explicación del código:** El código es casi el mismo que el del listado 4.14, con la diferencia de cómo se leen los datos de la proteína; en lugar de utilizar **input**, los datos se leen de un archivo (líneas 5 a 8), como en el listado 5.2. Tengamos en cuenta que en la línea 6 leemos la primera línea y el valor devuelto no se almacena, porque es el encabezado y no es necesario para la estimación de la carga neta. Cuando el programa comienza a iterar el archivo, desde la línea 7, comienza en la segunda línea.
+
+## ESCRIBIENDO ARCHIVOS
+
+Escribir un archivo es muy similar a leerlo. Los pasos 1 y 3 son similares. El cambio está en el segundo estado. Veamos como es el proceso:
+
+1. Abrir el archivo. Esto es similar a abrir un archivo para leer, solo es necesario tener en cuenta el uso del modo abierto que corresponde a la operación que vamos a hacer. Para crear un nuevo archivo usamos "w" como modo abierto. Para adjuntar datos al final del archivo usamos "a".
+Creando un identificador de archivo para un nuevo archivo:
+
+        fh = open('newfile.txt','w')
+
+    Creando un nuevo identificador de archivo para adjuntar información a un archivo:
+
+        fh = open('error.log','a')
+
+2. Escribir los datos en el archivo. El método para escribir datos en un archivo se llama **write()**. Acepta como parámetro una cadena, que se escribirá en el archivo representado por el identificador de archivo en el que se aplicará la función. Esquemáticamente: *file-handle.write*(*string*). Tenga en cuenta que **write** no agrega nuevas líneas, por lo tanto se deben agregar cuando sea necesario.
+
+3. Cerrar el archivo de la misma manera que lo hizo anteriormente: **filehandle.close()**. Al igual que en la lectura de archivos se puede usar **with** para abrir un archivo para escribirlo y cerrarlo de manera implícita pero segura. Ver listado 5.4.
+
+### Ejemplos de lectura y escritura de archivos.
+
+El siguiente código guardará los números del 1 al 5 en un archivo, cada uno en una línea separada. Entre cada número se indican los respectivos saltos de línea.
+
+**Listado 5.4:** `newfile.py`: Escribir números en un archivo.
+
+```
+with open('numbers.txt','w') as fh:
+  fh.write('1\n2\n3\n4\n5')
+```
+
+El programa del listado 5.3 se puede modificar para escribir el resultado en un archivo, en lugar de mostrarlo en la pantalla:
+
+**Listado 5.5:** `nettofile.py`: Cálculo de la carga neta guardando los resultados en un archivo.
+
+```
+sequence = ''
+charge = -0.002
+aa_charge = {'C':-.045, 'D':-.999, 'E':-.998, 'H':.091, 'K':1, 'R':1,
+             'Y':-.001}
+with open('prot.fas') as fh:
+  next(fh)
+  for line in fh:
+    sequence += line[:-1].upper()
+for aa in sequence:
+  charge += aa_charge.get(aa, 0)
+with open('out.txt','w') as file_out:
+  file_out.write(str(charge))
+```
+
+**Explicación del código**: El código es similar al del listado 5.3 con el agregado de la funcionalidad, en las dos últimas líneas (11 y 12), para escribir el resultado en un archivo.
+
+## ARCHIVOS CSV {#seccionCSV}
+
+Mientras se realiza el trabajo de procesamiento de datos, es muy común encontrar un tipo de archivo llamado CSV. CSV(de sus siglas en inglés **C**omma **S**eparated **V**alues) significa "valores separados por comas". Estos son archivos donde los datos están separados por comas, aunque a veces se usan otros separadores (como dos puntos, tabulaciones, etc.). Otra característica de este formato de archivo de texto en particular es que cada línea representa un registro separado. Todas las hojas de cálculo se pueden leer y escribir en este formato de archivo, lo que ayuda a explicar su popularidad. Tomemos, por ejemplo, el siguiente archivo (*B1.csv*):
+
+{line-numbers=off,lang=text}
+```
+MarkerID,LenAmp,MotifAmpForSeq
+TKO001,119,AG(12)
+TKO002,255,TC(16)
+TKO003,121,AG(5)
+TKO004,220,AG(9)
+TKO005,238,TC(17)
+```
+
+La primera línea contiene una descripción de cada campo. Vemos que son tres campos. Al igual que la información que almacena, las descripciones también están separadas por comas. Las siguientes líneas contienen los datos, siguiendo el mismo orden de la descripción. Para obtener el promedio del valor en la segunda columna, podemos hacer algo como esto:
+
+**Listado 5.6:** `csvwocsv.py`: Leer los datos desde un archivo CSV.
+
+```
+total_len = 0
+with open('B1.csv') as fh:
+  next(fh)
+  for n, line in enumerate(fh):
+    data = line.split(',')
+    total_len += int(data[1])
+print(total_len/n)
+```
+
+**Explicación del código:** Este es un programa que recorre un archivo, como en el listado 5.5, pero esta vez usamos el método **split()** que se usa para dividir los componentes de cada línea. En la línea 6 se almacena la suma del segundo campo ('total_len') (que contiene la información sobre la longitud de la secuencia).
+Este tipo de archivos (separados por comas) son tan populares que Python tiene un módulo para manejarlos: **csv**.
+
+De esta manera tenemos una matriz bidimensional del tipo name[fila, columna]. Teniendo esto en cuenta, podemos reescribir el programa en el listado 5.7:
+
+**Listado 5.7:** `csv1.py`: Leer los datos de un archivo CSV usando el módulo cvs.
+
+```
+import csv
+total_len = 0
+lines = csv.reader(open('B1.csv'))
+next(lines)
+for n, line in enumerate(lines):
+  total_len += int(line[1])
+print(total_len / n)
+```
+
+**Explicación del código**: Este programa es muy similar al anterior, con la diferencia de que el uso del módulo **csv** nos permite acceder a los contenidos de cada línea sin tener que usar el método **split**.
+Una forma de usar el módulo **csv** es generar una lista basada en el objeto devuelto por el método **reader()**. Haciendo esto, generamos algo similar a una matriz de un archivo csv:
+
+{line-numbers=off}
+```
+>>> data = list(csv.reader(open('B1.csv')))
+>>> data[0][2]
+'MotifAmpForSeq'
+>>> data[1][1]
+'119'
+>>> data[1][2]
+'AG(12)'
+>>> data[3][0]
+'TKO003'
+```
+
+De esta manera tenemos un array bidimensional del tipo *nombre[fila, columna]*. Teniendo esto en cuenta podemos reescribir el listado 5.7 de esta manera:
+
+**Listado 5.8:** `csv2.py`: Archivo CSV con módulo cvs y list.
+
+```
+import csv
+data = list(csv.reader(open('B1.csv')))
+total_len = sum([int(x[1]) for x in data[1:]]))
+print(total_len / (len(data)-1))
+```
+
+
+**Más funciones del módulo CSV**
+
+El delimitador de campo se cambia con el atributo **delimiter**. Por defecto es "," (coma), pero se puede usar cualquier cadena para delimitar los campos, en el siguiente ejemplo se usan el símbolo de dos puntos (":")
+
+{line-numbers=off}
+```
+rows = csv.reader(open('/etc/passwd'), delimiter=':')
+```
+
+Para algunos archivos es mejor especificar el "dialecto" CSV que nos interesa. Esto es importante porque no todos los archivos csv tienen la misma estructura. CSV no es un estándar formal, por lo que puede haber variantes. Estas diferencias sutiles pueden estropear nuestro procesamiento de datos. En algunos casos los datos están entre comillas, en otros, las comillas están reservadas solo para datos de texto. Para los archivos CSV generados por Excel, tenemos el "dialecto" Excel:
+
+{line-numbers=off}
+```
+rows = csv.reader(open('data.csv'), dialect='excel')
+```
+
+Además, hay un dialecto para archivos csv Excel que utilizan un "tab", en lugar de la coma,  para separar los datos. Si no estamos seguros del dialecto que nuestro código tendrá que manejar, el módulo csv tiene una clase que intenta identificarlo: **Sniffer()**:
+
+{line-numbers=off}
+```
+dialect = csv.Sniffer().sniff(open('data.csv').read())
+rows = csv.reader(open('data.csv'), dialect=dialect)
+```
+
+Hay más métodos disponibles en el módulo **csv**. Para obtener más información, al respecto,  les recomiendo la documentación del módulo en <https://docs.python.org/3/library/csv.html> y el PEP-305 (<https://www.python.org/dev/peps/pep-0305>), un documento antiguo pero todavía válido.
+Los archivos CSV son muy útiles, pero no pueden representar datos jerárquicos, por lo que se utilizan otros formatos para almacenar datos, como JSON y XML. Ambos están cubiertos en este libro.
+
+### Leer archivos CSV con Pandas
+
+También existe la librería Pandas, que contiene herramientas y estructuras de datos apropiadas para análisis de datos de alta performance. Esta es una librería avanzada, en este libro se usa en el [capítulo 14, Gráficos en Python](#graficosenpython). Aca mostramos como usar el método **read_csv()**.
+
+Pandas es una libreria de terceros, no suele estar instalada junto con Python a menos que tengas instalado la versión de Anaconda. Asi que el primer paso es instalar Pandas[^nota5-virtualenv]:
+
+{line-numbers=off,lang=text}
+```
+$ python3 -m venv pandasvenv
+$ . pandasvenv/bin/activate
+(pandasvenv)$ pip install pandas
+```
+
+Una vez instalado Pandas, veamos la sintaxis de **read_csv()**:
+
+{line-numbers=off,lang=python}
+```
+pandas.read_csv(<FILE>,sep=',')
+```
+
+Si queremos abrir el archivo *B1.csv* con Pandas, usamos:
+
+{line-numbers=off,lang=python}
+```
+>>> import pandas
+>>> pandas.read_csv('../../samples/B1.csv')
+  MarkerID  LenAmp MotifAmpForSeq
+0   TKO001     119         AG(12)
+1   TKO002     255         TC(16)
+2   TKO003     121          AG(5)
+3   TKO004     220          AG(9)
+4   TKO005     238         TC(17)
+```
+
+A diferencia del módulo CSV, **read_csv()** devuelve un objeto especial llamado **dataframe**. No vamos a profundizar sobre **dataframe** aca, aunque si vamos a ver lo básico de como se acceden a los datos. Por ejemplo como recorrer todas las filas para sumar el valor de una columna para calcular el promedio (como ocurre en el listado 5.7 y 5.8).
+
+**Listado 5.9:** `pandas1.py`: Leyendo archivo CSV con **pandas**.
+
+```
+import pandas
+
+total_len = 0
+df = pandas.read_csv('B1.csv')
+for x in df['LenAmp']:
+  total_len += x
+n = len(df['LenAmp'])
+print(total_len/n)
+```
+
+Si bien el programa anterior cumple su objetivo, usando el método **mean()** de **dataframe** esto se puede simplificar en 2 líneas:
+
+**Listado 5.10:** `pandas2.py`: Usando función de dataframe.
+
+```
+import pandas
+
+df = pandas.read_csv('B1.csv')
+print(df['LenAmp'].mean())
+```
+
+[^nota5-virtualenv]: Para mas información sobre como instalar módulos de terceros, ver el próximo capítulo.
+
+### Leer y escribir archivos Excel
+
+El módulo **csv** permite leer archivos Excel, siempre que el archivo se convierta primero en csv. Este paso se puede evitar con un módulo de terceros llamado **xlrd**. Este módulo se puede instalar con **pip** o **conda** ([Ver "Instalación de módulos de terceros" en el capítulo 6](#paquetesexternos)).
+El listado 5.8 recupera datos de un archivo Excel llamado *sampledata.xlsx* (ver la Figura 5.1). En este listado queremos hacer un diccionario (`iedb`) a partir de la columna A (*keys*) y la columna C (*values*), por lo que este programa recorre ambas columnas y completa el diccionario:
+
+**Listado 5.11:** `excel1.py`: Leyendo un archivo xlsx con **xlrd**.
+
+{id='excel1',line-numbers=on,lang=python}
+~~~~~~
+import xlrd
+iedb = {}
+book = xlrd.open_workbook('sampledata.xlsx')
+sh = book.sheet_by_index(0)
+for row_index in range(1, sh.nrows): #saltea la primera linea.
+  iedb[int(sh.cell_value(rowx=row_index, colx=0))] = \
+      sh.cell_value(rowx=row_index, colx=2)
+print(iedb)
+~~~~~~
+
+Veamos que se trata de una salida de muestra, la salida real es más larga pero se cortó para que se pueda mostrar. Compare esta salida con la figura 5.1.
+
+{width=80%}
+![**Figura 5.1** Planilla de cálculo Excel llamada sampledata.xlsx.](images/excel1.png)
+
+Para escribir archivos Excel se puede usar **xlwt** que funciona de manera similar a **xlrd**. El listado 5.9 escribe `list1` y `list2` en las columnas A y B usando **xlwt**.
+
+**Listado 5.12:** `excel2.py`: Escribir un archivo XLS con **xlwt**.
+
+{id="excel2",line-numbers=on,lang=python}
+~~~~~~
+import xlwt
+list1 = [1, 2, 3, 4, 5]
+list2 = [234, 267, 281, 301, 331]
+wb = xlwt.Workbook()
+ws = wb.add_sheet('First sheet')
+ws.write(0, 0, 'Column A')
+ws.write(0, 1, 'Column B')
+i = 1
+# uso zip para recorrer 2 listas a la vez
+for x,y in zip(list1, list2):
+  ws.write(i, 0, x) # Row, Column, Data.
+  ws.write(i, 1, y)
+  i += 1
+wb.save('mynewfile.xls')
+~~~~~~
+
+En el [listado 18.2](#toexcel) se puede ver un ejemplo de uso de **xlwt**
+
+## PICKLE: ALMACENAR Y RECUPERAR EL CONTENIDO DE LAS VARIABLES {#picklesection}
+
+Todas las variables creadas durante la vida útil de un programa se almacenan temporalmente en la memoria y desaparecen cuando el programa termina. Python proporciona un módulo para almacenar y recuperar del disco, o cualquier otro medio, el contenido de estas variables: el módulo Pickle.[^nota5-4] **pickle** serializa cualquier estructura de datos de Python en un flujo de bytes. Este flujo de bytes se puede guardar en el disco o enviar a través de la red. En el otro extremo, **pickle** puede transformar el flujo de bytes en un objeto con la estructura interna original. La siguiente secuencia de comandos genera un diccionario (`sp_dict`) y lo guarda en un archivo (llamado `spdict.data`) para que esté disponible desde otro programa.
+
+[^nota5-4]: Pickle tiene otras características que las descritas en este libro. Para tener una visión más extensa de Pickle, ver <https://docs.python.org/3/library/pickle.html> # module-pickle.
+
+**Listado 5.13:** `picklesample.py`: Ejemplo básico de pickle.
+
+```
+import pickle
+sp_dict = {'one':'uno', 'two':'dos', 'three':'tres'}
+with open('spdict.data', 'wb') as fh:
+  pickle.dump(sp_dict, fh)
+```
+
+Con **pickle.dump()**, el diccionario `sp_dict` se guarda en el archivo al que hace referencia el manejador de archivos (`fh`). **pickle.dump()** acepta cuatro parámetros. El primer parámetro es el objeto que queremos almacenar. El segundo es el objeto de tipo archivo donde deseamos almacenar nuestro objeto. Un tercer argumento (no utilizado en el ejemplo) es el **protocol**, un número entero que representa la forma en que se codificará la información. Cuando no se especifica ningún protocolo (como en este caso), el valor predeterminado es 3, que es un protocolo binario de Python 3 que incompatible con versiones anteriores de Python. Para obtener más información sobre los protocolos pickle mirá más abajo *Protocolos para Pickle*. El cuarto parámetro (**fix_imports**) cuando se establece en Verdadero (`True`) y el protocolo menos de 3 se usa para obtener compatibilidad con Python 2.
+Los datos almacenados en `spdict.data` se pueden recuperar con **pickle.load()**:
+
+{line-numbers=off}
+```
+>>> import pickle
+>>> pickle.load(open('spdict.data','rb'))
+{'one':'uno', 'two':'dos', 'three':'tres'}
+```
+
+El método **load** requiere el identificador de archivo del objeto que queremos recoger.
+Tengamos en cuenta que en ambos casos (**dump** y **load**) estoy usando `b` (para binario) para abrir el archivo porque el protocolo predeterminado que estoy usando escribe un archivo binario. Si no abre el archivo como binario, Python intentará convertirlo a Unicode y fallará.
+
+A> **Protocolos para Pickle**
+A> Aquí hay una lista de cinco protocolos diferentes que se pueden usar con **pickle**. Cuanto más alto es el protocolo utilizado, más reciente es la versión de Python que se necesita para leer el pickle producido.
+A>
+A> * 0 es el protocolo original "legible por humanos" y compatible con versiones anteriores de Python.
+A>
+A> * 1 es un formato binario antiguo que también es compatible con versiones anteriores de Python.
+A>
+A> * 2 es más eficiente con las clases de nuevo estilo.
+A>
+A> * 3 es el protocolo predeterminado en Python 3. Tiene soporte explícito para objetos de bytes y no puede ser leído por Python 2.x. Este es el protocolo recomendado cuando se requiere compatibilidad con otras versiones de Python 3.
+A>
+A> * 4 de Python 3.4. Agrega soporte para objetos muy grandes, pudiendo aplicar **pickle** a más tipo de objetos, y algunas optimizaciones del formato de datos.[^nota5-5]
+
+[^nota5-5]: Consultá la PEP 3154 para obtener información sobre las mejoras traídas por el protocolo 4.
+
+W> Nunca hay que hacer **load()** de datos recibidos de una fuente no confiable, porque el módulo **pickle** no es seguro contra datos erróneos o maliciosos. ¿Qué es una fuente no confiable? En el contexto de la seguridad informática, toda fuente de datos externa al programador es una fuente no confiable, esto incluye a los datos traidos de Internet. Estos datos deben verificarse primero antes de aplicar la función **load()** de **pickle**.
+
+
+## ARCHIVOS JSON
+
+JSON (**J**ava**S**cript **O**bject **N**otation) es un formato de intercambio de datos legible por humanos inspirado por JavaScript que se usa ampliamente en aplicaciones relacionadas con la web. Puede convertir un diccionario, una lista o casi cualquier tipo de datos en un objeto **JSON** y luego almacenar o transmitir este objeto a través de la red. No todos los objetos se pueden convertir a **JSON**, ya que algunos objetos son específicos de Python y no están disponibles en otros lenguajes informáticos. Por ejemplo, no se puede convertir un conjunto en un **JSON**. ¿Por qué usarías un serializador menos capaz como **JSON** cuando tenemos **pickle**? Porque necesitamos compartir datos y queremos que estos datos estén disponibles para cualquier lenguaje informático. Si se comparte un objeto **pickle** estamos obligando al receptor a usar Python. Entonces, ¿por qué no usar CVS que también es muy popular? CVS es bueno para datos en columnas, pero no para datos anidados y de tipo diccionario. Para compartir datos que tengan alguna relación compleja y se desee que estén disponible para cualquier lenguaje de programación, es mejor usar **JSON**.
+Este es un ejemplo de un archivo **JSON**:
+
+{line-numbers=off}
+```
+{
+  "contactPoint":{
+    "fn":"PREUSCH, PETER\u00a0",
+    "hasEmail":"mailto:preuschp@nigms.nih.gov"
+  },
+  "description":"<p>The Protein Data Bank (PDB) archive is the single worldwide repository of information about the 3D structures of large biological molecules, including proteins and nucleic acids found in all organisms</p>\n", "identifier":"d9f3932a-9c5541b3ad3a0b4e18ee4752", "keyword":[
+    "national-institutes-of-health-nih"
+  ],
+  "language":[
+    "en"
+  ],
+  "license":"http://opendefinition.org/licenses/odc-odbl/", "modified":"2016-07-18",
+  "programCode":[
+    "009:000"
+  ],
+  "publisher":{
+    "@type":"org:Organization",
+    "name":"National Institutes of Health (NIH)"
+  },
+  "title":"Protein Data Bank (PDB)"
+}
+```
+
+**json** comparte la misma interfaz que **pickle**, podemos leer y escribir en una forma similar.
+
+{line-numbers=off}
+```
+>>> import json
+>>> sp_dict = {'one':'uno', 'two':'dos', 'three':'tres'}
+>>> with open('spdict.json', 'w') as fh:
+...   json.dump(sp_dict, fh)
+```
+
+El archivo guardado se ve así:
+
+{line-numbers=off}
+```
+{'three': 'tres', 'one': 'uno', 'two': 'dos'}
+```
+
+Para obtener el diccionario fuera de un archivo JSON:
+
+{line-numbers=off}
+```
+>>> import json
+>>> with open('spdict.json') as fh:
+...   sp_d = json.load(fh)
+```
+
+Después de ejecutar el código anterior, el diccionario `sp_d` tiene el contenido original:
+
+{line-numbers=off}
+```
+>>> sp_d
+{'three': 'tres', 'one': 'uno', 'two': 'dos'}
+```
+
+Tengamos en cuenta que **json** no puede serializar conjuntos y otros objetos específicos de Python:
+
+{line-numbers=off}
+```
+>>> json.dump({1,2,3,4,3,2,7}, open('test.json','wb'))
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "python3.5/json/__init__.py", line 178, in dump
+    for chunk in iterable:
+  File "python3.5/json/encoder.py", line 436, in _iterencode
+    o = _default(o)
+    File "python3.5/json/encoder.py", line 180, in default
+      raise TypeError(repr(o) + " is not JSON serializable")
+TypeError: {1, 2, 3, 4, 7} is not JSON serializable
+```
+
+Aquí hay una lista de objetos serializables: int, float, str, list, dict, True, False y None.
+
+## MANEJO DE ARCHIVOS: OS, OS.PATH, SHUTIL Y MÓDULO PATH
+
+Hay más acciones con archivos además de leer y escribir. Copiar, mover, eliminar, listar, cambiar directorio, establecer propiedades de archivo, y otros, que se pueden hacer con los módulos **os**, **shutil** y el paquete externo **path** (también conocido como **path.py**).
+
+El módulo **os** maneja una interfaz con el sistema operativo. Veamos algunos métodos importantes proporcionados por este módulo:
+
+**getcwd()**: Devuelve una cadena que representa el directorio de trabajo actual.
+
+{line-numbers=off}
+```
+>>> import os
+>>> os.getcwd()
+'/home/sb'
+```
+
+**chdir(path)**: Cambia el directorio de trabajo actual a una ruta determinada.
+
+{line-numbers=off}
+```
+>>> os.getcwd()
+'/home/sb'
+>>> os.chdir('docs')
+>>> os.getcwd()
+'/home/sb/docs'
+>>> os.chdir('..')
+>>> os.getcwd()
+'/home/sb'
+```
+
+**listdir(dir)**: Devuelve una lista que contiene los nombres de las entradas en el directorio. Para saber si un nombre devuelto por **listdir** es un archivo o un directorio, usamos **os.path.isdir()** vs **os.path.isfile()**.
+
+{line-numbers=off}
+```
+>>> os.listdir('/home/sb/bioinfo/seqs')
+['readme.txt', 'ms115.ab1','.atom', 'projects', '.bash_history']
+```
+
+**path.isfile(string)** y **path.isdir(string)**: verifica si la cadena pasada como argumento es un archivo o un directorio. Devuelve verdadero o falso.
+
+{line-numbers=off}
+```
+>>> os.path.isfile('/home/sb')
+False
+>>> os.path.isdir('/home/sb')
+True
+```
+
+**remove(file)**: elimina un archivo. El archivo debería existir y debería tener permiso de escritura.
+
+{line-numbers=off}
+```
+>>> os.remove('/home/sb/bioinfo/seqs/ms115.ab1')
+```
+
+**rename(source, destination)**: cambiar el nombre del archivo o del directorio *source* al *destination*.
+
+{line-numbers=off}
+```
+>>> os.rename('/home/sb/seqs/readme.txt','/home/sb/Readme')
+  mkdir(path): Create a directory named path.
+>>> os.mkdir('/home/sb/processed-seqs')
+```
+
+En el interior del módulo **os** se encuentra el módulo **path**, que contiene métodos relacionados con la manipulación de rutas.
+
+**path.join**(*directory1*, *directory2*, ...): Une dos o más componentes de nombre de ruta, insertando el separador de ruta del sistema operativo según sea necesario. En Windows agregará "\\", mientras que en Linux y macOS insertará "/". **path.join** no verificará si la ruta creada es válida.
+
+{line-numbers=off}
+```
+>>> os.path.join(os.getcwd(), 'images')
+'/home/images'
+```
+
+**path.exists(*path*)**: Comprueba si existe una ruta determinada.
+
+{line-numbers=off}
+```
+>>> os.path.exists(os.path.join(os.getcwd(), 'images'))
+False
+```
+
+**path.split(*path*)**: Devuelve una tupla que divide el nombre del archivo o directorio al final y el resto de la ruta.
+
+{line-numbers=off}
+```
+>>> os.path.split('/home/sb/seqs/ms2333.ab1')
+('/home/sb/seqs', 'ms2333.ab1')
+```
+
+**path.splitext(*path*)**: Divide la extensión de un archivo. Devuelve una tupla con la extensión y el parámetro original hasta el punto.
+
+{line-numbers=off}
+```
+>>> os.path.splitext('/home/sb/seqs/ms2333.ab1')
+('/home/sb/seqs/ms2333', '.ab1')
+```
+
+Otras operaciones relacionadas con archivos, como la copia y la eliminación, se pueden encontrar en el módulo de **shutil**:
+Las funciones más importantes son *copy*, *copy2* y *copytree*.
+
+*copy*(*source*, *destination*): copia el origen del archivo al destino.
+
+*copy2*(*source*, *destination*): también copia la última hora de acceso y la última modificación (como el comando de Unix *cp -p*).
+
+*copytree*(*source*, *destination*): copia recursivamente un árbol de directorios completo desde el directorio de origen a un directorio de destino que no debe existir con anterioridad.
+
+Para obtener más información sobre **shutil**, [consultá la documentación](https://docs.python.org/3/library/shutil.html) o con `help(shutil)` en el shell de Python.
+
+### Módulo path (antes llamado path.py)
+
+Hay un módulo externo llamado **path** que actua como un wrapper para **os.path**. Este módulo nos permite hacer la mayoría de las mismas tareas que los demás módulos pero con una interfaz de programación más fácil de usar. Dado que es un módulo externo, no está disponible con la instalación regular de Python (a menos que tenga una distribución de Python como Anaconda que viene con este y otros módulos externos). Si necesitas instalar **path**, usá pip:
+
+{line-numbers=off}
+```
+# pip install path
+```
+
+Aquí vemos algunas de las cosas que se pueden hacer con **path**. Estos ejemplos asumen la siguiente estructura de directorio:
+
+{line-numbers=off}
+```
+/home
+-- /sb
+  -- xx.py
+  -- /py4bio
+    -- ch1.pdf
+    -- ch1.tex
+    -- ch2.pdf
+    -- ch2.tex
+    -- /imgs
+      -- fig1.png
+      -- fig2.png
+```
+
+* Crear un nuevo archivo: Crear un objeto Path y llamar al método **touch**. Esto generará un archivo nuevo si la cadena que usamos para generar el objeto Path no se corresponde con algún archivo.
+
+  {line-numbers=off}
+  ```
+  >>> from path import Path
+  >>> f = Path('/home/sb/newfile.text')
+  >>> f.touch()
+  ```
+
+* Chequear un objeto es un archivo o un directorio (**isfile()**):
+
+  {line-numbers=off}
+  ```
+  >>> f.isfile()
+  True
+  ```
+
+* Obtener el nombre, extensión y directorio padre (**ext**, **name** y **parent**):
+
+  {line-numbers=off}
+  ```
+  >>> f = Path('/home/sb/xx.py')
+  >>> f.ext
+  '.py'
+  >>> f.name
+  Path('xx.py')
+  >>> f.parent
+  Path('/home/sb')
+  >>> f.parent.parent
+  Path('/home')
+  ```
+
+* Obtener todos los archivos y directorios en un diccionario (**files()** y **dirs()**):
+
+  {line-numbers=off}
+  ```
+  >>> d = Path('/home/sb/py4bio')
+  >>> d.files()
+  [Path('/home/sb/py4bio/ch1.tex'), Path('/home/sb/py4bio/ch2.pdf'),<=
+  Path('/home/sb/py4bio/ch2.tex'), Path('/home/sb/py4bio/ch1.pdf')]
+  >>> d.dirs()
+  [Path('/home/sb/py4bio/imgs')]
+  ```
+
+  Podemos aplicar filtros:
+
+  {line-numbers=off}
+  ```
+  >>> d.files('*.pdf')
+  [Path('/home/sb/py4bio/ch2.pdf'), Path('/home/sb/py4bio/ch1.pdf')]
+  ```
+
+* Recorrer todos los archivos en un directorio (incluyendo los archivos que están dentro de los directorios encontrados en el directorio padre), usando **walk()**:
+
+  {line-numbers=off}
+  ```
+  d = Path('/home/sb/py4bio')
+  for f in d.walk():
+    if f.isfile():
+      print(f)
+  ```
+
+el cual devolverá:
+
+  {line-numbers=off}
+  ```
+    /home/sb/py4bio/ch1.tex
+    /home/sb/py4bio/imgs/fig1.png
+    /home/sb/py4bio/imgs/fig3.png
+    /home/sb/py4bio/imgs/fig4.png
+    /home/sb/py4bio/imgs/fig2.png
+    /home/sb/py4bio/ch2.pdf
+    /home/sb/py4bio/ch2.tex
+    /home/sb/py4bio/ch1.pdf
+  ```
+
+### Consolidar secuencias múltiples de ADN en un archivo FASTA
+
+El siguiente programa asume que tenemos un directorio (`bioinfo/seqs/`) con muchas secuencias de ADN en formato FASTA y queremos consolidarlos en un solo archivo FASTA llamado `outfile.fasta`. Este archivo puede ser usado, por ejemplo, como un archivo de entrada para correr un BLAST.
+
+**Listado 5.11:** `consolidate.py`: Consolidando varios archivo en uno.
+
+{id='consolidate',line-numbers=on,lang=python}
+~~~~~~
+from path import Path
+d = Path('bioinfo/seqs/')
+with open('outfile.fasta', 'w') as f_out:
+  for file_name in d.walk('*.fasta'):
+    with open(file_name) as f_in:
+      data = f_in.read()
+      f_out.write(data)
+~~~~~~
+
+**Explicación del código**: El programa define un objecto del tipo **Path** con el directorio `bioinfo/seqs/`. En la línea 3 abrimos un archivo (`outfile.fasta`) para guardar los contenidos de todas las secuencias. En la línea 4 empezamos a recorrer cada archivo terminado en *.fasta*. A cada archivo lo abrimos, leemos el contenido (línea 6) y lo escribimos en `outfile.fasta` (línea 7). No hay necesidad de cerrar los archivos abiertos dado que están dentro de un bloque **with**.
+
+
+## RECURSOS ADICIONALES
+
+* [File and directory access](https://docs.python.org/3/library/filesys.html)
+
+* [Generate temporary files and directories](https://docs.python.org/3/library/tempfile.html)
+
+* [CSV file API](http://www.python.org/dev/peps/pep-0305/)
+
+* [Tad, a program to view and analyze CSV data](http://tadviewer.com)
+
+* [Working with Excel files in Python](http://www.python-excel.org)
+
+* [The "with" statement](http://www.python.org/dev/peps/pep-0343/)
+
+* [JSON formatter](https://jsonformatter.curiousconcept.com/)
+
+* [Py YAML](http://pyyaml.org/)
+
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1-  ¿Cuál es la diferencia entre los modos "w" y  "a", si ambos permiten escribir archivos?
+X>
+X> 2- ¿Por qué debemos cerrar todos los archivos que ya no se usan?
+X>
+X> 3- ¿Por qué abrimos los archivos usando `with`?
+X>
+X> 4- Hacer un programa que pregunte el nombre y luego escribirlo en un archivo llamado *MyName.txt*.
+X>
+X> 5- ¿Es posible parsear los archivos csv sin el módulo **cvs**? Si es así, ¿comó se hace?
+X>
+X> 6- ¿Por qué no es recomendado leer un archivo usando **read()**?
+X>
+X> 7- ¿Cuál es la forma más eficiente para recorrer un archivo línea por línea?
+X>
+X> 8- ¿Qué es Pickle en Python?
+X>
+X> 9-  Explicar qué es JSON y cuáles son las limitaciones que tiene respecto a Pickle.
+X>
+X> 10- Hacer un programa que lea todos los números de la segunda columna de una archivo Excel e imprimir el promedio de todos los valores.
