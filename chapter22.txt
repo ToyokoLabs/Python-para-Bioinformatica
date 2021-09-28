@@ -1,0 +1,294 @@
+{:: encoding="UTF-8" /}
+
+# Dibujando posiciones de marcadores usando información almacenada en una base de datos
+
+## DESCRIPCIÓN DEL PROBLEMA
+
+Necesitamos representar gráficamente los locus seleccionados en 5 cromosomas de *Arabidopsis thaliana*[^nota22-1]. La información de la posición de los locus están almacenados en una base de datos a la cual el programa debe conectarse y recuperar la información antes de marcarlos. En este caso usamos MongoDB como el servidor de la base de datos. La parte gráfica se hace utilizando la clase **BasicChromosome** de Biopython.
+
+En la Figura 22.1 hay un ejemplo de cómo se ve la salida.
+
+[^nota22-1]: Arabidopsis thaliana (conocida como arabidopsis y oruga) es una pequeña planta con flores que se usa ampliamente como organismo modelo en biología de plantas. Se usa en este ejemplo porque hay mapas físicos y genéticos completos y disponibles.
+
+### Trabajo preliminar sobre los datos
+
+Los datos crudos utilizados por este programa son proporcionados por Arabidopsis Information Resource[^nota22-2] (TAIR). El archivo se encuentra en un servidor FTP y se puede recuperar con cualquier navegador web desde <https://www.arabidopsis.org/download_files/Genes/TAIR7_genome_release/TAIR7_Transcripts_by_map_position.gz>. Se trata de un archivo CSV comprimido con gzip con más información que la posición del locus en el cromosoma. De este archivo necesitamos cuatro campos: `Locus`, `Chromosome`, `Map_start_coordinate` y `Map_end_coordinate`.
+
+Acá hay una breve muestra de los datos de TAIR:
+
+[^nota22-2]: El sitio web de TAIR está disponible en <http://www.arabidopsis.org>.
+
+{line-numbers=off}
+```
+Locus Locus_orientation_is_5 Genbank_acc external_id <=
+Type(1=cDNA 2=EST) Chromosome Transcript_orientation_is_5 <=
+Map_start_coordinate Map_end_coordinate
+(... cut ...)
+AT1G01280 1 BX814827 42472162 1 1 1 112263 113195
+AT1G01280 1 BX814827 42472162 1 1 1 113279 113861
+AT1G01280 1 AA720028 2733638 2 1 1 112341 112589
+AT1G01280 1 AV535036 8695319 2 1 1 112300 112919
+AT1G01280 1 AV532990 8693273 2 1 0 113720 113947
+AT1G01280 1 BT022023 63003811 1 1 1 112283 113195
+AT1G01280 1 BT022023 63003811 1 1 1 113279 113944
+(... cut ...)
+```
+
+![**Figura 22.1** El producto del Listing 22.2, usando el set de datos de la demostración (NODBDEMO)](images/AT.png)
+
+{line-numbers=off}
+```
+AT1G01280,1,112263,113947
+```
+
+En este set de datos las posiciones más bajas y las más altas no están marcadas de manera apropiada. En el recorte del texto que vemos arriba, la posición más baja es 112263 y la más alta es 113947, así este texto debería ser traducido en la siguiente línea:
+
+**Listado 4.2:** `createdb.py`: Convertir los datos del formato de archivo CVS para insertar en MongoDB.
+
+```
+import csv
+import gzip
+import os
+
+from pymongo import MongoClient, TEXT
+
+FILE_NAME = '../../samples/TAIR7_Transcripts_by_map_position.gz'
+CONNECTION_STRING = os.getenv('MONGODB_CS', 'localhost:27017')
+
+# Get a file handler of an uncompressed file:
+with gzip.open(FILE_NAME, "rt", newline="") as f_unzip:
+  rows = csv.reader(f_unzip, delimiter='\t')
+  next(rows) # Skip the header
+  # Dictionary for storing markers and associated information:
+  at_d = {}
+  # Load the dictionary using the data in the file:
+    for row in rows:
+      if row[0] in at_d:
+        chromosome, left_val, right_val = at_d[row[0]]
+        c7 = int(row[7])
+        left = c7 if c7<int(left_val) else left_val
+        c8 = int(row[8])
+        right = c8 if c8>int(right_val) else right_val
+        at_d[row[0]] = (int(chromosome), left, right)
+      else:
+        at_d[row[0]] = (int(row[5]), int(row[7]),
+                        int(row[8]))
+# Make a list with dictionaries to be stored as documents in
+# MongoDB
+markers = []
+for marker in at_d:
+  markers.append({'marker_id': marker, 'chromosome':
+                  at_d[marker][0], 'start': at_d[marker][1],
+                  'end': at_d[marker][2]})
+client = MongoClient(CONNECTION_STRING)
+db = client.TAIRDB
+collection = db.markers_map
+collection.insert_many(markers)
+collection.create_index([('marker_id', TEXT)])
+```
+
+### Versión de MongoDB con el código fuente comentado
+
+Con la bases de datos en su lugar podemos finalmente hacer un programa para traer la información del marcador desde la base de datos MongoDB y ubicarlos en los cromosomas en un documento PDF.
+
+El programa pregunta por una lista de loci, chequea si cada locus pertenece a un patrón específico (las líneas 130 y 162 muestra como chequear un patrón usando regex) y luego trae los datos de la base de datos. Este programa también tiene dos modos de testeo: **DBDEMO** y **NODBDEMO**. Estos modos son usados para testear el programa sin entrar en todos los loci manualmente. El primer modo usa una lista de loci predefinidos (comenzando en la línea 142) y los devuelve desde la base de datos. El segundo modo usa una lista incorporada de loci con sus posiciones (desde la línea 147) para testear el programa sin una conexión a la base de datos.[^nota22-3] Veamos que la cadena de conexión es tomada de un ambiente variable. Si esta variable no está presente se usa la cadena `'localhost:27017'`. Para setear una variable ambiental en los sistemas Linux o macOS, usamos:
+
+[^nota22-3]: Tener la información dentro del programa se denomina hardcoding. En la mayoría de los casos esto no es recomendable dado que una mejor idea es tener la información en un archivo externo donde es fácil hacer cambios. En los casos que la información está hardcodeada es solo con el propósito de depurar el programa(debugging).
+
+{line-numbers=off}
+```
+$ export MONGODB_CS='mongodb://user:pass@dobdomain:port'
+```
+
+Este programa necesita **pymongo**, **biopython** y **reportlab** para funcionar:
+
+Listado 22.2: `drawmarker.py`: Dibujar marcadores en cromosomas de la información extraída de la base de datos MongoDB.
+
+```
+import os
+import re
+
+from pymongo import MongoClient
+from Bio.Graphics import BasicChromosome
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+
+CONNECTION_STRING = os.getenv('MONGODB_CS', 'localhost:27017')
+
+def sortmarkers(crms,end):
+    """ Sort markers into chromosomes """
+    i = 0
+    crms_o = [[] for r in range(len(end))]
+    crms_fo = [[] for r in range(len(end))]
+    for crm in crms:
+        for marker in crm:
+            # add the marker start position at each chromosome.
+            crms_fo[i].append(marker[1])
+        crms_fo[i].sort() # Sort the marker positions.
+        i += 1
+    i = 0
+    for order in crms_fo:
+        # Using the marker order set in crms_fo, fill crms_o
+        # with all the marker information
+        for pos in order:
+            for mark in crms[i]:
+                if pos==mark[1]:
+                    crms_o[i].append(mark)
+        i += 1
+    return crms_o
+
+def getchromo(crms_o, end):
+    """ From an ordered list of markers, generate chromosomes.
+    """
+    chromo = [[] for r in range(len(end))]
+    i = 0
+    for crm_o in crms_o:
+        j = 0
+        if len(crm_o)>1:
+            for mark in crm_o:
+                if mark==crm_o[0]: #first marker
+                    chromo[i].append(('', None, mark[1]))
+                    chromo[i].append((mark[0], colors.red,
+                                      mark[2]-mark[1]))
+                    ant = mark[2]
+                elif mark==crm_o[-1]: #last marker
+                    chromo[i].append(('', None, mark[1]-ant))
+                    chromo[i].append((mark[0], colors.red,
+                                      mark[2]-mark[1]))
+                    chromo[i].append(('', None, end[i]-mark[2]))
+                else:
+                    chromo[i].append(('', None, mark[1]-ant))
+                    chromo[i].append((mark[0], colors.red,
+                                      mark[2]-mark[1]))
+                    ant=mark[2]
+        elif len(crm_o)==1: # For chromosomes with one marker
+            chromo[i].append(('', None, crm_o[0][1]))
+            chromo[i].append((crm_o[0][0], colors.red,
+                              crm_o[0][2]-crm_o[0][1]))
+            chromo[i].append(('', None, end[i]-crm_o[0][2]))
+        else:
+            # For chromosomes without markers
+            # Add 3% of each chromosome.
+            chromo[i].append(('', None, int(0.03*end[i])))
+            chromo[i].append(('', None, end[i]))
+            chromo[i].append(('', None, int(0.03*end[i])))
+        i += 1
+        j += 1
+    return chromo
+
+def addends(chromo):
+    """ Adds a 3% of blank region at both ends for better
+        graphic output.
+    """
+    size = 0
+    for x in chromo:
+        size += x[2]
+    # get 3% of size of each chromosome:
+    endsize = int(float(size)*.03)
+    # add this size to both ends in chromo:
+    chromo.insert(0,('', None, endsize))
+    chromo.append(('', None, endsize))
+    return chromo
+
+def load_chrom(chr_name):
+    """ Generate a chromosome with information
+    """
+    cur_chromosome = BasicChromosome.Chromosome(chr_name[0])
+    chr_segment_info = chr_name[1]
+
+    for seg_info_num in range(len(chr_segment_info)):
+        label, color, scale = chr_segment_info[seg_info_num]
+        # make the top and bottom telomeres
+        if seg_info_num == 0:
+            cur_segment = BasicChromosome.TelomereSegment()
+        elif seg_info_num == len(chr_segment_info) - 1:
+            cur_segment = BasicChromosome.TelomereSegment(1)
+        # otherwise, they are just regular segments
+        else:
+            cur_segment = BasicChromosome.ChromosomeSegment()
+        cur_segment.label = label
+        cur_segment.label_size = 12
+        cur_segment.fill_color = color
+        cur_segment.scale = scale
+        cur_chromosome.add(cur_segment)
+
+    cur_chromosome.scale_num = max(END) + (max(END)*.04)
+    return cur_chromosome
+
+def dblookup(atgids):
+    """ Code to retrieve all marker data from name using MongoDB
+    """
+    client = MongoClient(CONNECTION_STRING)
+    db = client.pr4
+    collection = db.markers_map4
+    markers = []
+    for marker in atgids:
+        mrk = collection.find_one({'marker_id': marker})
+        if mrk:
+            markers.append((marker, (mrk['chromosome'],
+                            mrk['start'], mrk['end'])))
+        else:
+            print('Marker {0} is not in the DB'.format(marker))
+    return markers
+
+# Size of each chromosome:
+END = (30427563, 19696817, 23467989, 18581571, 26986107)
+gids = []
+rx_rid = re.compile('^AT[1-5]G\d{5}$')
+print('''Enter AT ID or press 'enter' to stop entering IDs.
+Valid IDs:
+AT2G28000
+AT3G03020
+Also you can enter DBDEMO to use predefined set of markers
+fetched from a MongoDB database. Enter NODBDEMO to use a
+predefined set of markers without database access.''')
+while True:
+    rid = input('Enter Gene ID: ')
+    if not rid:
+        break
+    if rid=='DBDEMO':
+        gids = ['AT3G14890','AT1G66160','AT3G55260','AT5G59570',
+                'AT4G32551','AT1G01430','AT4G26000','AT2G28000',
+                'AT5G21090','AT5G10470']
+        break
+    elif rid=='NODBDEMO':
+        samplemarkers=[('AT3G14890', (3, 5008749, 5013275)),
+                       ('AT1G66160', (1, 24640827, 24642411)),
+                       ('AT3G55260', (3, 20500225, 20504056)),
+                       ('AT1G10960', (1, 3664385, 3665040)),
+                       ('AT5G23350', (5, 7857646, 7859280)),
+                       ('AT5G15250', (5, 4950414, 4952780)),
+                       ('AT1G55700', (1, 20825263, 20827306)),
+                       ('AT5G21090', (5, 7164583, 7167257)),
+                       ('AT5G10470', (5, 3289228, 3297249)),
+                       ('AT2G28000', (2, 11933524, 11936523)),
+                       ('AT3G03020', (3, 680920, 682009)),
+                       ('AT4G26000', (4, 13197255, 13199845)),
+                       ('AT4G32551', (4, 15707516, 15713587))]
+        break
+    if rx_rid.match(rid):
+        gids.append(rid)
+    else:
+        print("Bad format, please enter it again")
+
+if rid!='NODBDEMO':
+    samplemarkers = dblookup(gids)
+
+crms = [[] for r in range(len(END))]
+for x in samplemarkers:
+    crms[int(x[1][0])-1].append((x[0], x[1][1], x[1][2]))
+
+crms_o = sortmarkers(crms, END)
+chromo = getchromo(crms_o, END)
+all_chr_info = [('Chr I', chromo[0]), ('Chr II', chromo[1]),
+                ('Chr III', chromo[2]), ('Chr IV', chromo[3]),
+                ('Chr V', chromo[4])]
+
+organism = BasicChromosome.Organism()
+organism.page_size = (29.7*cm, 21*cm) #A4 landscape
+for chr_info in all_chr_info:
+    newcrom = (chr_info[0], addends(chr_info[1]))
+    organism.add(load_chrom(newcrom))
+
+organism.draw('at.pdf','Arabidopsis thaliana')
+```
