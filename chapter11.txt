@@ -1,0 +1,500 @@
+{:: encoding="UTF-8" /}
+
+# XML
+
+## INTRODUCCIÓN A XML
+
+**¿Qué es XML?**
+
+Un problema generalizado en todas las ramas de la tecnología de la información es el almacenamiento e intercambio de datos. Cada aplicación tiene su propia forma particular de almacenar la información generada y esto a menudo es un problema, especialmente cuando no tenemos la aplicación que generó los datos.
+
+Por ejemplo, los secuenciadores Sanger de ADN, de Applied Biosystems, almacenan datos en archivos con la extensión .ab1. Si queremos acceder a los datos almacenados en dicho archivo necesitamos saber cómo está estructurado internamente. El creador del formato ha publicado la especificación del archivo[^nota11-1] y sería posible, aunque no fácil, escribir el código para extraer nuestros datos de estos archivos. Por lo general, no tenemos tanta suerte y es muy común encontrar formatos de archivos de datos mal documentados o absolutamente no documentados. En muchos casos, aquellos que han querido abrir estos archivos han tenido que recurrir a la "ingeniería reversa", con resultados mixtos. Para evitar este tipo de problema y hacer un intercambio de datos más fluido entre aplicaciones de diferentes fabricantes, el W3C[^nota11-2] desarrolló el lenguaje de marcado extensible, mejor conocido como XML (e**X**tensible **M**arkup **L**anguage).
+
+El XML es una forma de representar datos, prácticamente cualquier tipo de dato puede ser representado usando XML. Los archivos de configuración, las bases de datos, las páginas web, las hojas de cálculo, e incluso los dibujos, se pueden representar y almacenar en XML.
+
+Para algunas aplicaciones específicas hay subconjuntos de XML preparados para representar un tipo particular de datos. Por lo tanto, las fórmulas matemáticas se pueden almacenar en un dialecto XML llamado MathML[^nota11-3], los gráficos vectoriales en SVG[^nota11-4] y las fórmulas químicas en CML[^nota11-5]. Las principales bases de datos bioinformáticas tienen sus datos disponibles en XML. Esto significa que, al aprender a leer XML, podemos acceder a una multitud de archivos de los orígenes más diversos.
+
+Antes de entrar en detalles sobre cómo procesar este tipo de archivo, revisemos este documento del W3C llamado “XML en 10 puntos”[^nota11-6] que muestra un panorama general:
+
+[^nota11-1]: La especificación del formato de archivo para archivos ABI está disponible en <http://www6.appliedbiosystems.com/support/software_community/ABIF_File_Format.pdf>.
+[^nota11-2]: El World Wide Web Consortium, abreviado W3C, es un consorcio internacional que produce estándares para la World Wide Web.
+[^nota11-3]: <http://www.w3.org/Math>
+[^nota11-4]: <http://www.w3.org/Graphics/SVG>
+[^nota11-5]: <http://www.xml-cml.org>
+[^nota11-6]: Tomado de <http://www.w3.org/XML/1999/XML-in-10-points>. Autorizado por “© [1999]
+World Wide Web Consortium, (Instituto de Tecnología de Massachusetts, Consorcio Europeo de Investigación para Informática y Matemáticas, Universidad de Keio). Todos los derechos reservados."
+
+**XML en 10 puntos**
+
+1. XML es un método para introducir datos estructurados. Cuando pensamos en "datos estructurados" pensamos en cosas tales como hojas de cálculo, libretas de direcciones, parámetros de configuración, transacciones financieras, dibujos técnicos, etc. Los programas que producen esta clase de datos a menudo también los guardan en disco, por lo que pueden usar tanto un formato binario como un formato texto. El último formato te permite, si es necesario, ver los datos sin el programa que los ha producido. XML consiste en una serie de reglas, pautas, convenciones, como quieras llamarlas, para planificar formatos texto para tales datos, de manera que produzcan archivos que sean fácilmente generados y leídos (por un ordenador) que son inequívocos, y que evitan escollos comunes como la falta de extensibilidad, falta de soporte para la internacionalización o localismo, y la dependencia de una determinada plataforma.
+
+2. XML se parece al HTML pero no es HTML
+Imagen decorativa, titulada 'html', presenta diversos signos de puntuación. Al igual que el HTML el XML utiliza tags -etiquetas- (palabras entre corchetes agudos: '<' y '>') y atributos (de la forma name="valor") pero mientras que HTML especifica lo que cada etiqueta y atributo significan (y frecuentemente la apariencia que presentará en un navegador el texto que hay entre ellos) XML usa las etiquetas sólo para delimitar piezas de datos, y deja la interpretación de los datos, completamente, a la aplicación que los lee. En otras palabras, si ves "<p>" en un fichero XML, no supongas que se trata de un párrafo, dependiendo del contexto, puede tratarse de un precio, un parámetro, una persona, un p... (A propósito, ¿quién ha dicho que debe ser una palabra que empiece por "p"?)
+
+3. XML es texto, pero no para ser leído
+Imagen decorativa, titulada 'texto' presenta las letras a, b y c.Los archivos XML son archivos de texto, como he dicho más arriba, pero son hasta más difíciles de leer por los humanos que los archivos HTML. Son archivos de texto, porque permiten a los expertos (tales como los programadores) depurar errores en las aplicaciones, más fácilmente, y en casos de emergencia, pueden usar un simple editor de textos para arreglar un archivo XML estropeado. Pero las reglas para los archivos XML son más estrictas que para los archivos HTML. El olvido de una etiqueta, o un atributo sin comillas, hacen que el archivo sea inservible; mientras que en HTML, a menudo, tales prácticas son explícitamente permitidas o al menos toleradas. Está escrito en la especificación oficial de XML: No le está permitido a las aplicaciones intentar justificar al creador de un archivo XML dañado; si el archivo está dañado, la aplicación debe detenerse inmediatamente y emitir un error.
+
+4. XML es una familia de tecnologías
+Imagen decorativa titulada 'familia' presenta una representación esquemática de una familia.Existe XML 1.0, la especificación que define cuales son las "tags" (etiquetas) y "atributos", pero alrededor de XML 1.0 hay una creciente serie de módulos opcionales que ofrecen colecciones de etiquetas y atributos, o pautas para especificar tareas. Existe, por ejemplo, Xlink (aún en desarrollo desde noviembre de 1999) que describe una manera estándar de añadir hiperenlaces a un archivo XML. XPointer y XFragments (también aún en desarrollo) son sintaxis para apuntar a partes de un documento XML. (Un Xpointer es parecido a una URL, pero en vez de apuntar a documentos en la Web, apunta a fragmentos de datos en un archivo XML.) CSS, el lenguaje de hojas de estilo, se puede aplicar a XML igual que a HTML. XSL (otoño de 1999) es el lenguaje avanzado para explicitar hojas de estilo. Está basado en XSLT, un lenguaje de transformación a menudo útil también fuera de XSL, para reordenar, añadir o borrar etiquetas y atributos. El DOM es una serie de funciones estándar llamadas para manipular archivos XML (y HTML) desde un lenguaje de programación. XML Namespaces es una especificación que describe cómo puedes asociar una URL (dirección en la Web) con cada etiqueta y atributo en un documento XML, si bien, para qué se utiliza la URL depende de la aplicación que lea la URL. (RDF, el estándar del W3C para metadatos, lo usa para enlazar cada metadato a un archivo definiendo el tipo de ese metadato.) XML Schemas 1 y 2 ayuda a los desarrolladores a definir precisamente sus propios formatos basados en XML. Hay muchos más módulos y herramientas disponibles o en desarrollo. Consulta regularmente la página de informes técnicos del W3C.
+
+5. XML es prolijo, pero eso no es un problema
+Imagen decorativa que intenta transmitir la idea de compresión.Puesto que XML es un formato texto y que usa etiquetas para delimitar los datos, los archivos XML son casi siempre en comparación mayores que los formatos binarios. Está fue una decisión tomada conscientemente por los desarrolladores de XML. Las ventajas de un formato texto son evidentes (véanse las tres mencionadas arriba) y las desventajas pueden ser, usualmente, compensadas en distintos niveles. El espacio en disco ya no es tan caro como solía ser, y los programas como zip y gzip pueden comprimir archivos muy bien y muy rápidamente. Estos programas están disponibles para casi todas las plataformas y generalmente son gratuitos. Además, los protocolos de comunicación como los del modem y de HTTP/1.1 (el protocolo esencial de la Web) pueden comprimir datos en el momento de la transmisión economizando, de este modo, ancho de banda tanto efectivamente como en un formato binario.
+
+6. XML es nuevo, pero no tan nuevo
+Imagen decorativa que intenta transmitir la idea de mezcla.El desarrollo de XML comenzó en 1996 y es un estándar del W3C desde febrero de 1998, lo que te puede hacer sospechar que es más bien una tecnología inmadura. Pero de hecho la tecnología no es muy nueva, antes del XML existía el SGML, desarrollado en los primeros años 80, un estándar ISO desde 1986, y ampliamente utilizado para grandes proyectos de documentación. Y por supuesto HTML, cuyo desarrollo comenzó en 1990. Los diseñadores de XML simplemente tomaron las mejores partes de SGML, guiados por la experiencia con HTML, y produjeron algo que no es menos potente que SGML, pero bastante más regular y simple de usar. Algunas evoluciones, sin embargo, son difíciles de distinguir de las revoluciones... y hay que decir que mientras que SGML es ampliamente usado para documentación técnica y mucho menos para otros tipos de datos, con XML ocurre exactamente lo contrario.
+
+7. XML lleva de HTML a XHTML: hay una importante aplicación XML que tiene un formato de documento: XHTML del W3C, el sucesor de HTML. XHTML tiene muchos de los mismos elementos que HTML. La sintaxis se ha modificado ligeramente para ajustarse a las reglas de XML. Un formato que está "basado en XML" hereda la sintaxis de XML y lo restringe de ciertas maneras (por ejemplo, XHTML permite "<p>", pero no "<r>"); también agrega significado a esa sintaxis (XHTML dice que "<p>" significa "párrafo", y no para "precio", "persona" o cualquier otra cosa).
+
+8. XML es modular: XML le permite definir un nuevo formato de documento combinando y reutilizando otros formatos. Dado que dos formatos desarrollados independientemente pueden tener elementos o atributos con el mismo nombre, se debe tener cuidado al combinar esos formatos (¿significa "<p>" "párrafo" de este formato o "persona" de ese?). Para eliminar la confusión de nombres al combinar formatos, XML proporciona un mecanismo de espacio de nombres. XSL y RDF son buenos ejemplos de formatos basados ​​en XML que usan espacios de nombres. El Esquema XML está diseñado para reflejar este soporte para la modularidad en el nivel de la definición de estructuras de documentos XML, al facilitar la combinación de dos esquemas para producir un tercero que cubre una estructura de documento fusionada.
+
+9. XML es la base para RDF y para la web semántica: El RDF (Resource Description Framework) del W3C es un formato de texto XML que admite la descripción de recursos y aplicaciones de metadatos como listas de reproducción de música, colecciones de fotos y bibliografías. Por ejemplo, RDF podría permitirle identificar a las personas en un álbum de fotos de la Web utilizando información de una lista de contactos personales; luego, su cliente de correo podría iniciar automáticamente un mensaje para aquellas personas que indiquen que sus fotos están en la Web. Al igual que HTML integró documentos, imágenes, sistemas de menús y aplicaciones de formularios para lanzar la Web original, RDF proporciona herramientas para integrar aún más, para hacer la Web un poco más una Web semántica. Al igual que las personas necesitan estar de acuerdo sobre los significados de las palabras que emplean en su comunicación, las computadoras necesitan mecanismos para acordar los significados de los términos para poder comunicarse de manera efectiva. Las descripciones formales de términos en un área determinada (compras o fabricación, por ejemplo) se denominan ontologías y son una parte necesaria de la Web semántica. RDF, las ontologías y la representación de significado para que las computadoras puedan ayudar a las personas a trabajar son todos temas de la Actividad de la Web Semántica.
+
+10. XML es gratis, independiente de la plataforma y ampliamente distribuida
+Imagen decorativa que consiste en un signo de admiración.Eligiendo XML como base para algún proyecto tienes a tu disposición una gran y creciente comunidad de herramientas (¡alguna puede satisfacer tus necesidades!) e ingenieros experimentados en la tecnología. Optar por XML es parecido a elegir SQL para las bases de datos: aún debes construir tu propia base de datos y tus propios procedimientos y/o programas para manipularla, pero hay muchas herramientas disponibles y mucha gente que puede ayudarte. Y puesto que XML es una tecnología W3C, es gratis, puedes construir tu propio software para ello y sin pagar nada a nadie. La amplia y creciente distribución significa que tú no estás ligado a un único vendedor. XML no siempre es la mejor solución, pero siempre merece ser considerada.
+
+## ESTRUCTURA DE UN DOCUMENTO XML
+
+No necesitamos conocer los detalles de la estructura interna de un documento XML. Esto se debe a que Python tiene sus propias herramientas para acceder a este tipo de archivo. Los desarrolladores de Python tuvieron que lidiar con los elementos internos de XML para construir estas herramientas; sin embargo, creo que es necesario tener una pequeña noción de la estructura de los archivos XML para poder hacer un mejor uso de las herramientas proporcionadas por Python.
+Veamos un ejemplo de documento XML, en este caso un registro UniProt:[^nota11_7]
+
+[^nota11_7]: Este registro fue alterado para ajustarse a la página. El archivo se puede encontrar en el repositorio de GitHub del libro con el nombre `uniprotrecord.xml` en el directorio `samples`.
+
+**Listado 11.1:** `uniprotrecord.xml`: El record de UniProt en XML.
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<uniprot xmlns="http://uniprot.org/uniprot"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://uniprot.org/uniprot
+  http://www.uniprot.org/support/docs/uniprot.xsd">
+<entry dataset="TrEMBL" created="2000-10-01" version="35">
+  <accession>Q9JJE1</accession>
+  <organism key="1">
+    <name type="scientific">Mus musculus</name>
+    <lineage>
+      <taxon>Eukaryota</taxon>
+      <taxon>Metazoa</taxon>
+      <taxon>Chordata</taxon>
+      <taxon>Craniata</taxon>
+      <taxon>Vertebrata</taxon>
+      <taxon>Euteleostomi</taxon>
+      <taxon>Mammalia</taxon>
+      <taxon>Eutheria</taxon>
+      <taxon>Euarchontoglires</taxon>
+      <taxon>Glires</taxon>
+      <taxon>Rodentia</taxon>
+      <taxon>Sciurognathi</taxon>
+      <taxon>Muroidea</taxon>
+      <taxon>Muridae</taxon>
+      <taxon>Murinae</taxon>
+      <taxon>Mus</taxon>
+    </lineage>
+  </organism>
+    <dbReference type="UniGene" id="Mm.248907" key="5"/>
+    <sequence length="393" checksum="E0C0CC2E1F189B8A">
+    MPKKKPTPIQLNPAPDGSAVNGTSSAETNLEALQKKLEELELDEQQRKRL
+    EAFLTQKQKVGELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIH
+    LEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISICMEHMDGGS
+    LDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPSNILVNS
+    RGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMG
+    LSLVEMAVGRYPIPPPDAKELELLFGCHVEGDAAETPPRPRTPGGPLSSY
+    GMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERA
+    DLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQPSTPTHAASI
+    </sequence>
+</entry>
+</uniprot>
+```
+
+En líneas generales, la estructura de un documento XML es simple. Generalmente consiste en un prólogo, un cuerpo y un epílogo.[^nota11_8]
+
+[^nota11_8]: El epílogo rara vez se usa, por lo que el prólogo y el cuerpo son las partes más importantes de un archivo XML.
+
+**Prólogo**
+
+El prólogo es una sección opcional que marca el comienzo de los datos XML y proporciona información importante al analizador. Un prólogo puede tener una sola línea como vemos aquí:
+
+{line-numbers=off}
+```
+<?xml version="1.0" encoding="UTF-8"?>
+```
+
+O varias líneas:
+
+{line-numbers=off}
+```
+<?xml version="1.0"?>
+<!DOCTYPE BlastOutput PUBLIC "-//NCBI//NCBI BlastOutput/EN"
+"http://www.ncbi.nlm.nih.gov/dtd/NCBI_BlastOutput.dtd">
+<!-- edited with XMLSPY (http://www.xmlspy.com) by Andy -->
+```
+
+La primera línea es la **declaración XML** donde se especifican la versión del XML y el código de carácter. La información del código de caracteres es opcional solo si el documento está codificado en UTF-8 o UTF-16.
+
+La segunda línea es la **declaración DOCTYPE**, cuyo propósito es relacionar el documento XML con una definición de tipo de documento (DTD). Este archivo DTD contiene información sobre la estructura particular del archivo XML: indica qué etiquetas y atributos están permitidos, así como dónde se pueden encontrar. En algunos casos, en lugar de una referencia DTD, hay referencias a un método alternativo a DTD llamado Esquema XML que cumple la misma función pero con mejor rendimiento y con una sintaxis basada en XML. La estructura de un archivo DTD o Esquema XML está fuera del alcance de este libro; sin embargo, hay varias referencias bastante completas en Internet (consulten los **Recursos adicionales** al final de este capítulo).
+
+La tercera línea, en este caso, es un comentario. Es equivalente a # en Python. Comienza con “<! −−” y termina con “−−>”, y puede estar en el prólogo, así como en el cuerpo de un documento XML. Es el mismo tipo de comentario que se usa en HTML y puede abarcar varias líneas.
+
+**Cuerpo**
+
+El cuerpo es donde residen los **elementos**, los verdaderos protagonistas de los archivos XML. Un elemento es la información desde el comienzo de la etiqueta inicial hasta el final de la etiqueta final, incluyendo todo lo que se encuentra en el medio.
+
+Este es un ejemplo de un elemento que se puede encontrar en el cuerpo de un documento XML:
+
+{line-numbers=off}
+```
+<taxon>Eukaryota</taxon>
+```
+
+donde `<taxon>` es la etiqueta inicial, `</taxon>` es la etiqueta final, y el contenido (`Eukaryota`) es el que está entre las dos etiquetas.
+
+Los elementos pueden aparecer vacíos. Es válido escribir, por ejemplo:
+
+{line-numbers=off}
+```
+<accession></accession>
+```
+
+Si bien en este caso no tiene mucho sentido que no haya nada contenido en el elemento "`accession`" (un registro UniProt siempre debe tener un número de accession), es posible que para otros tipos de datos el contenido de un elemento sea opcional.
+
+Hay una forma abreviada de representar elementos vacíos, llamada "etiqueta de elemento vacío", que consiste en el nombre del elemento seguido de una barra (/), todo encerrado entre los símbolos mayor y menor, por ejemplo:
+
+{line-numbers=off}
+```
+<accession/>
+```
+
+Los elementos pueden ser "anidados" uno dentro del otro. En el Listado 11.1 podemos ver cómo el elemento "`taxon`" está anidado dentro de "`lineage`". Esto da una idea de una estructura jerárquica: hay elementos que están subordinados a otros. Vemos que "`taxon`" es un elemento de "`lineage`", que es un elemento de "`organism`". Normalmente, este tipo de estructura se compara con un árbol. El primer elemento se llama "Elemento del documento" (en este caso, "uniprot"), del cual cuelgan todos los demás, que son sus "hijos". Para obtener una representación gráfica de este árbol, se puede usar un programa como XML Viewer[^nota11-7], (ver Figura 11.2) o un sitio web como <http://codebeautify.org/xmlviewer> que muestra los datos y la estructura del documento como se ve en la Figura 11.2.
+
+[^nota11-7]: XML Viewer está disponible en <http://sourceforge.net/projects/ulmxmlview>.
+
+![**Figura 11.1** Captura de pantalla del visor XML: el visor de árbol muestra la estructura del documento Q9JJE1.xml (Listado 11.1).](images/xmlviewer.png)
+
+Algunos elementos tienen "atributos", es decir, información adicional sobre el elemento. La sintaxis general de un elemento con un atributo es:
+
+{line-numbers=off}
+```
+<element attributeName="value">
+```
+
+Continuando con el ejemplo del Listado 11.1, encontramos otros elementos con atributos como, por ejemplo,
+
+{line-numbers=off}
+```
+<name type="scientific">
+```
+
+En este caso, el elemento llamado `name` tiene el atributo `type`, que tiene un valor de `scientific`. Además, puede tener más de un atributo, como en el elemento `sequence`:
+
+{line-numbers=off}
+```
+<sequence length="393" checksum="E0C0CC2E1F189B8A">
+```
+
+![**Figura 11.2** Codebeautify XML viewer, muestra la estructura y los datos del documento Q9JJE1.xml (Listado 11.1).](images/uniprotXML.png)
+
+Aquí los atributos son `length` y `checksum`, cuyos valores son `393` y `E0C0CC2E1F189B8A`, respectivamente.
+
+En esta etapa ya tenemos elementos que nos dan una idea de los datos contenidos en un archivo XML. Del registro del archivo `Q9JJE1.xml` (Listado 11.1) podemos decir que el elemento `sequence` contiene una secuencia de nucleótidos de una longitud de 393 pb, una firma conocida y un ID `Q9JJE1` de la base UniProt. Todo esto sin el conocimiento previo de la estructura de datos y sin el uso de un programa especial. Intenten abrir un archivo `.ab1` para ver si pueden encontrar algún elemento reconocible.
+
+A pesar de tener una visión general de la estructura de los archivos XML encontrarán que el formato tiene otras particularidades que van más allá del alcance de este libro. Si están interesados en saber más sobre XML consulten la lista de recursos al final del capítulo.
+La siguiente sección muestra cómo acceder al contenido de los documentos XML utilizando Python.
+
+## MÉTODOS PARA ACCEDER A LOS DATOS DENTRO DE UN DOCUMENTO XML
+
+Independientemente del lenguaje de programación que usemos hay dos estrategias que podemos usar para obtener acceso a la información contenida en un archivo XML.
+
+Por un lado, podemos leer el archivo en su totalidad, analizar las relaciones entre los elementos y construir una estructura de tipo árbol, mediante la cual la aplicación puede navegar por los datos. Esto se denomina Modelo de Objeto de Documento (DOM) y es la manera recomendada por el W3C en el análisis de documentos XML.
+
+Otra posibilidad es que la aplicación detecte e informe eventos como el inicio y el final de un elemento, sin la necesidad de construir una representación de tipo árbol. En el caso de que se necesite una representación de árbol, esta tarea se deja al programador. Este es el método utilizado por la **S**imple **A**PI para **X**ML (SAX). Generalmente, estos tipos de analizadores se denominan "analizadores controlados por eventos". En este capítulo veremos como ejemplo de un analizador basado en eventos, **Iterparse** de **cElementTree**.
+
+En algunos casos es conveniente usar DOM, mientras que en otros casos SAX es la opción preferida. DOM generalmente implica guardar todo el árbol en la memoria para su posterior recorrido. Esto puede presentar un problema en el momento de analizar documentos grandes, especialmente cuando lo que quiere hacer es simplemente detectar la presencia del valor de solo un elemento. Para estos casos un SAX es el analizador más eficiente. Sin embargo, muchas aplicaciones requieren operar en todos los elementos dentro del árbol, para lo cual debemos recurrir a DOM. Desde la perspectiva del programador, la interfaz DOM es más fácil de usar que SAX, ya que no requiere programación controlada por eventos.
+
+**cElementTree**
+
+**cElementTree** es un analizador SAX que está optimizado para analizar rápidamente y con menos uso de memoria. Otra ventaja de cElementTree es una función llamada *Iterparse*. Esta función nos proporciona el uso de un analizador basado en eventos que se explicará en la siguiente sección.
+
+### SAX: cElementTree Iterparse
+
+cElementTree Iterparse no es SAX, pero se incluye aquí porque a diferencia de los otros analizadores se basa en eventos.
+
+Iterparse devuelve un flujo iterable por tuplas de la forma (event, element). Se utiliza para iterar sobre los elementos y procesarlos sobre la marcha.
+
+Veamos con conseguir la secuencia de proteínas y sus atributos:
+
+{line-numbers=off}
+```
+>>> import xml.etree.cElementTree as cET
+>>> for event, elem in cET.iterparse('uniprotrecord.xml',
+  events=('start', 'end')):
+    if event=='end' and 'sequence' in elem.tag:
+      print('Sequence: {0}'.format(elem.text))
+      print('Checksum: {0}'.format(elem.attrib["checksum"]))
+      print('Length: {0}'.format(elem.attrib["length"]))
+      elem.clear()
+
+Sequence:
+MPKKKPTPIQLNPAPDGSAVNGTSSAETNLEALQKKLEELELDEQQRKRL
+EAFLTQKQKVGELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIH
+LEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISICMEHMDGGS
+LDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPSNILVNS
+RGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMG
+LSLVEMAVGRYPIPPPDAKELELLFGCHVEGDAAETPPRPRTPGGPLSSY
+GMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERA
+DLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQPSTPTHAASI
+
+Checksum: E0C0CC2E1F189B8A
+Length: 393
+```
+
+**iterparse** devuelve una tupla. El primer elemento de la tupla es *event* y puede ser uno de dos valores: `"start"` o `"end"`. Si el evento que recibimos es `"start"`, significa que podemos acceder al nombre del elemento y sus atributos, pero no necesariamente a su texto. Cuando recibamos el `"end"` podemos estar seguros de que hemos procesado todos los componentes de ese elemento. Por esta razón, el código anterior verificó no sólo que habíamos alcanzado el elemento elegido, sino que también habíamos encontrado el evento `end`. Si el analizador solo devolviera `"end"`, no habría necesidad de esta comprobación[^nota11-10]:
+
+[^nota11-10]: En la implementación actual, el analizador sigue leyendo fragmentos de 16 Kb, por lo que en este caso, toda la secuencia podría leerse desde el elemento "**start**". Para asegurarse de que selecciona todos los elementos, debe leerlos después de un elemento '**end**'.
+
+{line-numbers=off}
+```
+>>> for event, elem in cET.iterparse('uniprotrecord.xml'):
+  if 'sequence' in elem.tag:
+    print('Sequence: {0}'.format(elem.text))
+    print('Checksum: {0}'.format(elem.attrib["checksum"]))
+    print('Length: {0}'.format(elem.attrib["length"]))
+    elem.clear()
+
+Sequence:
+MPKKKPTPIQLNPAPDGSAVNGTSSAETNLEALQKKLEELELDEQQRKRL
+EAFLTQKQKVGELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIH
+LEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISICMEHMDGGS
+LDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPSNILVNS
+RGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMG
+LSLVEMAVGRYPIPPPDAKELELLFGCHVEGDAAETPPRPRTPGGPLSSY
+DLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQPSTPTHAASI
+Checksum: E0C0CC2E1F189B8A
+Length: 393
+```
+
+El método `clear` se utiliza para "limpiar" el nodo después de su uso, porque a diferencia de un analizador de SAX clásico como ElementTree, **iterparse** construye un árbol completo. El problema con este código es que el elemento primario permanece con todos sus hijos (ahora vacíos), y eso usa memoria. En este ejemplo simple este comportamiento no es problemático, pero podría serlo cuando se procesan archivos grandes. Lo ideal sería acceder al nodo principal para limpiarlo.
+
+Una forma de hacer esto es guardar una referencia en la primera variable; para esto creamos un iterador y obtenemos de él el primer elemento, llamándolo "root":
+
+{line-numbers=off}
+```
+>>> allelements = iterparse('uniprotrecord.xml', events=('start',<=
+  'end'))
+>>> allelements = iter(allelements)
+>>> event, root = next(allelements)
+```
+
+Ahora lo procesamos igual que antes, solo que esta vez podemos eliminar el elemento principal específicamente:
+
+{line-numbers=off}
+```
+>>> for event, elem in allelements:
+  if event=='end' and 'sequence' in elem.tag:
+    print(elem.text)
+    root.clear()
+```
+
+**BeautifulSoup**
+
+**BeautifulSoup**[^nota11-8] es un módulo externo que se utiliza para analizar archivos XML y HTML. Su principal ventaja sobre los analizadores incorporados de Python es que puede analizar archivos HTML con formato incorrecto (roto).
+
+Este módulo llama a otro módulo que hace el trabajo de análisis en segundo plano. En este caso usamos `lxml`; hay otros, pero lo uso porque es la biblioteca más rica en funciones y fácil de usar para procesar XML y HTML en el lenguaje Python.
+
+Como es un módulo externo debemos instalarlo:
+
+[^nota11-8]: Disponible en <https://www.crummy.com/software/BeautifulSoup>.
+
+{line-numbers=off}
+```
+$ pip install beautifulsoup4
+```
+
+o si está utilizando Anaconda:
+
+{line-numbers=off}
+```
+$ conda install beautifulsoup4
+```
+
+Una vez instalado, el primer paso es crear un objeto **BeautifulSoup** llamando a su clase con dos parámetros, un objeto de archivo y el analizador. Aquí está la forma general:
+
+{line-numbers=off}
+```
+BeautifulSoup(FILE_OBJECT or STRING, PARSER)
+```
+
+Vamos a verlo en acción:
+
+{line-numbers=off}
+```
+>>> from bs4 import BeautifulSoup as bs
+>>> soup = bs(open('uniprotrecord.xml'), 'lxml')
+```
+
+Si el archivo xml no es un archivo local, sino un recurso de Internet, puede usar la biblioteca de **requests** (solicitudes)[^nota11-9]. Si este es el caso, primero instale e importe **requests**:
+
+[^nota11-9]: Existen bibliotecas integradas para recuperar archivos de Internet (como urllib2), pero **requests** es menos complejas y tien más funciones que cualquier biblioteca incorporada.
+
+{line-numbers=off}
+```
+(py4bio) $ pip install requests
+Collecting requests
+(...)
+Successfully installed requests-2.13.0
+(py4bio) $ python
+Python 3.5.2 (default, Nov 17 2016, 17:05:23)
+[GCC 5.4.0 20160609] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import requests
+```
+
+Una vez importado, usá `.get()` para obtener el URL y `content` para recuperar el contenido:
+
+{line-numbers=off}
+```
+>>> url = 'https://s3.amazonaws.com/py4bio/uniprotrecord.xml'
+>>> req = requests.get(url)
+>>> c = req.content
+```
+
+El contenido del archivo XML (c) se puede usar como parámetro para **BeautifulSoup**:
+
+{line-numbers=off}
+```
+>>> from bs4 import BeautifulSoup as bs
+>>> soup = bs(c, 'lxml')
+```
+
+Ahora tenemos un objeto **BeautifulSoup** que se llama `soup`. Para acceder a un elemento, simplemente use el nombre del elemento como una propiedad de este objeto. Para obtener la secuencia, usamos `soup.sequence`.
+
+{line-numbers=off}
+```
+>>> soup.sequence
+<sequence checksum="E0C0CC2E1F189B8A" length="393">
+MPKKKPTPIQLNPAPDGSAVNGTSSAETNLEALQKKLEELELDEQQRKRL
+EAFLTQKQKVGELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIH
+LEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISICMEHMDGGS
+LDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPSNILVNS
+RGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMG
+LSLVEMAVGRYPIPPPDAKELELLFGCHVEGDAAETPPRPRTPGGPLSSY
+GMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERA
+DLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQPSTPTHAASI
+</sequence>
+```
+
+Si queremos el contenido de este elemento, usamos `string`:
+
+{line-numbers=off}
+```
+>>> soup.sequence.string
+'\nMPKKKPTPIQLNPAPDGSAVNGTSSAETNLEALQKKLEELELDEQQRKRL\nEAFLTQKQKV<=
+GELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIH\nLEIKPAIRNQIIRELQVLHECNS<=
+PYIVGFYGAFYSDGEISICMEHMDGGS\nLDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKI<=
+MHRDVKPSNILVNS\nRGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSM<=
+G\nLSLVEMAVGRYPIPPPDAKELELLFGCHVEGDAAETPPRPRTPGGPLSSY\nGMDSRPPMAI<=
+FELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERA\nDLKQLMVHAFIKRSDAEEVDFAG<=
+WLCSTIGLNQPSTPTHAASI\n'
+```
+
+Para obtener las propiedades "checksum" y "length" de este elemento, usamos `.get()`:
+
+{line-numbers=off}
+```
+>>> soup.sequence.get('checksum')
+'E0C0CC2E1F189B8A'
+>>> soup.sequence.get('length')
+'393'
+
+```
+
+Si un elemento tiene varios hijos se puede iterar a través de él. Por ejemplo, el elemento "lineage" tiene varios elementos de tipo "taxon".
+
+{line-numbers=off}
+```
+>>> for taxon in soup.lineage.children:
+  if taxon.string != '\n':
+    print(taxon.string)
+
+Eukaryota
+Metazoa
+Chordata
+Craniata
+Vertebrata
+Euteleostomi
+Mammalia
+Eutheria
+Euarchontoglires
+Glires
+Rodentia
+Sciurognathi
+Muroidea
+Muridae
+Murinae Mus
+```
+
+Esta es la forma de obtener los mismos datos (sequence, checksum y lenght) que obtuvimos con el analizador **cElementTree** en el mismo formato:
+
+{line-numbers=off}
+```
+>>> print('Sequence: {0}'.format(soup.sequence.string))
+Sequence:
+MPKKKPTPIQLNPAPDGSAVNGTSSAETNLEALQKKLEELELDEQQRKRL
+EAFLTQKQKVGELKDDDFEKISELGAGNGGVVFKVSHKPSGLVMARKLIH
+LEIKPAIRNQIIRELQVLHECNSPYIVGFYGAFYSDGEISICMEHMDGGS
+LDQVLKKAGRIPEQILGKVSIAVIKGLTYLREKHKIMHRDVKPSNILVNS
+RGEIKLCDFGVSGQLIDSMANSFVGTRSYMSPERLQGTHYSVQSDIWSMG
+LSLVEMAVGRYPIPPPDAKELELLFGCHVEGDAAETPPRPRTPGGPLSSY
+GMDSRPPMAIFELLDYIVNEPPPKLPSGVFSLEFQDFVNKCLIKNPAERA
+DLKQLMVHAFIKRSDAEEVDFAGWLCSTIGLNQPSTPTHAASI
+>>> print('Checksum: {0}'.format(soup.sequence.get('checksum')))
+Checksum: E0C0CC2E1F189B8A
+>>> print('Length: {0}'.format(soup.sequence.get('length')))
+Length: 393
+```
+
+## RESUMEN
+
+XML significa e**X**tensible **M**arkup **L**anguage y fue creado para permitir una forma estándar de almacenar e intercambiar datos. Una de las ventajas de XML es que es compatible con varios lenguajes de programación, entre los que se encuentra Python. Los documentos XML consisten en un prólogo, un cuerpo y un epílogo. El prólogo contiene información sobre la versión, la codificación y la estructura de ese documento. El cuerpo contiene toda la información del documento dividida en elementos ordenados jerárquicamente. Cada elemento consiste en una etiqueta con su texto y opcionalmente puede tener atributos. También existen elementos sin texto, llamados "elementos vacíos".
+
+Sin tener en cuenta el lenguaje de programación utilizado existen dos estrategias principales que se utilizan al acceder a estos tipos de archivos. Por un lado, se pueden analizar las relaciones entre todos los elementos y construir el árbol correspondiente. Esto implica tener toda la estructura de archivos en la memoria, lo que se denomina **M**odelo de **O**bjeto de **D**ocumento (DOM por sus siglas en inglés). La otra opción es repetir el archivo y generar eventos mediante los cuales podemos viajar, recursando sobre cada elemento distinto. En cada evento podemos procesar nuestros datos. Estos se denominan "analizadores controlados por eventos" y el más conocido es **S**imple **A**PI para **X**ML (SAX).
+
+En este capítulo presentamos un ejemplo de un analizador basado en eventos y vimos el uso de Iterparse, proporcionado por cElementTree. El DOM es a menudo más fácil de usar porque no implica el manejo de eventos; sin embargo, en algunas ocasiones es más conveniente usar un analizador basado en eventos, especialmente para archivos grandes. Una alternativa es el módulo externo **BeautifulSoup**,que también se puede usar para analizar HTML roto.
+Este módulo se basa en otro analizador (normalmente **lxml**) pero es fácil de usar.
+
+
+## RECURSOS ADICIONALES
+
+* [Extensible Markup Language (XML)](http://www.w3.org/XML). Links to W3C recommendations, proposed recommendations and working drafts.
+
+* [Beautiful Soup documentation](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
+
+* [Web scraping workshop](https://gist.github.com/bradmontgomery/1872970). Using requests and Beautiful Soup, with the most recent Beautiful Soup 4 docs.
+
+* Mark Pilgrim. [Dive into Python 3](http://www.diveintopython3.net/xml.html). Chapter 12; XML processing.
+
+* [Python and XML: An introduction.](http://www.boddie.org.uk/python/XML_intro.html)
+
+* Resources on DTD. <http://www.w3schools.com/dtd/>, <http://www.xmlfiles.com/dtd>, and <http://www.w3.org/TR/REC-xml/#dt-doctype>.
+
+* [Resources on XML schema](https://www.w3schools.com/xml/schema_intro.asp)
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Qué tiene en común el formato de OpenOffice con las fuentes RSS y las coordenadas geográficas de Google Earth?
+X>
+X> 2- ¿Cuáles son los beneficios de usar XML para el almacenamiento de datos y el intercambio de información?
+X>
+X> 3- ¿Cuándo no usarás XML?
+X>
+X> 4- ¿Por qué un analizador XML no debería leer un documento XML con formato incorrecto?
+X>
+X> 5- Distinguir entre los términos etiqueta, elemento, atributo, valor, DTD y Esquema.
+X>
+X> 6- En el archivo XML del ejemplo (Listado 11.1) hay una etiqueta de elemento vacío. ¿Cuál es?
+X>
+X> 7- ¿Cuál es la diferencia entre los modelos SAX y DOM del procesamiento del archivo XML?
+X>
+X> 8- Si tenemos que analizar un archivo XML que tiene un tamaño que se aproxima o excede la RAM disponible, ¿cuál es el analizador recomendado?
+X>
+X> 9- En **cElementTree.iterparse** hay tipos de eventos del tipo **start** y **end**. Por defecto, solo devuelve el evento **end**. ¿Cuándo se usaría la información en un evento **start**?
+X>
+X> 10- Hacer dos programas para parsear todos los hit names de un XML de la salida de BLAST. Uno de los programa debe usar las herramientas XML de Python y el otro debe leer el archivo de entrada como texto.
