@@ -1,0 +1,596 @@
+# Primeros pasos con Python
+
+A> *El viaje de miles de kilómetros comienza con un solo paso.*
+A> - Lao Tzu
+
+## INSTALANDO PYTHON
+
+### Aprender Python usándolo
+
+Está sección muestra como instalar Python para comenzar a correr tus propios programas. Aprender haciendo es la manera más eficiente de aprender, es mejor que leer pasivamente un libro (incluído este libro). Encontrarás el "modo interactivo de Python" muy útil en este sentido, dado que puede responder tus preguntas mas rápido que un libro o un motor de búsqueda, como bonus, las respuestas que obtenés del modo interactivo de Python son definitivas.
+Por estas razones sugiero instalar Python antes de continuar leyendo este libro.
+
+### Instalar Python localmente
+
+Python ya está preinstalado en macOS y en la mayoría de las distribuciones de Linux. En Windows tenes que bajar el "instalador basado de Windows x86-64" de la página de descargas de Python <https://www.python.org/downloads/windows/> y luego instalarlo. La instalación es muy sencilla si has instalado programas de Windows anteriormente. Tenes que hacer doble clic al archivo del instalador y correr el Python Install Wizard. Aceptas el seteo por defecto y tendrás el Python instalado en pocos minutos sin problemas.
+Recuerda que como una alternativa al instalador oficial podés bajar e instalar alguna de las distribuciones de Python mencionadas en el capítulo anterior. Mi preferencia personal, por el momento, es la distribución Anaconda pero no es necesario que instales Anaconda para seguir el libro, cualquier distribución funcionará.
+
+### Instalando Anaconda
+
+En el caso que quieras instalar Anaconda, las siguientes instrucciones son útiles para macOS y para Windows (para instalarla en Linux ver el siguiente párrafo).  Bajá el instalador gráfico <https://www.anaconda.com/products/individual> apropiado para tu sistema operativo[^nota2-1] y hacé doble click. Te mostrará un instalador con el título "Welcome to the Anaconda 3 installer." Presioná "Continue" en "Introduction", "Read more" y "License". En "Destination Select" presioná "Continue", si querés instalarlo solo para el usuario actual. El siguiente paso es presionar "Install".  La instalación tomará algunos minutos y verás una pantalla como la que muestra la figura 2.1. En macOS, cuando cerramos el instalador te ofrece moverlo a la papelera, haciendo esto se borrará solo el instalador.
+
+[^nota2-1]: Si usas macOS debe ser 10.12.3 (Sierra) o superior
+
+{width=50%}
+![**Figura 2.1** Instalación de Anaconda en macOS.](images/anaconda-install-macos-finish.png)
+
+
+Para instalar Anaconda en Linux, bajar la versión Linux desde <https://www.anaconda.com/products/individual>. Tendrás un archivo con un nombre similar a ``Anaconda3-2020.07-Linux-x86_64.sh``. En una terminal ejecutá el siguiente comando:
+
+`$ bash Anaconda3-2020.07-Linux-x86_64.sh`
+
+y seguí las instrucciones. Si la respuesta es "yes" a la última pregunta, tu distribución de Python por defecto será la de Anaconda Python. Tené en cuenta que estos cambios tomarán efecto cuando abras una nueva terminal.
+
+### Usando Python online
+
+Otra forma de probar Python para aprender o para correr programas es usando un servicio online. PythonAnywhere (<https://www.pythonanywhere.com>) es un servicio que permite correr diferentes versiones de Python. Necesitarás un navegador y una conexión a internet. PythonAnywhere provee un servicio gratuito para correr programas de Python online. También tiene muchos planes desde 5 dólares mensuales con consolas ilimitadas de Bash o Python, un subdominio para alojar una aplicación web, 1 GB de almacenamiento, bases de datos y más[^nota2-info]. Su servicio para principiantes es lo suficientemente bueno como para explorar y aprender.
+
+[^nota2-info]: Para más información sobre los planes de PythonAnywhere, ver: https://www.pythonanywhere.com/pricing/.
+
+Otro servicio que vale la pena probar es Google Colab. Este no es un servicio donde accedes a una consola de Python para tipear cualquier comando de Python sino que usas una "Jupyter Notebook", una aplicación web que luce como una página web con código interactivo. Esto no puede reemplazar un ambiente de desarrollo pero puede ser usado para aprender, para presentaciones y para compartir código de manera fácil. Otro servicio web donde puedes correr programas simples de Python (como los dados en los primeros capítulos de este libro) es Rep.it <https://repl.it/languages/python3>
+
+
+### Testeando Python
+
+Una vez que Python está instalado, debes chequear que funcione. En Windows haciendo doble clic sobre el icono de Python. En Linux y macOS, los usuarios deben abrir una terminal y luego tipear ``python``.
+Deberías ver una pantalla similar[^nota2-py36] a esta:
+
+{line-numbers=off}
+```
+Python 3.7.3 (default, Mar 27 2019, 16:54:48)
+[Clang 4.0.1 (tags/RELEASE_401/final)] :: Anaconda, Inc. on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
+```
+
+[^nota2-py36]: Puede variar de un sistema a otro dependiendo de la versión de Python, el sistema operativo de base y las opciones de configuración durante la compilación
+
+Esta es la consola de Python[^nota2-REPL] y es usada para programar en modo interactivo. Este modo será explicado en la próxima sección.
+
+[^nota2-REPL]: El nombre técnico es REPL, de sus siglas en inglés Read-Eval-Print Loop, pero la mayoría de las personas lo llama el interprete de Python o la terminal de Python
+
+### Primer uso
+
+Hay dos maneras de usar Python, el modo interactivo y el modo en batch. Estos métodos son complementarios y son usados con diferentes propósitos. El método interactivo permite al programador tener una respuesta inmediata a cada instrucción. En el modo batch, las instrucciones son almacenadas en uno o más archivos y luego ejecutados. El modo interactivo es usado principalmente para pequeños testeos mientras la mayoría de los programas son corridos en modo batch.
+El modo interactivo puede ser invocado ejecutando Python o dentro de algún editor de Python como Spyder, PyCharm, IDLE y otros. También puede ser usado online en sitios como <https://repl.it/languages/python3> o <https://www.pythonanywhere.com/>. Mi recomendación es instalar Python en tu propia máquina más que utilizarlo online[^nota2-online].
+Si usas Anaconda, corre Anaconda Navigator[^cap2-anaconda] y elegí QTConsole, en este caso el modo interactivo se verá como en la figura 2.2.
+
+
+[^nota2-online]: Si estás en una máquina en la que no sos administrador, o no tenes permisos de administrador, y no podes instalar Python, la opción online es una buena alternativa
+
+[^cap2-anaconda]: Buscar el icono del Anaconda Navigator o correlo desde la línea de comando con anaconda-navigator.
+
+Si no estás usando Anaconda, desde tu terminal o desde la límea de comandos, tipeá ``python``.
+
+
+![**Figura 2.2** La terminal interactiva de Anaconda Python.](images/jupyterQT.png)
+
+
+## MODO INTERACTIVO
+
+### Primeros pasos
+
+El siguiente código muestra cómo ordenar al intérprete que imprima la cadena "Hello world!"[^cap2-hello]
+
+[^cap2-hello]: Hay una tradición entre los programadores para mostrar como un lenguaje funciona imprimiendo la cadena "Hello world". Los programadores de Python no son inmunes a esta costumbre. Mirá qué sucede cuando tipeas esta declaración en el modo interactivo: ``import __hello__``
+
+{line-numbers=off}
+```
+>>> print('Hello World!')
+Hello World!
+```
+
+Nota que los tres caracteres del símbolo mayor (>>>) son parte del prompt de Python en el modo interactivo. Estos caracteres ya están presentes y no necesitan ser tipeados. Esto significa que Python está listo para ejecutar los comandos o evaluar las expresiones.
+
+### Entradas y salidas básicas
+
+**Salida: Print**
+
+Desde Python 3, **print** es una función. Una función es un código reutilizable que cumple una tarea específica. Cada función puede recibir uno o más valores llamados parámetros. En el caso de **print("Hello World!")**, el nombre de la función es **print** y el parámetro es la cadena ``"Hello World!"``. Veremos funciones en detalle en el capítulo 6.
+La función **print** puede recibir muchos elementos:
+
+{line-numbers=off}
+```
+>>> print('Hello', 'World!')
+Hello World!
+```
+
+Por defecto imprime todas las cadenas separadas con un espacio en blanco, pero podés cambiar el separador con un parámetro llamado `sep`:
+
+{line-numbers=off}
+```
+>>> print('Hello', 'World!', sep=';')
+Hello;World!
+```
+
+Redirecciona la salida de un archivo.
+
+{line-numbers=off}
+```
+>>> print("Hello","World!", sep=",", file=filehandle)
+```
+
+Nosotros veremos como manejar archivos en el capítulo 6.
+Para cambiar el final de la salida, usamos el parámetro **end**. En este caso cambiando el final de la salida agregando dos retornos de carro (o `enter`).
+
+{line-numbers=off}
+```
+>>> print("Hello", "World!", sep=";", end='\n\n')
+Hello;World!
+```
+
+**Entrada: input**
+
+Para entrar datos en un programa que estas corriendo, podes usar **input**. El siguiente comando toma una cadena de datos ingresados por el usuario y los retorna en una variable llamada *name*. En el siguiente código, luego de tipear la cadena, la variable es ingresada y luego se muestra el contenido de la variable:
+
+{line-numbers=off}
+```
+>>> name = input("Enter your name: ")
+Enter your name: Seba
+>>> name
+'Seba'
+```
+
+La mayoría de las veces no usarás la función **input** dado que hay formas más prácticas de ingresar los datos, como leer desde un archivo, desde una página web o desde la salida de otro programa.
+
+### Más sobre el modo interactivo
+
+El modo interactivo puede ser usado como una calculadora.
+
+{line-numbers=off}
+```
+>>> 1+1
+2
+```
+
+Cuando '+' es usado sobre las cadenas retorna una concatenación de dichas cadenas:
+
+{line-numbers=off}
+```
+>>> '1'+'1'
+'11'
+>>> "A string of " + 'characters'
+'A string of characters'
+```
+
+Notá que las comillas simples (') y dobles (") pueden ser usadas indistintamente, siempre y cuando sean usadas de manera consistente. Es decir, si una definición está iniciada con un tipo de comilla debe finalizar con el mismo tipo de comilla[^nota2-cadenadetalle].
+
+[^nota2-cadenadetalle]: En el capítulo 3 descripción detallada de cadenas.
+
+No se pueden sumar tipos de datos distintos:
+
+{line-numbers=off}
+```
+>>> 'The answer is ' + 42
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: can only concatenate str (not "int") to str
+```
+
+Solo se pueden sumar elementos del mismo tipo. Para convertir esto en una suma de cadenas, el número debe ser convertido en una cadena, esto se puede hacer con la función **str()**:
+
+{line-numbers=off}
+```
+>>> 'The answer is ' + str(42)
+'The answer is 42'
+```
+
+El mismo resultado puede ser obtenido con "las operaciones de formateo de cadena" (conocido en inglés como "String Formatting Operations") usando la función **format()**[^nota2-pep3101].
+
+[^nota2-pep3101]: Para más información, leer PEP-3101 en <http://www.python.org/dev/peps/pep-3101>
+
+{line-numbers=off}
+```
+>>> 'The answer is {0}'.format(42)
+'The answer is 42'
+```
+
+Observá que la transformación opuesta (de cadena a entero en lugar de entero a cadena) puede ser hecha con la función **int()**.
+
+{line-numbers=off}
+```
+>>> 1 + '1'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: unsupported operand type(s) for +: 'int' and 'str'
+>>> 1 + int('1')
+2
+```
+Podés asignar nombres a cualquier elemento de Python y más tarde llamarlos, por ejemplo en el siguiente código llamamos ``number`` al valor 42, y luego lo invocamos cuando usamos **format**.
+
+{line-numbers=off}
+```
+>>> number = 42
+>>> 'The answer is {0}'.format(number)
+'The answer is 42'
+```
+
+Los nombres podrán contener solo letras, números y guión bajo, pero no pueden comenzar con números. En otros lenguajes de programación los nombres son llamados variables.
+Un comando que vale la pena destacar es **dir()**. Este comando da los nombres disponibles en el ambiente actual. Probá:
+
+{line-numbers=off}
+```
+>>> dir()
+['__builtins__', '__doc__', '__loader__', '__name__', <=
+'__package__', '__spec__', 'number']
+```
+
+Los nombres que comienzan y terminan con doble guión bajo, como ``__name__``, son especiales y serán discutidos más adelante, pero observa que todos los nombres de variables que definiste están ahí.
+
+###  Operaciones matemáticas
+
+Cualquier operación matemática estándar puede ser hecha en la terminal de Python.
+
+{line-numbers=off}
+```
+12 multiplicado por 2.
+>>> 12*2
+24
+
+30 dividido 3.
+>>> 30/3
+10.0
+
+2 elevado a la 8, dividido 2 y sumado 100.
+>>> 2**8/2+100
+228.0
+```
+
+El dobre asterisco (**) se pone para "elevar a la potencia de" y la barra invertida (/) es para la operación de división. Estas expresiones significan: (2^8/2)+100. En la siguiente tabla hay una lista de operadores aritméticos soportados por Python.
+
+Operadores ariméticos
+
+
+| Símbolo   | Descripción    |
+| --------- |----------------|
+| +         | Adición        |
+| -         | Sustracción    |
+| /         | División       |
+| *         | Multiplicación |
+| **        | Potenciación   |
+| %         | Módulo         |
+
+
+Nota que la prioridad del operador es la misma que la usada en matemática. En inglés existe el acrónimo **PEMDAS** para recordarla dicha prioridad.
+
+**P** Los paréntesis tienen la prioridad más alta y son usados para establecer el orden de la evaluación de la expresión. Es decir, 2 *(3-2) es igual a 2 y (3-1)**(4-1) es igual a 8. Los paréntesis sirven además para hacer las expresiones más fáciles de leer.
+
+**E** (Del inglés Exponentiation) La potenciación que es la segunda en orden de prioridad, así 2**2+1 es 5 y no 8.
+
+**MD** La multiplicación y la división tienen el mismo orden de prioridad. 2*2-1 es 3 y no 2.
+
+**AS** La adición y la sustracción comparten el mismo orden de prioridad.
+
+La última pero no por eso menos importante es la que dice que los operadores con la misma prioridad son evaluadas de izquierda a derecha. Así 60/6*10 es 100 y no 1.
+
+**División**
+
+Hay dos tipos de división. La división exacta (/) retorna el resultado matemático de la división:[^nota2-simbolodiv]
+
+[^nota2-simbolodiv]: En Python 2.x el símbolo de división (/) es usado para retornar la parte entera de la división.
+
+{line-numbers=off}
+```
+>>> 10/4
+2.5
+```
+
+Y la división entera (//), la cual retorna la parte entera de la división:
+
+{line-numbers=off}
+```
+>>> 10//4
+2
+```
+
+### Salir de la terminal de Python
+
+Para salir de la terminal de Python, en macOS o Linux, usá CRTL-D (presionando Control y D simultáneamente). En Windows, presiona CRTL-Z y Enter. Otra alternativa, que funciona en todos los sistemas operativos es usar la función **exit()**:
+
+{line-numbers=off}
+```
+$ python
+Python 3.5.1 |Anaconda 2.4.1 (64-bit)| (Dec  7 2015, 11:16:01)
+[GCC 4.4.7 20120313 (Red Hat 4.4.7-1)] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> exit()
+$
+```
+
+## MODO BATCH
+
+A pesar de que el intérprete interactivo es muy útil, la mayoría de los programas no triviales son almacenados en archivos. El código usado en una sesión interactiva puede ser accedido solo cuando la sesión está activa. Cada vez que una sesión es cerrada, todo el código tipeado se pierde. Por ello para tener la persistencia del código, los programas son almacenados en archivos de texto. Cuando un programa es ejecutado desde un archivo de texto, en lugar de hacerlo línea por línea como en el intérprete interactivo, es llamado **modo batch**. Son archivos de texto con la extensión "`.py`". Estos archivos pueden ser generados con cualquier editor de texto[^nota2-editor].
+
+Una característica opcional de los programas de Python bajo los sistemas tipo UNIX es una primera línea con la ruta al intérprete de Python. Si el intérprete de Python está localizado en ``/usr/bin/python`` (una ubicación típica de Linux), la primera línea será:
+
+[^nota2-editor]: Cualquier editor de texto puede ser utilizado para programar en Python, pero es altamente recomendable usar un editor especializado en lugar de uno estándar. Al final de capítulo hay una sección dedicada seleccionar un editor.
+
+{line-numbers=off}
+```
+#!/usr/bin/python
+```
+
+Esto es llamado **shebang** y es una convención en UNIX que permite al sistema operativo saber que el intérprete es para el programa y que este intérprete puede ser ejecutado sin que el usuario tenga que invocar explícitamente al intérprete de Python[^nota2-shebang].
+Invocar un programa en Python desde el sistema operativo sin esta línea causa que el sistema operativo trate de ejecutar dicho programa como si fuese un shell script.
+
+[^nota2-shebang]: Podés especificar la dirección de un intérprete para seleccionar una versión particular de Python cuando hay más de una versión instalada.
+
+Supongamos que tenés un programa muy simple:
+
+**Listado 2.1:** `hello.py`: Un programa "Hello World!".
+
+    print("Hello World!")
+
+W> Recordá que no tenés que tipear el número del comienzo, es solo una referencia.
+
+Este programa funcionará desde la línea de comando solo si es llamado de esta manera:
+
+{line-numbers=off}
+```
+$ python hello.py
+Hello World!
+```
+Pero si queres correrlo como un programa independiente verás algo como esto:
+
+{line-numbers=off}
+```
+$ ./hello.py
+./hello.py: line 1: syntax error near unexpected token ‘'Hello world!''
+./hello.py: line 1: ‘print('Hello world!')'
+```
+
+Este mensaje de error es enviado por la terminal cuando tratamos de ejecutar el programa de manera independiente (sin invocar Python). Esto puede ser evitado editando la primera línea del programa:
+
+**Listado 2.2:** `hello2.py`: Hello World! con shebang.
+
+    #!/usr/bin/python
+    print("Hello World!")
+
+Esta versión funciona como si fuera un archivo binario ejecutable[^nota2-ejec].
+
+[^nota2-ejec]: En Linux y macOS tenes que asegurarte que el archivo tiene permiso de ejecución, el cual podes hacer con ``chmod a+x hello.py``.
+
+{line-numbers=off}
+```
+$ ./hello2.py
+Hello World!
+```
+
+Si queres invocar el primer intérprete de Python disponible, en lugar de uno específico, usa ``#!/usr/bin/env python``. Utiliza una ruta a un intérprete específico sólo cuando quieras correr tu programa con una versión particular de Python (como ``/usr/bin/python2.7``).
+
+En Windows, esta línea es ignorada dado que el intérprete es ejecutado de acuerdo a la extensión del archivo (``.py``).
+
+Python también puede ser ejecutado desde el editor de texto, si dicho editor provee esta funcionalidad. En la mayoría de los editores podrás ejecutar un programa con la tecla *F5*.
+
+Otro comentario especial que a veces podemos encontrar en un código de Python es el "encoding comment". Esta línea define el encoding de los caracteres para el resto del documento y tiene esta forma:
+
+{line-numbers=off}
+```
+# -*- coding: ENCODING -*-
+```
+
+Donde ``ENCODING`` puede ser alguno de estos valores: ``ascii``, ``latin1``, ``8859-1``, UTF-8 u otros. Así una línea de encoding para un código fuente con caracteres de encoding en UTF-8 tendrán esta línea:
+
+{line-numbers=off}
+```
+# -*- coding: UTF-8 -*-
+```
+
+Sin los comentarios de encoding, el filtro (parser) de Python asumirá que es UTF-8 (o ``ASCII`` en versiones de Python anteriores a la versión 3).
+
+### Comentarios
+
+Si probaste este programa (``hello2.py``) en algún editor con capacidad para colorear la sintaxis, podes notar que la primera línea (``#!/usr/bin/python``) tiene un color diferente. Esto se debe al uso del símbolo "#". Este carácter tiene un significado especial para Python, es usado para identificar líneas que no son ejecutadas por el intérprete. Esta lineas son los llamados comentarios ("comments"). Los comentarios no agregan funcionalidad pero ayudan al programador u otros lectores del código. Ahora veamos el código anterior con un comentario:
+
+**Listado 2.3:** `hello3.py`: Hello World! con un comentario.
+
+    #!/usr/bin/env python
+    # The next line prints the string "Hello World!"
+    print("Hello World!")
+
+El comentario en este código en particular no es de mucha utilidad dado que no hay duda de la función **print**. En otros programas hay código que no es fácil de entender y dónde un comentario puede mejorar la legibilidad del código. Se acostumbra poner los comentarios antes del código al que estás haciendo referencia. Los comentarios son hechos principalmente para ayudar a alguien más a entender nuestro código, pero puede ser útil para el mismo programador que luego de un tiempo al leer el código no recuerda el propósito de una rutina.
+Los comentarios pueden ser usados para desactivar una parte del código (los llamados "comment out" en la jerga de los programadores). Esto se hace usualmente con el propósito de depurar (debugging) el código. Cuando estamos probando un código alternativo para una tarea es mejor tener una parte del código inactiva hasta que estés seguro que código usarás. Es más fácil sacar un comentario del código inactivo que retipear algo que fue borrado. Esta es una tarea tan común que todos los editores de Python tienen herramientas para comment-out o para sacar los comentarios sobre un bloque entero de texto[^nota2-IDLE].
+
+[^nota2-IDLE]: En el editor por defecto de Python (IDLE) esta herramienta esta bajo el menú ``Format``.
+
+T> ### Extensiones en Python
+T>
+T> Los archivos de Python tienen la extensión ``.py`` pero también podés encontrar otras extensiones relacionadas a Python:
+T>
+T> * __py__: Los archivos estándar de Python.
+T> * __pyc__: Archivos compilados de Python. Cuando importas un módulo de Python por primera vez, se compila en código de bytes, la próxima vez comenzará más rápido. Compilar puede ser forzado desde Python con la función **compile_dir** en el módulo **compileall**. Los archivos **.pyc** cargan más rápido pero no se ejecutan más rápido.
+T> * __pyo__: Código optimizado. Este código es generado cuando se corre el intérprete de Python con *-o flag*. No te dejes engañar por el nombre, la mayoría del código correrá a la misma velocidad, aún con el *-o flag* habilitado.
+T> * __pyw__: Es un archivo estándar de Python con una extensión que hace que Windows ejecute con pythonw.exe en lugar de python.exe. Pythonw.exe no carga la consola de DOS por eso es la preferida para programas gráficos en Windows.
+
+### Indentación
+
+Una de las primeras cosas que hay que destacar a los programadores sobre Python es su sistema de indentación (o sangría o espaciado). Los no programadores deben estar preguntandose que es la indentación del código fuente, acá pueden ver algo de código en C que no está indentado:
+
+    if (attr == -1){while (x<5){
+    printf("Waiting...\n");wait(1);
+    x = x+1;}printf("Everything is OK\n");}
+    else {printf("There is an error\n");}
+
+La versión indentada de la misma porción del programa (o "code snippet"):
+
+    if (attr == -1) {
+        while (x<5) {
+            printf("Waiting...\n");
+            wait(1);
+            x = x+1;}
+        printf("Everything is OK\n");}
+    else {
+        printf("There is an error\n");}
+
+Aún sin saber C podemos decir que el segundo programa es más legible que la primera versión. En un lenguaje de programación como C o Java, los bloques de código que son ejecutados como una entidad, son separados con llaves ({}). De esta manera el intérprete sabe que por ejemplo: `printf("Everything is OK\n")` está dentro de la estructura del **if** pero no dentro del **while**. La relación lógica entre los elementos es más clara en un programa indentado que en uno sin indentación. Miremos el siguiente pedazo de código (code snippet) en Python, donde no hay llaves pero hay bloques de código que son definidos por indentación.
+
+    if attr==-1:
+        while x<5:
+          print("Waiting...")
+          time.sleep(1)
+          x = x+1
+        print("Everything is OK")
+    else
+        print("There is an error")
+
+No es importante, en este momento, que hayas entendido este programa. El propósito del ejemplo es mostrar uno de los aspectos más notables del lenguaje. La indentación es considerada una ventaja porque cuando la estructura es lo suficientemente clara es menos probable introducir errores en el código. Algunos dicen que es molesto tener que mantener el código de esta forma pero este no es el caso. La mayoría de los editores de texto tienen indentación automática del código, por lo tanto no es una carga para el programador. Otra crítica a la indentación automática es el anidado profundo del código, algunas instrucciones quedan muy a la derecha. Hay herramientas de programación que evitan la escritura de código con muchos niveles de indentación (tales como el código modular). Usar estas herramientas apropiadamente es una habilidad deseable de tener independientemente del lenguaje de programación que usemos[^cap2-linust]. Forzar al programador a usar indentación es una característica que acompaña uno de los aspectos de la filosofía del diseño en Python: "La legibilidad cuenta"[^cap2-legilibilidad]. Como Oliver Fromme escribió en "Python: Myths about Indentation" (Python: Mitos sobre la indentación) (<http://www.secnetix.de/~olli/Python/block_indentation.hawk>): "Python te obliga a usar la indentación, la misma que siempre deberías haber usado, a menos que hubieras querido ofuscar la estructura del programa".
+
+[^cap2-legilibilidad]: Para más información sobre los principios que guían el diseño de Python, ver http://www.python.org/dev/peps/pep-0020
+
+[^cap2-linust]: Linus Torvalds, el creador del kernel de Linux, ha dicho: "Si necesitan más de tres niveles de indentación estas en problemas y deberías corregir tu programa".
+
+## ELIGIENDO UN EDITOR
+
+En principio cualquier editor de textos puede ser usado para programar en Python. Nada te impide programar en Notepad u otro editor de texto liviano, sin embargo es mucho más lo que ganas usando un editor diseñado para programar en Python.
+Elegir un editor no es una tarea trivial, de hecho es un tema de controversia entre los programadores al punto de llegar a "una guerra de editores" (<https://en.wikipedia.org/wiki/Editor_war>).
+Puede ser algo por lo que no vale la pena luchar pero elegir el mejor editor de acuerdo a tus necesidades podría aumentar tu productividad.
+A continuación una breve revisión de los editores usados popularmente por los programadores de Python.
+
+### Sublime Text
+
+Sublime Text (<https://www.sublimetext.com>) es uno de los editores más usado. Después de usarlo un par de horas es fácil entender el por qué. Es liviano, rápido y poderoso, todas características que no son fáciles de encontrar en un mismo programa. La interfaz de usuario (UI en inglés) es minimalista pero no frustrante. La paleta de colores, que viene por defecto, usada para resaltar la sintaxis es agradable a los ojos. Tiene muchas otras lindas características que hacen que una vez que lo usas no quieras cambiar a otros editores que no las tengan. Algunas de las características sobresalientes son:
+
+* **Minimap:** Hay una vista de todo el documento en el lado derecho del editor, y el programador puede recorrerlo e inspeccionar una gran porción de código rápidamente.
+
+* **Búsqueda global rápida:** Un problema común para los programadores que trabajan con una gran base de código fuente es buscar texto en todos los archivos del proyecto. En lugar de reorganizar con comando de línea utilitarios como *find* y *grep*, hay una opción para hacerlo de manera rápida e intuitiva sin abandonar el editor.
+
+* **Rendimiento:** Sublime text es rápido para todas las medidas. Incluso cuando abrimos archivos grandes el editor no te tirará la computadora abajo.
+
+* **Selección de columna:** Esto nos permite seleccionar porciones de texto en forma de columnas y luego de seleccionar una columna aparecerán puntos de inserción, así podrás agregar textos en múltiples posiciones a la vez.
+
+* **Extensible:** Usando plugins podés extender la funcionalidad del editor para cubrir tus necesidades. Hay un plugin llamado *Package Control* (<https://packagecontrol.io>) que permite al usuario buscar, bajar e instalar otros plugins sin dejar Sublime. Los plugins están escritos en Python, lo cual explica porque el editor es tan popular entre los programadores de Python.
+
+* **Multiplataforma real:** Sublime luce igual en las tres plataformas. Algunas teclas de atajos cambian de acuerdo a los lineamientos de la UI del sistema operativo.
+
+En la mayoría de los aspectos, Sublime Text es el mejor editor de texto para desarrollar software. Sin embargo tiene un problema que para algunos puede ser un punto de quiebre o solo algo molesto, Sublime es un software cerrado y con una licencia comercial que es necesaria para usarlo. Si podes pagar la licencia ($70 dólares en este momento), y no tenes problemas con usar software cerrado, este puede ser el editor multipropósito ideal.
+
+### Atom
+
+Atom (<https://atom.io>) es un editor de texto creado por la gente de GibHub. La idea detrás de este editor es hacer un producto conveniente como Sublime y TextMate, pero extensible y flexible como Emacs y Vim. Al principio Atom se ve como Sublime. Esto no es por casualidad; sus creadores copiaron la interfaz de usuario (UI) de Sublime para atraer a sus usuarios. Además de la UI, gran parte de la funcionalidad y de los accesos directos se mantienen, por lo que la transición debería ser fácil. Hay algunas diferencias, como la tecnología subyacente. Mientras que el núcleo de Sublime está hecho en C ++ y con Python como lenguaje de extensión, Atom se basa en Chromium (la versión de código abierto de Google Chrome). La diferencia de velocidad es notable. Atom es más lento, por lo que no es aconsejable usarlo con máquinas viejas o con poco poder. La ventaja de utilizar Chromium es que el editor se puede personalizar fácilmente con JavaScript, HTML y CSS. Esto convierte a Atom en un excelente editor para desarrolladores web. Como Atom está hecho por GitHub, tiene cierta integración con Git, no vista en otros editores. Podés acceder a las operaciones más comunes de Git sin abandonar Atom. Para más información ver: <http://blog.atom.io/2017/05/16/git-and-github-integration-comes-to- atom.html>.
+
+* **Autocompletado inteligente:** El autocompletado en lenguajes interpretados como Python no es perfecto, pero Atom hace un buen trabajo ofreciendo opciones adecuadas mientras tipeas.
+
+* **Diseño modular:** Viene con la funcionalidad básica para luego instalar paquetes desde la página de configuración. La selección del paquete (más de 6200) es muy similar a Sublime y la mayoría de los paquetes usado son portados también a Atom. Además de los paquetes hay temas para controlar cómo luce el editor, con más de 2100 temas en este momento, no tenes opciones para aburrirte.
+
+* **Open Source:** Podés acceder al código fuente en Github y ser parte de la comunidad de desarrollo. En este caso, open source también significa que es gratis. El desarrollo es sponsoreado por Github.
+
+* **Multiplataforma real:** Al igual que Sublime, luce igual en las tres plataformas.
+
+Atom es la mejor alternativa si no podes o no queres pagar la licencia de Sublime. No es perfecto y la velocidad en muchos casos es un problema. Con un documento grande, come RAM de una manera que puede ralentizar tu computadora hasta el punto de no responder. Sin embargo, vale la pena probar Atom. Probalo con tu hardware para ver si es lento.
+
+### PyCharm
+
+Este es un editor de Python utilizado principalmente en entornos comerciales/profesionales. Hay una nueva versión "educativa"[^nota2-pycham]. Se anuncia como una "Herramienta gratuita, fácil y profesional para aprender a programar con Python". Esta edición es gratuita y tiene soporte para la creación y distribución de cursos, por lo que viene con una biblioteca de cursos. y también se puede acceder al material creado por otros usuarios. No lo utilicé para aprender Python, así que no puedo decir si es adecuado para este propósito. Ahora como usuario avanzado, descubrí que este aspecto educativo no afecta mi flujo de trabajo de desarrollador normal, de hecho, me ayuda mostrando sugerencias cada vez que hay algún margen de mejora. La edición educativa no admite diferentes tecnologías de desarrollo web, capacidades de desarrollo remoto o idiomas adicionales.
+**PyCharm** incluye:
+
+[^nota2-pycham]: Disponible en <https://www.jetbrains.com/pycharm-edu>
+
+
+* **Asistente inteligente de Python:** Completado inteligente del código, inspecciones de código, errores resaltados y corrección rápida, junto a refactorizaciones automáticas de código. Este último punto es muy apreciado por los profesionales, mientras que el resaltado de errores es útil para los principiantes. Por ejemplo, si importas un módulo y no lo utilizas a través del archivo, se marca en gris. Si llamas a un método que no existe lo resalta en amarillo.
+
+* **Herramientas científicas:** Integrado con Jupyter Notebook, tiene una consola interactiva de Python y soporta Anaconda como así también múltiples paquetes científicos incluyendo matplotlib y NumPy.
+
+* **Herramientas integradas para desarrolladores:** Una gran colección de herramientas listas para usar: un debugger y un ejecutor de pruebas, un generador de perfiles de Python, una terminal integrada e integración con las principales herramientas de base de datos y VCS.
+
+* **Frameworks para desarrollo web:** PyCharm ofrece un gran soporte para los modernos frameworks para desarrollo web tales como Django, Flask, Google App Engine, Pyramid y web2py, solo edición Pro.
+
+![Figura 2.4 Pantalla de bienvenida del PyCharm Edu.](images/pycharmedu.png)
+
+### Spyder IDE
+
+**Spyder IDE** es una multiplataforma de código abierto para programación científica. Está incluido con la distribución Anaconda, pero puede ser bajado y usado como un editor independiente. También soporta plugins sin embargo no tiene una selección tan grande como en el caso de Sublime y Atom. En parte esto no es un problema porque **Spyder** es una IDE de Python, por lo cual no necesita plugins como Sublime y Atom para tener funciones de Python. Incluso a pesar de tratarse de una IDE de Python, admite varios lenguajes como C, C ++ y Fortran (porque su origen es una plataforma de desarrollo para la ciencia).
+Incluye la mayoría de las funciones de **PyCharm** (el autocompletado funciona muy bien), de modo que es una buena alternativa. Cuando resaltas una palabra, automáticamente resalta todas las instancias de esa palabra. La consola interactiva admite Python e IPython (una mejor consola interactiva). En mi experiencia, no es tan estable; a veces el proceso que se ejecuta en la consola se desvincula del código en el editor y tenes que reiniciar la IDE.
+
+Disponibilidad: **Spyder IDE** viene en un paquete dentro de Anaconda y WinPython. Entonces, si usas alguna de estas distribuciones de Python, ya tenes **Spyder IDE**. Si queres instalar Spyder sin instalar una distribución de Python, podés hacerlo usando PIP:
+
+{line-numbers=off}
+```
+pip install spyder
+```
+
+Si estás usando Conda, podés correrlo desde el navegador de Conda o desde la línea de comando:
+
+{line-numbers=off}
+```
+conda install spyder
+```
+
+### Palabras finales acerca de los editores
+
+No existe un editor que incuestionablemente sea mejor que el resto en todas las áreas. Como editores multipropósito, **Sublime** y **Atom** son dos buenas opciones. Si te sentís cómodo con el software de código cerrado, **Sublime** es la mejor opción (siempre que puedas pagar la licencia). **Atom** es una buena alternativa, tiene la mayoría de los beneficios de Sublime, si tenes una maquina potente.
+Como editores específicos de Python, tanto **Spyder** como **PyCharm** tienen todo lo que necesitas para la programación en Python. Ambas IDEs vienen con un emulador de terminal integrada que resulta útil para debuggear (esto puede ser una cantidad de tiempo considerable). También juegan bien con la distribución de Anaconda Python, de hecho, Spyder es parte de Anaconda.
+Todos los editores mencionados trabajan con Windows, pero si sos un desarrollador de Windows podés considerar Visual Studio Code (<https://code.visualstudio.com>), que recientemente comenzó a admitir Python. Pese a que este soporte de Python es nuevo, tiene buenas criticas y los programadores que usan Windows se sienten como en casa con este producto (aunque está también disponible para macOS y Linux).
+No voy a recomendar un editor en particular ya que considero que es una elección personal. Mi recomendación es que pruebes todo lo que puedas y elijas el que mejor se adapte a tus necesidades. Yo uso Atom para la edición de archivos de propósito general (este libro está hecho en LaTeX usando Atom con un complemento que ayuda a editar LaTeX), pero para Python ultimamente estoy usando Visual Studio Code.
+
+## OTRAS HERRAMIENTAS
+
+Además de los editores de código, los programadores usan otras herramientas que los ayudan a hacer su trabajo. Si bien no las necesitas al comienzo del proceso aprendizaje, vale la pena mencionar algunas herramientas útiles que podrás usar durante tu aprendizaje:
+
+* Jupyter Notebook (<http://jupyter.org/>)
+: Una aplicación web que se ejecuta localmente y permite crear y compartir documentos que contienen código Python que se puede ejecutar dentro de la página web. Además de las ecuaciones, puede mostrar texto y gráficos interactivos. Todo el código en este libro también está disponible en este formato. Para obtener más información, mirá la página web del libro en <http://py3.us>.
+
+* Kite (<https://kite.com/>)
+: Esta definido así mismo como "el copiloto más inteligente de los programadores". Es un utilitario que integra tu editor de código y provee las terminaciones de código basadas en las opciones más usadas en la web, en documentaciones y en ejemplos. Mira el video de presentación en su páginas web. Está disponible para Windows, macOS, y Linux.
+
+* QuantifiedCode (<https://www.quantifiedcode.com/>)
+: Una herramienta online que lee tu código desde tu repositorio y muestra comentarios y consejos muy útiles acerca de tu código. Es un servicio gratuito, aunque hay que tener en cuenta que el código que analicemos va a ser enviado a otro sitio, hay que tenerlo en cuenta si la privacidad de nuestros datos es importante.
+
+* Pylint (<https://www.pylint.org/>)
+: Es un utilitario de linea de comando que analiza tu código y devuelve comentarios de como mejorarlo. Chequea si el código sigue la guía de estilo de Python, detecta errores y código duplicado que puede ser refactorizado.
+
+* Pylama (<https://github.com/klen/pylama>)
+: Incluye varias herramientas, como Pylint y otras, para proporcionar análisis de código fuente. No es un software fácil de usar, pero es poderoso.
+
+* Ptpython (<https://github.com/jonathanslenders/ptpython>)
+: Un reemplazo para el intérprete interactivo de Python (o REPL). Agrega a la terminal de Python el resaltado de sintaxis, la edición multilínea y el autocompletado.
+
+## RECURSOS ADICIONALES
+
+* [Usando el interprete de Python](https://docs.python.org/3/tutorial/interpreter.html).
+
+* [IPython](http://ipython.org/): Un ambiente computacional interactivo.
+
+* [PyFormat](https://pyformat.info/): Valores de formato en cadenas usando format() y %.
+
+* [Artículo en Wikipedia: "Comparando los editores de texto."](https://en.wikipedia.org/wiki/Comparison_of_text_editors)
+
+* [Python Anywhere](https://www.pythonanywhere.com/): "Alojar, correr y codear Python en la nube!"
+
+* [Repl.it](https://repl.it/languages/python3): Un interprete de Python que permite compartir el código.
+
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- Definir: Programa, instrucción y variable.
+X>
+X> 2- ¿Cuál es la diferencia entre Python y cPython?
+X>
+X> 3- Nombrar algunas de las implementaciones de Python.
+X>
+X> 4- ¿Cuál es la ventaja de tener simple y doble comilla?
+X>
+X> 5- ¿Qué es format()?
+X>
+X> 6- ¿Qué es un RPEL?
+X>
+X> 7- ¿Cuándo deberías usar el modo batch en lugar del intérprete interactivo?
+X>
+X> 8- ¿Qué es la identación? ¿Por qué es obligatoria en Python?
+X>
+X> 9- ¿Qué es un comentario en un código fuente?
+X>
+X> 10- ¿Hay alguna razón válida para usar comentarios para desactivar el código fuente?
+X>
+X> 11- ¿Qué es un "shebang"?
+X>
+X> 12- ¿Qué es un "encoding comment" y cuándo deberías usarlo?
