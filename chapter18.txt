@@ -1,0 +1,67 @@
+{:: encoding="UTF-8" /}
+
+#Calculando la temperatura de melting de un conjunto de primers
+
+## DESCRIPCIÓN DEL PROBLEMA:
+
+En este caso tenemos un texto lleno de primers para PCR. Estos primers fueron obtenidos de distintas fuentes, por lo que sus temperaturas de melting (Tm) fueron calculadas bajo distintos programas y condiciones. Un investigador puede querer tener un criterio uniforme para los Tm de todo sus primers.
+
+La primera versión de este programa va a dar como resultado un archivo formateado como csv (valores separados por comas por sus siglas en inglés). Esta clase de archivo puede ser abierto con un programa de planilla de cálculo o programas a medida. La segunda versión va a dar un archivo de Excel (.xls).
+
+Pasos propuestos para obtener la temperatura de melting de un conjunto de primers:
+
+1. Leer el archivo de entrada línea por línea.
+2. Por cada línea, calcular la temperatura de melting (Tm) usando el módulo MeltingTemp de BioSeqUtils en Biopython.
+3. Imprimir la secuencia de primers, una coma y el valor de Tm.
+4. En el caso de Excel, imprimir la secuencia en una celda y su valor de Tm en la próxima celda de la misma fila usando **xlwt**.
+
+**Listado 18.1:** `fromtxt.py`: Calcular la Tm del primer.
+
+{id="fromtxt",line-numbers=on,lang=python}
+```
+from Bio.SeqUtils import MeltingTemp as MT
+
+PRIMER_FILE = '../../samples/primers.txt'
+for line in open(PRIMER_FILE):
+	# prm guarda el primer, sin 5'- y sin -3'
+	prm = line[3:len(line)-4].replace(' ','')
+	# .2f se usa para imprimir hasta 2 decimales.
+	print('{0},{1:.2f}'.format(prm, MT.Tm_staluc(prm)))
+```
+
+**Versión del mismo código con salida en Excel**
+
+**Listado 18.2:** `toexcel.py`: Calcular la Tm del primer con salida en Excel.
+
+{id="toexcel",line-numbers=on,lang=python}
+```
+from Bio.SeqUtils import MeltingTemp as MT
+import xlwt
+
+PRIMER_FILE = '../../samples/primers.txt'
+# w es el nombre del workbook recien creado.
+w = xlwt.Workbook()
+# ws es el nombre de una nueva hoja en el workbook.
+ws = w.add_sheet('Result')
+# Estas 2 lineas escriben los titulos de las columnas.
+ws.write(0, 0, 'Primer Sequence')
+ws.write(0, 1, 'Tm')
+for index, line in enumerate(open(PRIMER_FILE)):
+	# Por cada linea del archivo de entrada, escribe la
+	# secuencia del primer y la Tm
+	prm = line[3:len(line)-4].replace(' ','')
+	ws.write(index+1, 0, prm)
+	ws.write(index+1, 1, '{0:.2f}'.format(MT.Tm_staluc(prm)))
+# Guarda la planilla en un archivo.
+w.save('primerout.xls')
+```
+
+## RECURSOS ADICIONALES
+
+* [PCR primer design guidelines.](http://www.premierbiosoft.com/tech_notes/PCR_Primer_Design.html)
+
+* [Molecular Biology Techniques Manual, Vernon E. Coyne, M. Diane James, Sharon J. Reid, and Edward P. Rybicki, eds.](http://www.mcb.uct.ac.za/pcroptim.htm)
+
+* [Designing primers](http://www.openwetware.org/wiki/Designing_primers)
+
+* [Nicolas Le Novère. MELTING, computing the melting temperature of nucleic acid duplex. Bioinformatics 2001 17: 1226–1227. doi: 10.1093/bioinformatics/17.12.1226](https://academic.oup.com/bioinformatics/article/17/12/1226/225621)
