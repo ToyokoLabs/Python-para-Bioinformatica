@@ -1,0 +1,163 @@
+{:: encoding="UTF-8" /}
+
+# Buscando primers de PCR usando Primer3
+
+## DESCRIPCIÓN DEL PROBLEMA
+
+Los primers son pequeñas cadenas de ADN (de entre 15 y 30 pares de base de longitud) que son complementarios a una región del ADN. Son necesarios para que ocurra la replicación del ADN. En biología molecular, los primers son usados para la amplificación del ADN mediante la tecnica de la reacción en cadena de la polimeresa más conocida como PCR (por sus siglas en inglés de **P**olymerase **C**hain **R**eaction). Los primers de PCR tienen sus caracteristicas propias, como punto de fusión, longitud, necesidad de evitar la auto complementaridad y otros parámetros.[^nota17-1]
+
+El diseño de primers para PCR es una de las tareas mas ubicuas de las que se hacen en un laboratorio de biología molecular. Hay varios programas para ayudar a los investigadores para seleccionar buenos primers. Algunos programas son basados en la web y otros son aplicaciones individuales como la suite de VectorNTI[^nota17-2] y Oligo.net. Estos programas son adecuados para estudios individuales de pocas secuencias, pero no son la mejor opción para la generación automática en lotes de cientos de primers, lo que es una tarea rutinaria en proyectos de secuenciación y de fingerprinting. Uno de los programas mas usados es *primer3*[^nota17-3]. Esto es debido a la gran calidad de los primers propuestos y porque se puede correr en lote para generar múltiples primers a la vez.
+
+[^nota17-1]: Para más información sobre el diseño de primers ver los "Recursos Adicionales."
+[^nota17-2]: VectorNTI web site: https://www.thermofisher.com/us/en/home/life-science/cloning/ vector-nti-software.html.
+[^nota17-3]: This software is available at http://sourceforge.net/projects/primer3; please see the included documentation for how to cite this software if used in a publication.
+
+Primer3 se encarga del diseño de primers, solo necesitamos preparar el archivo de entrada para *primer3*. Este archivo tiene las secuencias sobre las cuales el primer tiene que ser hallado junto con otros parametros requeridos y optativos como el nombre del primer, el tamaño del primer, del producto, regiones para excluir y otros.
+
+Un archivo de entrada para *primer3* luce asi:
+
+{line-numbers=off}
+```
+PRIMER_SEQUENCE_ID=<Name>
+SEQUENCE=<DNA Sequence in one line>
+TARGET=<start>,<length>
+PRIMER_OPT_SIZE=<size>
+PRIMER_MIN_SIZE=<size>
+PRIMER_MAX_SIZE=<size>
+PRIMER_NUM_NS_ACCEPTED=<int>
+PRIMER_EXPLAIN_FLAG=<int>
+PRIMER_PRODUCT_SIZE_RANGE=<start>-<end>
+=
+```
+
+Cada párametro está detallado en el archivo README.txt de *primer3*, aunque la mayoría es auto-explicativo. El signo igual (=) se usa para indicar que termina el registro. En cada archivo de *primer3* se pueden incluir varios registros.
+
+Este capítulo de recetas está dividido en 2 tareas. La primera tarea será generar un archivo de entrada para *primer3* basada en un archivo FASTA con una secuencia y con una restricción (evitar diseñar el primer sobre un microsatelite). La segunda tarea involucra el analisis de varias secuencias para la generación de un archivo de entrada para *primer3*.
+
+## DISEÑO DE PRIMER RODEANDO A UNA SECUENCIA DE LONGITUD VARIABLE
+
+Este programa debe leer un archivo formateado como FASTA con una secuencia adentro. Esta secuencia tiene un microsatelite[^nota17-4] de longitud variable donde deberíamos evitar diseñar un primer. Necesitamos asegurarnos que los primers seleccionados flanqueen esta región. No sabemos la longitud ni la posición del microsatelite, pero sabemos que tiene una secuencia repetida de “AAT” que puede estar presente entre 5 y 15 veces. La tarea puede dividirse en los siguientes pasos:
+
+[^nota17-4]: Un microsatelite es una región en el cromosoma que es caracterizada por tener una pequeña secuencia de ADN repetida un número variable de veces. Como son heredables, se las puede usar para inferir relaciones entre individuos.
+
+ 1. Leer la secuencia del archivo FASTA: Biopython tiene el modulo **SeqIO** que puede usarse para leer la secuencia.
+
+ 2. Detectar la región del microsatelite y guardar su posición: se usará una ventana deslizante. En cada ventana posible de 45 pares de bases[^nota17-5] contaremos cuantas veces está presente nuestra secuencia repetida. La ventana elegida será aquella que tenga adentro el mayor número de repeticiones. Necesitamos guardar la posición de esta ventana.
+
+ 3. Generar el archivo de entrada de primer3: esto se hace de manera trivial usando la secuencia obtenida en el punto 1 y la posición del punto 2.
+
+[^nota17-5]: El tamaño es estimado calculando que es una repetición de 3 letras (AAT) y que esta secuencia puede repetirse hasta 15 veces.
+
+### Código fuente comentado
+
+**Listado 17.1:** `primer31.py`: Salida del diseño de primers sin Biopython.
+
+```
+from Bio import SeqIO
+
+sfile = open('../../samples/hsc1.fasta')
+# myseq stores a SeqRecord object generated from the
+# first record in the fasta file.
+myseq = SeqIO.read(sfile, "fasta")
+# title stores the "id" attribute of the SeqRecord object.
+title = myseq.id
+seq = str(myseq.seq).upper()
+win_size = 45
+i = 0
+number_l = []
+# This while is used to walk over the sequence.
+while i<=(len(seq)-win_size):
+  # Each position of number_l stores the amount of 'AAT'
+  # found on each window.
+  number_l.append(seq[i:i + win_size].count('AAT'))
+  i += 1 # This is the same as i = i+1
+# pos stores the position of the window with the highest
+# amount of 'AAT'
+pos = number_l.index(max(number_l))
+data = {'title': title, 'seq': seq, 'pos': pos, 'win_size':
+        win_size, 'len_seq': len(seq)}
+# Saves the data formated as the input file needed by
+# primer3.
+with open('swforprimer3.txt','w') as f_out:
+  with open('template') as tpl:
+    completed = tpl.read().format(**data) f_out.write(completed)
+```
+
+Este programa puede procesar un archivo como este[^nota17-6]:
+
+[^nota17-6]: Para cambiar el nombre del archivo de entrada hay que cambiar la línea 3.
+
+{line-numbers=off}
+```
+>NC_000001.11:156082546-156140089
+GTAGTTTCCCGCCCTTGGGGGCGCGGGGACAAATTCCTTGACCCGAGGAGGATAGGGATGTGGC
+CTTCGGTCTTTCCTCGCAGCTCCGGGGCAAGCTAGGAGTGGGATGGAAGTCGAGGTCCCTAATT
+TTTTAAGGGGAGGGTGCGGGGAGAAGGGGTAGTATGCGGAAACAGAGCGGGTATGAAGCTGGCT
+AACGCCGCGCGCCCCCTCCCAGGACCCGCTCCTGCCCCGCGCCGGCCGGTCCTGGGGGCCCGCT
+TTTTTATGGAAATGAGGAGGGGGGGCCGGGGCCGGGGGCGGGGAGCCGGGAGCCGGGGGTAGTA
+(...)
+```
+
+El resultado del listado 17.1 produce un archivo como el que sigue:
+
+{line-numbers=off}
+```
+PRIMER_SEQUENCE_ID=NC_000001.11:156082546-156140089
+SEQUENCE=GTAGTTTCCCGCCCTTGGGGGCGCGGGGACAAATTCCTTGACCCGAGGAGGATAG<=
+GGATGTGGCCTTCGGTCTTTCCTCGCAGCTCCGGGGCAAGCTAGGAGTGGGATGGAAGTCGAGG<=
+TCCCTAATTTTTTAAGGGGAGGGTGCGGGGAGAAGGGGTAGTATGCGGAAACAGAGCGGGTATG<=
+AAGCTGGCTAACGCCGCGCGCCCCCTCCCAGGACCCGCTCCTGCCCCGCGCCGGCCGGTCCTGG<=
+GGGCCCGCTTTTTTATGGAAATGAGGAGGGGGGGCCGGGGCCGGGGGCGGGGAGCCGGGAGCCG<=
+(...)
+TARGET=43423,45
+PRIMER_OPT_SIZE=18
+PRIMER_MIN_SIZE=15
+PRIMER_MAX_SIZE=20
+PRIMER_NUM_NS_ACCEPTED=0
+PRIMER_EXPLAIN_FLAG=1
+PRIMER_PRODUCT_SIZE_RANGE=45-57544
+```
+
+Este archivo se usa como entrada en **primer3** de esta manera:
+
+{line-numbers=off}
+```
+$ ./primer3_core < swforprimer3.txt > primer3out.txt
+```
+
+## DISEÑO DE PRIMER FLANQUEANDO UNA REGIÓN VARIABLE USANDO BIOPYTHON
+
+Biopython puede hacer el archivo de entrada como también la línea de comando.
+
+
+**Listado 17.2:** `primer32.py`: Diseño de primer desde una secuencia con Biopython.
+
+```
+from Bio import SeqIO
+from Bio.Emboss.Applications import Primer3Commandline
+
+INPUT_SEQUENCE = open('../../samples/hsc1.fasta')
+OUTPUT_SEQUENCE = 'primer.txt'
+sfile = open('../../samples/hsc1.fasta')
+myseq = SeqIO.read(sfile, 'fasta')
+title = myseq.id
+seq = str(myseq.seq).upper()
+win_size = 45
+i = 0
+number_l = []
+while i <= (len(seq) - win_size):
+  number_l.append(seq[i:i + win_size].count('AAT'))
+  i += 1 # This is the same as i = i+1
+pos = number_l.index(max(number_l))
+pr_cl = Primer3Commandline(sequence=INPUT_SEQUENCE, auto=True)
+pr_cl.outfile = OUTPUT_SEQUENCE
+pr_cl.osize = 18
+pr_cl.maxsize = 20
+pr_cl.minsize = 15
+pr_cl.explainflag = 1
+pr_cl.target = (pos, win_size)
+pr_cl.prange = (win_size, len(seq))
+primer_cl()
+```
+
+**Explicación del código**: Este código usa **Primer3Commandline** (línea 17). Luego que instancia esta clase, los parámetros son pasados como propiedades (desde la línea 18 a 24). Estas propiedades se usan para construir el archivo de entrada. La última línea ejecuta `eprimer3`, que llama a `primer3`.
