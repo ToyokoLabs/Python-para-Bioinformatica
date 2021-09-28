@@ -1,0 +1,220 @@
+{:: encoding="UTF-8" /}
+
+# Manipulación de secuencias en Batch
+
+## DESCRIPCIÓN DEL PROBLEMA
+
+La manipulación de secuencias es una tarea muy común en la mayoría de los laboratorios. Algunas de las tareas se pueden hacer con la librería estándar de Python pero en este capítulo veremos como Biopython puede ayudarnos. Vamos a usar los módulos **SeqRecord** y **SeqIO** del paquete Biopython.
+
+## PROBLEMA UNO: CREAR UN ARCHIVO FASTA CON SECUENCIAS AL AZAR
+
+Las secuencias al azar se usan como entrada de algunos test estadísticos. Estas secuencias también pueden usarse para testear los programas cuando no tenemos información real en las cantidades necesarias.
+
+En en Listado 15.1 usamos las constantes para setear el rango de longitud y el número de secuencias. En este ejemplo el tamaño mínimo es de 400 nucleótidos, el máximo es de 1500 nucleótidos y vamos a generar 500 secuencias. Esto puede ser modificado cambiando las constantes desde la línea 7 a la 9.
+
+### Código fuente comentado
+
+**Listado 15.1:** `seqiornd.py`: Generar secuencias al azar.
+
+```
+import random
+
+from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
+from Bio import SeqIO
+
+TOTAL_SEQUENCES = 500
+MIN_SIZE = 400
+MAX_SIZE = 1500
+
+def new_rnd_seq(seq_len):
+  """
+  Generate a random DNA sequence with a sequence length of "sl" (int).
+  return: A string with a DNA sequence.
+  """
+  s = ''
+  while len(s) < seq_len:
+    s += random.choice('ATCG')
+  return s
+
+with open('randomseqs.txt','w') as new_fh:
+  for i in range(1, TOTAL_SEQUENCES + 1):
+  # Select a random number between MIN_SIZE and MAX_SIZE
+  rsl = random.randint(MIN_SIZE, MAX_SIZE)
+  # Generate the random sequence
+  rawseq = new_rnd_seq(rsl)
+  # Generate a correlative name
+  seqname = 'Sequence_number_{0}'.format(i)
+  rec = SeqRecord(Seq(rawseq), id=seqname, description='')
+  SeqIO.write([rec], new_fh, 'fasta')
+```
+
+**Explicación del código**: La generación de la secuencia al azar esta hecha en la función *new_rnd_seq* (desde las línea 11 a la 20). Esta función es llamada en el interior del bucle *for* y almacenada como *rawseq*. En la línea 30 se crea un objeto *SeqRecord*. Este objeto es pasado a *SeqIO.write* en la línea 31.
+
+## PROBLEMA DOS: FILTRAR SECUENCIAS VACÍAS DE UNA ARCHIVO FASTA
+
+A veces es necesario deshacerse de las secuencias mal formadas de un archivo FASTA. Algunos programas se cuelgan cuando reciben una secuencia vacía como archivo de entrada. Formatdb, el programa usado para formatear las bases de datos BLAST, presenta un comportamiento como este. El código del Listado 15.2 asume que tenemos un archivo FASTA como este:
+
+{line-numbers=off}
+```
+>SSR86 [ssr] : Tomato-EXPEN 2000 map, chr 3
+AGGCCAGCCCCCTTTTCCCTTAAGAACTCTTTGTGAGCTTCCCGCGGTGGCGGCCGCTCTAG
+>SSR91 [ssr]
+>SSR252 [ssr]
+TGGGCAGAGGAGCTCGTANGCATACCGCGAATTGGGTACACTTACCTGGTACCCCACCCGGG
+TGGAAAATCGATGGGCCCGCGGCCGCTCTAGAAGTACTCTCTCTCT
+>SSR257 [ssr]
+TGAGAATGAGCACATCGATACGGCAATTGGTACACTTACCTGCGACCCCACCCGGGTGGAAA
+ATCGATGGGCCCGCGGCC
+>SSR92 [ssr] : Tomato-EXPEN 2000 map, chr 1
+```
+
+Y debería producir una versión del archivo sin records vacíos.
+
+{line-numbers=off}
+```
+>SSR86 [ssr] : Tomato-EXPEN 2000 map, chr 3
+AGGCCAGCCCCCTTTTCCCTTAAGAACTCTTTGTGAGCTTCCCGCGGTGGCGGCCGCTCTAG
+>SSR252 [ssr]
+TGGGCAGAGGAGCTCGTANGCATACCGCGAATTGGGTACACTTACCTGGTACCCCACCCGGG
+TGGAAAATCGATGGGCCCGCGGCCGCTCTAGAAGTACTCTCTCTCT
+>SSR257 [ssr]
+TGAGAATGAGCACATCGATACGGCAATTGGTACACTTACCTGCGACCCCACCCGGGTGGAAA
+ATCGATGGGCCCGCGGCC
+```
+
+### Código fuente comentado
+
+**Listado 15.2:** `seqio1.py`: Filtrar un archivo FASTA.
+
+```
+from Bio import SeqIO
+
+INPUT_FILE = '../../samples/fasta22.fas'
+OUTPUT_FILE = 'fasta22_out.fas'
+
+def retseq(seq_fh):
+  """
+  Parse a fasta file and store non empty records into the fullseqs list.
+  :seq_fh: File handle of the input sequence
+  :return: A list with non empty sequences
+  """
+  fullseqs = []
+  for record in SeqIO.parse(seq_fh, 'fasta'):
+    if len(record.seq): fullseqs.append(record)
+  return fullseqs
+```
+
+Aunque este programa hace su trabajo, no es un ejemplo de uso eficiente de los recursos de la computadora. La lista **fullseqs** termina con la información sobre cada secuencia no vacía en el archivo. Para archivos de secuencia corta esto no se nota, pero en un escenario real, podría dejar un servidor inutilizable.
+
+El mismo programa se puede adaptar para un uso bajo de memoria. Esto se logra en el listado 15.3 mediante el uso de un generador, un tipo especial de función. Sintácticamente, un *generador* y una función son muy parecidos; ambos tienen un encabezado con la palabra clave *def*, un nombre y los parámetros (si los hay). La diferencia más visible es que, en lugar de tener la palabra *return* como punto de salida, los generadores tienen *yield*. La principal diferencia entre una función y un generador es que el generador mantiene su estado interno después de ser llamado. La próxima vez que se llame al generador reanudará su ejecución desde el punto donde estaba antes. Esta propiedad se utiliza para producir varios valores, uno a la vez.
+
+**Listado 15.3:** `seqio2.py`: Filtrar un archivo FASTA con un generador.
+
+```
+from Bio import SeqIO
+
+INPUT_FILE = '../../samples/fasta22.fas'
+OUTPUT_FILE = 'fasta22_out2.fas'
+
+def retseq(seq_fh):
+  """
+  Parse a fasta file and returns non empty records
+  :seq_fh: File handle of the input sequence :return: Non empty sequences
+  """
+
+  for record in SeqIO.parse(seq_fh, 'fasta'):
+    if len(record.seq):
+      yield record
+
+with open(INPUT_FILE) as in_fh:
+  with open(OUTPUT_FILE, 'w') as out_fh:
+    SeqIO.write(retseq(in_fh), out_fh, 'fasta')
+```
+
+**Explicación del código**: Este código es muy similar al del Listado 15.2. La primera diferencia que aparece cuando se comparan línea a línea es que en este código no hay una lista vacía para almacenar las secuencias (llamada `fullseqs` en el Listado 15.2). Otra diferencia es que en el primer código `retseq` es una función mientras que en la última versión es un generador. Las dos diferencias están estrechamente relacionadas y dado que los generadores devuelven elementos uno por uno, no hay necesidad de usar una lista. El generador genera un registro para *SeqIO.write* que sigue llamando al generador hasta que obtiene una excepción `StopIteration`.
+
+Hay otra manera de hacer la misma tarea sin usar generadores y funciones consumiendo una cantidad óptima de RAM:
+
+**Listado 15.4:** `seqio3.py`: Otra forma de filtrar un archivo FASTA.
+
+```
+from Bio import SeqIO
+
+INPUT_FILE = '../../samples/fasta22.fas'
+OUTPUT_FILE = 'fasta22_out3.fas'
+
+with open(INPUT_FILE) as in_fh:
+  with open(OUTPUT_FILE, 'w') as out_fh:
+    for record in SeqIO.parse(in_fh, 'fasta'):
+      if len(record.seq):
+        SeqIO.write([record], out_fh, 'fasta')
+```
+
+Como podemos ver no se crea una lista ni tampoco hay un generador dado que la función *SeqIO.write* guarda los registros ni bien los recibe.[^nota15-1] Si mostrará el Listado 15.4 en primer lugar no tendría la oportunidad de mostrar la diferencia entre usar una función y un generador.
+
+[^nota15-1]: Hay un pequeño uso de la memoria RAM pero no es relevante en términos de cómo esta función trabaja.
+
+## PROBLEMA TRES: MODIFICAR CADA RÉCORD DE UN ARCHIVO FASTA
+
+En este problema tenemos un archivo FASTA que se ve en el Listado 15.5:
+
+**Listado 15.5:** Archivo de entrada.
+
+```
+>Protein-X
+NYLNNLTVDPDHNKCDNTTGRKGNAPGPCVQRTYVACH
+>Protein-Y
+MEEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDA
+>Protein-Z
+MKAAVLAVALVFLTGCQAWEFWQQDEPQSQWDRVKDFATVYVDAVKDSGRDYVSQFESST
+```
+
+El objetivo de este ejercicio es modificar todas las secuencias agregando el tag de especies al nombre de cada secuencia. Este tipo de modificación puede ser necesario, por ejemplo, cuando se quiere submitir la secuencia a un banco de información genética. Un archivo FASTA modificado sería así:
+
+**Listado 15.6:** Archivo de entrada.
+
+```
+>Protein-X [Rattus norvegicus]
+NYLNNLTVDPDHNKCDNTTGRKGNAPGPCVQRTYVACH
+>Protein-Y [Rattus norvegicus]
+MEEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDA
+>Protein-Z [Rattus norvegicus]
+MKAAVLAVALVFLTGCQAWEFWQQDEPQSQWDRVKDFATVYVDAVKDSGRDYVSQFESST
+```
+
+En el Listado 15.6 podemos ver que esta el tag [`Rattus norvegicus`] en el nombre de cada récord. Hay mucha formas de realizar este cambio. Aquí está la versión con el módulo de Biopython, BioSeq (Listado 15.7) y otra usando solo la librería estándar de Python (Listado 15.8).
+
+### Código fuente comentado
+
+**Listado 15.7:** `seqiofile3.py`: Agregar un tag en una secuencia FASTA con Biopython.
+
+```
+from Bio import SeqIO
+
+INPUT_FILE = 'fasta22_out.fas'
+OUTPUT_FILE = 'fasta33.fas'
+
+with open(INPUT_FILE) as in_fh:
+  with open(OUTPUT_FILE, 'w') as out_fh:
+    for record in SeqIO.parse(in_fh,'fasta'):
+      # Modify description
+      record.description += '[Rattus norvegicus]'
+      SeqIO.write([record], out_fh, 'fasta')
+```
+
+Si bien esta modificación de la secuencia en formato FASTA se puede resolver utilizando Biopython, en este caso es un exceso. El código que sigue muestra cómo resolver la misma tarea sin Biopython:
+
+**Listado 15.8:** `seqiofile4.py`: Agregar un tag en una secuencia FASTA.
+
+```
+INPUT_FILE = 'fasta22_out.fas'
+OUTPUT_FILE = 'fasta33.fas'
+
+with open(INPUT_FILE) as in_fh:
+  with open(OUTPUT_FILE, 'w') as out_fh:
+    for line in in_fh:
+      if line.startswith('>'):
+        line = line.replace('\n', '[Rattus norvegicus]\n')
+      out_fh.write(line)
+```
