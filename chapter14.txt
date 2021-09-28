@@ -1,0 +1,336 @@
+{:: encoding="UTF-8" /}
+
+# Gráficos en Python {#graficosenpython}
+
+## INTRODUCCIÓN A BOKEH
+
+Bokeh es una biblioteca de visualización interactiva que funciona desde un servidor web. Imita el estilo de **D3.js**, una biblioteca popular para hacer gráficos en la web hecha en JavaScript. También toma ideas de **MATLAB**[^nota14-1]. Los usuarios de ambos sistemas encontrarán las similitudes y aprenderán rápido. Si nunca usaste una biblioteca gráfica, algunos conceptos te parecerán raros o fuera de lugar, por lo que recomiendo seguir este capítulo con mucha atención, sin saltear ninguna sección. Una vez que sepas usar esta biblioteca, te ayudará a hacer gráficos interactivos, paneles de control y aplicaciones basadas en datos.
+
+[^nota14-1]: MATLAB® is a registered trademark of The MathWorks, Inc. For product information please contact: The MathWorks, Inc. 3 Apple Hill Drive Natick, MA, 01760-2098 USA. Tel: 508-647-7000. Fax: 508-647-7001. E-mail: info@mathworks.com. Web: www.mathworks.com.
+
+¿Cómo funciona? Tiene 2 componentes principales, por un lado una biblioteca de JavaScript llamada **BokehJS** que funciona en un navegador. Esta biblioteca se usa para renderizar los gráficos y para proveer interacción como *zoom*, mover y guardar. Como entrada, esta biblioteca usa objetos JSON con toda la información necesaria para hacer el gráfico. El otro componente es la biblioteca de Python que produce estos objetos JSON.
+
+## INSTALANDO BOKEH
+
+**Bokeh** puede ser instalado con **pip** o con **conda** en el caso que uses la distribución Anaconda. El primer método no instala los ejemplos, pero el último (conda) si lo instala, lo que lo hace el método preferido. Si instalan Bokeh con pip y quieren los ejemplos, pueden bajarlo desde la página de GitHub[^nota14-2]
+
+[^nota14-2]: <https://github.com/bokeh/bokeh>.
+
+Instalando Bokeh con pip:
+
+{line-numbers=off}
+```
+(py4bio) $ pip install bokeh
+Collecting bokeh
+  Downloading bokeh-0.12.4.tar.gz (5.6MB)
+    100% |********************************| 5.6MB 213kB/s
+Requirement already satisfied: six>=1.5.2 in ./py4bio/lib/python2.7<=
+/site-packages (from bokeh)
+Collecting PyYAML>=3.10 (from bokeh)
+(...)
+Successfully installed Jinja2-2.9.5 MarkupSafe-1.0 PyYAML-3.12 back<=
+ports-abc-0.5 bokeh-0.12.4 certifi-2017.1.23 futures-3.0.5 python-d<=
+ateutil-2.6.0 singledispatch-3.4.0.3 tornado-4.4.2
+```
+
+Con *Conda*, primero creamos el entorno, en este caso le ponemos **p4b** de nombre:
+
+{line-numbers=off}
+```
+$ conda create --name p4b
+Fetching package metadata .......
+.Solving package specifications: .
+Package plan for installation in environment /sb/anaconda3/envs/p4b:
+
+The following empty environments will be CREATED:
+
+/sb/anaconda3/envs/p4b
+
+Proceed ([y]/n)?
+
+#
+# To activate this environment, use:
+# > source activate p4b
+#
+# To deactivate this environment, use:
+# > source deactivate p4b
+#
+```
+
+Luego activamos este ambiente e instalamos *Bokeh*:
+
+{line-numbers=off}
+```
+$ source activate p4b
+(p4b) $ conda install bokeh
+Fetching package metadata .......
+Solving package specifications: ..........
+
+Package plan for installation in environment /sb/anaconda3/envs/p4b:
+
+The following packages will be downloaded:
+(...)
+The following NEW packages will be INSTALLED:
+
+    bokeh:           0.12.4-py36_0
+    jinja2:          2.9.5-py36_0
+(...)
+Proceed ([y]/n)?
+
+Fetching packages ...
+bokeh-0.12.4-p 100% |#####################| Time: 0:00:00  10.06 MB/s
+Extracting packages ...
+[      COMPLETE      ]|########################################| 100%
+Linking packages ...
+[      COMPLETE      ]|########################################| 100%
+(bokeh) sbassi@sbassi-MS-7641:~$
+```
+
+## USANDO BOKEH
+
+La clase principal se lama **Figure** e incluye métodos para agregar elementos a un gráfico. También tiene en cuenta valores por defecto para ejes, grillas y herramientas. Para instanciar esta clase usamos el método **figure** que acepta parámetros basicos como título y etiquetas en los ejes. El objeto **figure** generado tiene métodos para agregar elementos a la figura. Un método típico para agregar elementos es **circle**. Veamoslo en acción.
+
+**Listado 14.1:** `basiccircle.py`: Un círculo hecho con Bokeh.
+
+```
+from bokeh.plotting import figure, output_file, show
+
+p = figure(width=400, height=400)
+p.circle(2, 3, radius=.5, alpha=0.5, color='red')
+output_file('out.html')
+show(p)
+```
+
+**Explicación del código**: En la línea 1 importamos todos los elementos que necesitamos: **figure**, **output_file**, y **show**. En la línea 3 llamamos al método **figure** para instanciar la clase *Figure*. Como parámetros usamos *width* y *height*. Este objeto lo llamamos ``p``. En la línea 4, llamamos al método **circle** en la instancia de *figure* llamada ``p``. En este caso los parámetros son los valores de los ejes *x* e *y*, el radio del círculo (``radius``), un valor de transparencia (``alpha``), y un color (``color``). La forma general de este método es *circle(x, y, **kwargs)*, donde **kwargs** es un número indeterminado de argumentos con claves. El método **output_file** en la línea 5 establece un nombre del HTML que va a mostrar el navegador. El comando **show(p)** de la última línea (6) llama al navegador web con el archivo **output_file**. Esto llamará un navegador web como se ve en la siguiente figura. El grafico resultante es interactivo y se puede modificar con los controles a la derecha. Si querés el gráfico en formato PNG hay que usar el icono de guardar (que tiene un logo de un diskette).
+
+{width=60%}
+![Figura 14.1 Un círculo con Bokeh.](images/circle1.png)
+
+Para hacer múltiples circulos, ingresá sus coordenadas en una lista para cada eje. Por ejemplo, el siguiente código muestra 4 círculos.
+
+**Listado 14.2:** `fourcircles.py`: 4 círculos hecho con Bokeh
+
+```
+from bokeh.plotting import figure, output_file, show
+
+  p = figure(width=500, height=500)
+
+x = [1, 1, 2, 2]
+y = [1, 2, 1, 2]
+p.circle(x, y, radius=.35, alpha=0.5, color='red')
+output_file('out.html')
+show(p)
+```
+
+**Explicación del código:** Este código es muy similar al del listado **basiccircle.py**. La diferencia principal está en la línea 6, donde en lugar de pasar un valor de *X* y un valor de *Y*, pasamos una lista de valores para cada eje. El resto de los cambios son menores. Los resultados se pueden ver en la siguiente figura.
+
+{width=60%}
+![Figura 14.2 Cuatro círculos con Bokeh.](images/fourcircles.png)
+
+### Un gráfico X-Y simple
+
+Con esto ya estamos listos para dibujar dos columnas de datos. Incluso si no estás considerando este tipo de gráfica, los elementos que vemos aca aparecen en otros tipos de gráficos, por lo que vale la pena seguir este capítulo en orden sin saltar a un tipo de gráfico en partícular. Considerá la siguiente tabla:
+
+|Time |Mean Wt |
+|-----|--------|
+|1    |0.7     |
+|2    |1.4     |
+|3    |2.1     |
+|4    |3       |
+|5    |3.85    |
+|6    |4.55    |
+|7    |5.8     |
+|8    |6.45    |
+
+
+Para hacer una gráfica x-y, necesitamos la clase **figure**. Esta clase usa argumentos con clave para establecer el título y una etiqueta para cada eje. Tal como hicimos en el listado anterior, usamos **circle** pero con un nuevo argumento (*legend*).
+
+{width=60%}
+**Listado 14.3:** `plot1.py:`: Un gráfico mínimo.
+
+```
+from bokeh.plotting import figure, output_file, show
+
+x = [1, 2, 3, 4, 5, 6, 7, 8]
+y = [.7, 1.4, 2.1, 3, 3.85, 4.55, 5.8, 6.45]
+
+p = figure(title='Mean wt increased vs. time',
+  x_axis_label='Time in days',
+  y_axis_label='% Mean WT increased')
+p.circle(x, y, legend='Subject 1', size=10)
+output_file('test.html')
+show(p)
+```
+
+El resultado de la ejecución del Listado puede verse en la figura 14.3.
+
+{width=60%}
+![**Figura 14.3** Un plot simple con Bokeh.](images/plot1new2.png)
+
+### Gráfico de 2 series de datos
+
+El Listado 14.4 agrega una nueva serie de datos y algunas personalizaciones menores. La nueva serie de datos es una lista llamada **z**. En la línea 11 se llama nuevamente al método **circle** para agregar la nueva serie de datos. Observemos que en este caso agregamos el parámetro **line_color** con el valor de **'red'** y **fill_color** como **'white'**. Bokeh admite la lista de colores nombrados que se encuentra en <https://www.w3schools.com/colors/colors_names.asp>. Si necesitamos incluir un color que no esté en esta lista, se debe ingresar el código RGB. El último objeto nuevo es **legend** con su propiedad **location**. Esto cambia la posición del cuadro de leyenda a un lugar que no se superponga con parte del gráfico.
+
+{width=60%}
+**Listado 14.4:** `plot2.py`: Gráfico con dos series de datos.
+
+```
+from bokeh.plotting import figure, output_file, show
+
+x = [1, 2, 3, 4, 5, 6, 7, 8]
+y = [.7, 1.4, 2.1, 3, 3.85, 4.55, 5.8, 6.45]
+z = [.5, 1.1, 1.9, 2.5, 3.1, 3.9, 4.85, 5.2]
+
+p = figure(title='Mean wt increased vs. time',
+  x_axis_label='Time in days',
+  y_axis_label='% Mean WT increased')
+p.circle(x, y, legend='Subject 1', size=10)
+p.circle(x, z, legend='Subject 2', size=10, line_color='red',
+  fill_color='white')
+p.legend.location = 'top_left'
+output_file('test.html')
+show(p)
+```
+
+![**Figura 14.4** Un plot de dos series de datos con Bokeh.](images/plot2new.png)
+
+### Un diagrama de dispersión
+
+El diagrama de dispersión muestra los valores para dos o más variables de un conjunto de datos. Los puntos se pueden codificar por colores para mostrar otra variable. El siguiente archivo CSV se realizó a partir de un trabajo en el que se estudió el contenido intestinal en varias especies de peces. Se realizó un análisis de componentes principales (PCA) y los datos de los dos primeros componentes principales: el tipo de alimento y las especies de peces que se encuentran en `fishdata.csv. Para obtener información sobre la investigación que utiliza este análisis, consulte el artículo DOI 10.7717/peerj.550.[^nota14-3]
+
+[^nota14-3]: Asakura T, Sakata K, Yoshida S, Date Y, Kikuchi J. (2014) Noninvasive analysis of metabolic changes following nutrient input into diverse fish species, as investigated by metabolic and microbial profiling approaches. PeerJ 2:e550 <https://doi.org/10.7717/peerj.550>.
+
+{line-numbers=off}
+```
+index,PC1,PC2,feeds,species
+0,0.5,0.8,Crustacea,Epinephelus
+1,0.3,0.9,Mosquito larvae,Sebastiscus
+2,0.95,0.83,Mosquito larvae,Sebastiscus
+3,0.92,1.98,Mosquito larvae,Sebastiscus
+4,2.01,1.4,Crustacea,Sebastiscus
+5,2.15,1.25,Crustacea, Sebastiscus
+6,2.19,1.01,Aquaculture feed,Sebastiscus
+7,2.35,0.21,Mosquito larvae,Sebastes
+8,2.48,0.87,Crustacea,Sebastes
+9,2.53,0.98,Crustacea,Sebastes
+10,2.85,1.5,Polychaeta,Sebastes
+11,2.93,2.39,Aquaculture feed,Sebastes
+12,3.05,3.05,Mosquito larvae,Acanthogobius
+13,3.38,3.08,Mosquito larvae,Acanthogobius
+14,4.05,2.09,Mosquito larvae,Acanthogobius
+15,4.18,2.89,Crustacea,Acanthogobius
+16,4.23,1.95,Crustacea,Acanthogobius
+17,5.03,1.98,Polychaeta,Acanthogobius
+18,5.32,2.05,Aquaculture feed,Acanthogobius
+```
+
+El Listado 14.5 lee `fishdata.csv` usando la clase **DataFrame** de la biblioteca de **Pandas**. El método **from_csv** convierte un archivo CSV en un objeto **DataFrame**. Este objeto funciona como una matriz con cada columna un tipo de datos diferente. En este caso utilizamos la clase **Scatter**, que se inicializa con este objeto **DataFrame** (**df**). Los parámetros x e y son los nombres de la columna (los nombres de la columna del objeto CSV que se convirtió en el **DataFrame df**). Observemos que en la línea 11 cambiamos el atributo *background_fill_alpha* para insertar transparencia en el cuadro de leyenda.
+
+**Listado 14.5:** `fishpc.py`: Gráfico de puntos.
+
+```
+from bokeh.charts import Scatter, output_file, show
+from pandas import DataFrame
+
+df = DataFrame.from_csv('../../samples/fishdata.csv')
+
+scatter = Scatter(df, x='PC1', y='PC2', color='feeds',
+  marker='species', title=
+  'Metabolic variations based on 1H NMR profiling of fishes',
+  xlabel='Principal Component 1: 35.8%',
+  ylabel='Principal Component 2: 15.1%')
+scatter.legend.background_fill_alpha = 0.3
+output_file('scatter.html')
+show(scatter)
+```
+
+El gráfico resultante se puede ver en la figura 14.5.
+
+{width=60%}
+![**Figura 14.5** Diagrama de dispersión.](images/scatter.png)
+
+### Mapa de calor (Heatmap)
+
+Un mapa de calor es un gráfico de una matriz donde cada valor se representa como un color, generalmente la intensidad del color es proporcional al valor asignado a su posición. Hay muchos usos de los mapas de calor en biología. En este caso trabajaremos con un experimento de microarrays de ADN. Esto se utiliza para medir los valores de expresión génica. A partir del siguiente archivo, usaremos los tres primeros valores (x, y y lux). Los dos primeros son la posición en la matriz y el tercero es la intensidad de la luz emitida por el objetivo. La cantidad de luz es relativa a la abundancia de secuencias de ácido nucleico en el objetivo.
+
+Este archivo se llama `GSM188012.CEL`:
+
+{line-numbers=off}
+```
+x y lux avg type
+0 0 241.3 28.2  16
+1 0 10834.8 1384.4  16
+2 0 219.0 24.5  16
+3 0 11074.5 1287.4  16
+(...)
+709 711 416.3 34.1  16
+710 711 9177.3  1056.3  16
+711 711 437.8 35.4  16
+```
+
+Los campos relevantes en `GSM188012.CEL` son:
+
+x: posición en el eje x y: Posición en el eje y. lux: Intensidad de la señal.
+Ahora tenemos todo lo que necesitamos para agregar la clase **HeatMap**:
+
+**Listado 16.6:** `heatmap.py`: Graficar un archivo con expresión de un gen.
+
+```
+from bokeh.charts import HeatMap, bins, output_file, show
+import pandas as pd
+
+DATA_FILE = '../../samples/GSM188012.CEL'
+dtype = {'x': int, 'y': int, 'lux': float}
+dataset = pd.read_csv(DATA_FILE, sep='\t', dtype=dtype)
+hm = HeatMap(dataset, x=bins('x'), y=bins('y'), values='lux',
+  title='Expression', stat='mean')
+output_file("heatmap7.html", title="heatmap.py example")
+show(hm)
+```
+
+{width=60%}
+![**Figura 14.6** Un mapa de calor de un experimento de microarrays, comúnmente usados para estudiar la expresión de genes.](images/heatmap7.png)
+
+### Diagrama de cuerdas.
+
+Los diagramas de cuerdas se utilizan para representar las interrelaciones entre los datos en una matriz. Los datos se organizan radialmente alrededor de un círculo con las relaciones entre los puntos dibujados como arcos que conectan los datos.
+
+La siguiente tabla (`fishbacteria.csv`) se basa en el trabajo  “Fish gut microbiota analysis differentiates physiology and behavior of invasive Asian carp and indigenous American fish” (DOI: 10.1038/ismej.2013.181). Analizaron el intestino de diferentes especies de peces y midieron el número de especies bacterianas transportadas. Los campos son:
+
+**value**: es el número de especies microbianas que se encuentran en un entorno determinado y se mide en unidades taxonómicas operativas (OTUs). **name_x**: este es el nombre del phylum (Acidobacteria por ejemplo). **name_y**: este es el nombre de un entorno, por ejemplo, SVCP_H, que es el hindgut de la carpa de plata asiática.
+
+{line-numbers=off}
+```
+value,name_x,name_y
+5,Acidobacteria,SVCP_H
+3,Acidobacteria,SVCP_F
+2,Acidobacteria,GZSD_F
+2,Acidobacteria,GZSD_H
+9,Crenarchaeota,GZSD_F
+1,Euryarchaeota,GZSD_H
+1,Euryarchaeota,GZSD_F
+(...)
+8,Unknown,SVCP_F
+(...)
+```
+
+Para hacer el diagrama de cuerdas Bokeh proporciona la clase **Chord**. Requiere de los datos, pudiendo ser un diccionario o un objeto **DataFrame** como en este caso (convertido de un archivo CSV). Los otros parámetros necesarios son `source`, `target` y `value`. Una vez que pasamos el nombre de las variables en los datos que corresponden a cada parámetro, el resto del Listado 14.7 es idéntico al código anterior:
+
+**Listado 14.7:** `chord.py`: Un gráfico de cuerdas.
+
+```
+from bokeh.charts import output_file, Chord
+from bokeh.io import show
+import pandas as pd
+
+data = pd.read_csv('../../samples/test3.csv')
+chord_from_df = Chord(data, source='name_x', target='name_y',
+    value='value')
+output_file('chord.html')
+show(chord_from_df)
+```
+
+Este código tendrá como salida el diagrama de cuerdas que podemos ver en la figura 14.7.
+
+{width=60%}
+![**Figura 14.7** Diagrama de cuerdas.](images/bokeh_plot.png)
