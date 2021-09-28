@@ -1,0 +1,2089 @@
+{:: encoding="UTF-8" /}
+
+# Introducción a Biopython
+
+## ¿QUÉ ES BIOPYTHON?
+
+**Biopython**[^nota9-1] es un paquete de módulos muy útil para desarrollar aplicaciones bioinformáticas. Si bien cada análisis bioinformática es único, hay algunas tareas que son repetitivas, constantes que son utilizadas por diferentes programas y formatos de archivo estándares. Está situación sugiere que necesitamos un paquete para lidiar con problemas biológicos.
+Biopython comenzó como una idea en Agosto de 1999, por iniciativa de Jeff Chang and Andrew Dalke. Ni bien avanzaron con la idea rápidamente muchos colaboradores se unieron al proyecto. Entre los desarrolladores más activos se encuentran Brad Chapman, Peter Cock, Michie de Hoon e Iddo Friedberg entre otros. El proyecto comienza a tomar forma en febrero de 2000 y en julio de ese mismo año se hace el primer lanzamiento. La idea original fue construir un paquete equivalente a BioPerl, que en ese momento era el paquete principal para bioinformática. A pesar de que BioPerl fue la inspiración para el Biopython, las diferencias conceptuales entre Perl y Python hacen que Biopython tenga una forma particular de hacer las cosas. Biopython es parte de la familia de proyectos open-bio (también conocido como Bio*), por lo cual institucionalmente es un miembro de la Open Bioinformatics Foundation[^nota9-2].
+
+[^nota9-1]: Disponible en <http://biopython.org>
+[^nota9-2]: <http://www.open-bio.org>
+
+### Organización del proyecto
+
+Si bien Biopython es un proyecto de software libre, la Open Bioinformatics Foundation se ocupa de cuestiones administrativas, económicas y de aspectos generales, mientras que los contenidos son manejados por los desarrolladores y usuarios.
+El código es de dominio público y está disponible en el repositorio <http://github.com/biopython/biopython> y cualquiera puede participar en el proyecto. El procedimiento que deben seguir para colaborar con Biopython es similar al de otros proyectos de software libre. Si utilizando el software determinan que es necesario incorporar nuevas características o modificar alguna de las existentes. Antes de escribir algo de código, mi recomendación es discutir primero tus ideas con el equipo de desarrollo en el mailing list[^nota9_3]. Allí encontrarás si la característica ha sido previamente discutida y fue rechazada, o sino fue incluido porque nadie la había necesitado antes. En el caso de una corrección de un error, no necesitas preguntar, solo reportarlo en el issue tracker[^nota9_4] y si es posible agregar una propuesta de solución.
+Por la naturaleza de los proyectos muchas personas de campos muy diversos de la bioinformática han contribuido, desde la teoría de la información a la genética de poblaciones.
+Yo estoy involucrado en Biopython como usuario desde 2002 y submiti mi primera contribución en 2003 con lcc.py, una función para calcular la complejidad local de la composición de una secuencia. En 2004 sume el código para calcular el punto de fusión de los oligonucleótidos. En 2007 contribui con algunas funciones para el módulo CheckSum[^nota9_5]. Mi última contribución fue un parche a el módulo Bio.Restriction (2017). En todos los casos encontre un gran soporte de la comunidad, en especial en la primera contribución cuando mis habilidades de programación eran de un nivel de principiante.
+Para más información de como participar en el proyecto Biopython, ver las instrucciones en <http://biopython.org/wiki/Contributing>.
+El código de Biopython está desarrollado bajo la Licencia de Biopython (Biopython License)[^nota9_6]. Es muy libre y virtualmente no hay ninguna restricción para su uso[^nota9_7].
+
+[^nota9_3]: http://biopython.org/wiki/Mailing_lists
+[^nota9_4]: https://github.com/biopython/biopython/issues
+[^nota9_5]: Bassi, Sebastian, and Gonzalez, Virginia. New checksum functions for Biopython. Available from Nature Precedings <http://dx.doi.org/10.1038/npre.2007.278.1> (2007).
+[^nota9_6]: La licencia está incluida en el paquete de Biopython y disponible en <http://www.biopython.org/DIST/LICENSE>.
+[^nota9_7]: La única condición impuesta para usar Biopython es citar correctamente el proyecto y no utilizar el nombre de los colaboradores en publicidades.
+
+## INSTALANDO BIOPYTHON
+
+**En macOS/Linux**
+
+Los siguientes comandos muestran como instalar Biopython bajo una **virtualenv**. Primero instalar **virtualenv** (si no esta instalada):
+
+{line-numbers=off}
+```
+$ pip install virtualenv
+Collecting virtualenv
+  Using cached virtualenv-15.1.0-py2.py3-none-any.whl
+Installing collected packages: virtualenv
+Successfully installed virtualenv-15.1.0
+You are using pip version 8.1.1, however version 9.0.1 is available. <=
+You should consider upgrading via the 'pip install --upgrade pip' command.
+$ pip install --upgrade pip Collecting pip
+(...)
+```
+
+Crear una virtualenv para Biopython (en este caso la virtualenv es llamada `py4biovirtualenv`)
+
+{line-numbers=off}
+```
+$ virtualenv py4biovirtualenv
+Using base prefix '/usr'
+New python executable in /home/sb/py4biovirtualenv/bin/python3 Also <=
+creating executable in /home/sb/py4biovirtualenv/bin/python Installing<=
+ setuptools, pip, wheel...done.
+```
+
+Activa la virtualenv
+
+{line-numbers=off}
+```
+$ . py4biovirtualenv/bin/activate
+(py4biovirtualenv) $
+```
+
+Dentro de la virtualenv instalar *numpy* y luego *biopython*
+
+{line-numbers=off}
+```
+(py4biovirtualenv) $ pip install numpy
+Collecting numpy
+(...)
+Installing collected packages: numpy
+Successfully installed numpy-1.11.2
+(py4biovirtualenv) $ pip install biopython
+Collecting biopython
+(...)
+Successfully installed biopython-1.68
+(py4biovirtualenv) $ python
+Python 3.5.2 (default, Nov 17 2016, 17:05:23)
+[GCC 5.4.0 20160609] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import Bio
+>>> Bio.__version__
+'1.68'
+```
+
+Si estas usando Anaconda, en lugar de correr una **virtualenv**, usar **conda create**. Necesitas hacerlo solo una vez.
+
+{line-numbers=off}
+```
+$ conda create -n biopy python
+Fetching package metadata: ....
+Solving package specifications: ........
+Package plan for installation in environment /sb/anaconda3/envs/biopy:
+
+The following packages will be downloaded:
+|package |buid |
+|--------|-----|
+|pip-9.0.1 |py35_1  1.7 MB|
+(...)
+#
+# To activate this environment, use:
+# $ source activate biopy
+#
+# To deactivate this environment, use: # $ source deactivate
+#
+```
+
+Una vez que el ambiente conda (equivalente a una virtualenv) está creado, necesitas activarlo. Esto lo debes hacer cada vez que necesites usar el ambiente:
+
+{line-numbers=off}
+```
+$ source activate biopy
+discarding /sb/anaconda3/bin from PATH
+prepending /sb/anaconda3/envs/biopy/bin to PATH
+(biopy)$
+```
+
+En el ambiente conda, instalar Biopython usando **conda** en lugar de **pip**:
+
+{line-numbers=off}
+```
+(biopy)$ conda install biopython
+Fetching package metadata: ....
+Solving package specifications: ...............
+Package plan for installation in environment /sb/anaconda3/envs/biopy:
+
+The following packages will be downloaded:
+
+(...)
+
+The following NEW packages will be INSTALLED:
+
+  biopython: 1.68-np111py35_0
+  mkl: 11.3.3-0
+  numpy: 1.11.2-py35_0
+
+Proceed ([y]/n)?
+
+(...)
+```
+
+Testear que el paquete de Biopython esta instalado:
+
+{line-numbers=off}
+```
+(biopy)$ python
+Python 3.5.2 |Continuum Analytics, Inc.| (default, Jul 2 2016) [GCC 4.<=
+4.7 20120313 (Red Hat 4.4.7-1)] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import Bio
+>>> Bio.__version__
+'1.68'
+```
+
+**En Windows**
+
+No hay un paquete oficial de Biopython para Windows de 64-bit (la arquitectura más común de Windows), por lo tanto la instalación no es tan simple. El primer paso es bajar un paquete no oficial en <http://lfd.uci.edu/~gohlke/pythonlibs>, hay que elegir cuidadosamente ya que hay muchos archivos en esta página. Este debe coincidir con la versión de Python y la arquitectura del microprocesador que estemos usando. Para Python 3.6 en una máquina de 64-bit, baja `biopython-1.68-cp36m-win_amd64.whl`. Una vez bajado el archivo tomar nota de donde es bajado ya que necesitarás está información en el siguiente paso. Dado que Python tiene el **pip** preinstalado desde la versión 2.7.9, puedes usarlo desde la terminal:
+
+{line-numbers=off}
+```
+c:\Users\sb\AppData\Local\Programs\Python36\Scripts> pip install c:<=
+\Users\sb\Downloads\biopython-1.68-cp36-cp36m-win_amd64.whl
+```
+
+Esto instalará **Biopython**.
+
+## COMPONENTES DE BIOPYTHON
+
+Biopython tiene varios módulos, algunos de los cuales facilitan las tareas que se realizan que diariamente en los laboratorios de biología molecular. Otros módulos tienen objetivos mucho más específicos. Qué es lo "comúnmente usado" dependerá del ambiente de trabajo del lector, lo que muestro a continuación es una compilación basada en mi perspectiva personal sobre lo que es más usado.
+Todas las enumeraciones son arbitrarias y es posible que no reflejen los intereses de todos los lectores. Las enumeraciones están ordenadas de un modo didáctico con el objetivo que los primeros temas ayuden a entender al resto.
+
+### Alfabeto
+
+En bioinformática trabajamos con alfabetos. DNA tiene un alfabeto de cuatro letras (A, C, T, G) mientras las proteínas tienen sus 20 aminoácidos, cada uno representado por una letra del alfabeto (cuando se usa la representación de una letra). También hay "alfabetos" especiales como los que contemplan posiciones ambiguas. Se trata de posiciones donde más de un nucleótido puede estar presente. Por ejemplo, la letra S puede representar los ácidos nucleicos C o G y la letra H representa a A, C o T. En Biopython este alfabeto ambiguo es llamado **ambigous_dna**. En el caso de la proteínas hay un diccionario extendido que contiene aminoácidos que normalmente no se encuentran en las proteínas[^nota9-8] (**ExtendedIUPACProtein**). También hay un alfabeto extendido para nucleótidos (**ExtendedIUPACDNA**) que permite letras con bases modificadas. En proteínas hay también un alfabeto reducido que agrupa aquellos aminoácidos con propiedades fisicoquímicas en común representados por una letra.
+Incluso hay un alfabeto que no está basado ni ADN ni aminoácidos: **SecondaryStructure**. Este alfabeto representa los dominios como **H**elix (hélice), **T**urn (giros), **S**trand (hebra) y **C**oil (espiral). Los alfabetos definidos por IUPAC se almacenan en Biopython como clases del módulo **IUPAC**. El módulo principal (**Bio.Alphabet**) incluye casos más generales. Aquí vemos algunos atributos de los alfabetos:
+
+[^nota9-8]: Selenocisteína y pirrolisina son ejemplos típicos de aminoácidos atípicos.
+
+{line-numbers=off}
+```
+>>> import Bio.Alphabet
+>>> Bio.Alphabet.ThreeLetterProtein.letters
+['Ala', 'Asx', 'Cys', 'Asp', 'Glu', 'Phe', 'Gly', 'His', <=
+'Ile', 'Lys', 'Leu', 'Met', 'Asn', 'Pro', 'Gln', 'Arg', <=
+'Ser', 'Thr', 'Sec', 'Val', 'Trp', 'Xaa', 'Tyr', 'Glx']
+>>> from Bio.Alphabet import IUPAC
+>>> IUPAC.IUPACProtein.letters
+'ACDEFGHIKLMNPQRSTVWY'
+>>> IUPAC.unambiguous_dna.letters
+'GATC'
+>>> IUPAC.ambiguous_dna.letters
+'GATCRYWSMKHBVDN'
+>>> IUPAC.ExtendedIUPACProtein.letters
+'ACDEFGHIKLMNPQRSTVWYBXZJUO'
+>>> IUPAC.ExtendedIUPACDNA.letters
+'GATCBDSW'
+```
+
+Los alfabetos son usados para definir el contenido de una secuencia. ¿Cómo sabes que la secuencia "CCGGGTT" es un péptido pequeño con cisteína, glicina y treonina o es un fragmento de ADN de citocinas, guaninas y timinas? Si las secuencias se almacenarán como cadenas, no habría manera de saber qué tipo de secuencia es. Por esta razón Biopython introduce los objetos **Seq**.
+
+### Seq
+
+Este objeto está compuesto por la secuencia y un **alfabeto** que define la naturaleza de la secuencia.
+Vamos a crear un objeto secuencia como un fragmento de ADN:
+
+{line-numbers=off}
+```
+>>> from Bio.Seq import Seq
+>>> import Bio.Alphabet
+>>> seq = Seq('CCGGGTT', Bio.Alphabet.IUPAC.unambiguous_dna)
+```
+
+Dado que esta secuencia (`seq`) está definida como DNA podes aplicarle todas las operaciones que están permitidas en una secuencia de ADN. Los objetos **seq** tienen los métodos **transcribe** (transcribir) and **translate** (traducir):
+
+{line-numbers=off}
+```
+>>> seq.transcribe()
+Seq('CCGGGUU', IUPACUnambiguousRNA())
+>>> seq.translate()
+BiopythonWarning: Partial codon, len(sequence) not a multiple of three.
+Explicitly trim the sequence or add trailing N before translation.<=
+This may become an error in future.
+Seq('PG', IUPACProtein())
+```
+Una secuencia de ARN no puede ser transcripta pero si puede ser traducida:
+
+{line-numbers=off}
+```
+>>> rna_seq = Seq('CCGGGUU',Bio.Alphabet.IUPAC.unambiguous_rna)
+>>> rna_seq.transcribe()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/sb/Seq.py", line 520, in transcribe
+    raise ValueError("RNA cannot be transcribed!")
+ValueError: RNA cannot be transcribed!
+>>> rna_seq.translate()
+Seq('PG', IUPACProtein())
+```
+Podemos volver desde el ARN al ADN usando el método **back_transcribe**:
+
+{line-numbers=off}
+```
+>>> rna_seq.back_transcribe()
+Seq('CCGGGTT', IUPACUnambiguousDNA())
+```
+
+T> ### La función de transcripción (transcribe) en Biopython
+T> Hay que tener en cuenta que la función **transcribe** puede no funcionar como espera la mayoría de los biólogos. Esta función reemplaza cada aparición de "T" en la secuencia con una "U". En biología, una transcripción significa reemplazar cada nucleótido de ADN con su nucleótido complementario y la reversa de la cadena resultante. La función **transcribe** funciona de esta manera porque todas las publicaciones biológicas muestran la cadena complementaria. Biopython asume que le estás dando la cadena complementaria a la función. El módulo **Bio.Seq** también tiene las funciones de transcripción, transcripción inversa y traducción, que se pueden usar en los objetos o cadenas de Seq:
+
+{line-numbers=off}
+```
+>>> from Bio.Seq import translate, transcribe, back_transcribe
+>>> dnaseq = 'ATGGTATAA'
+>>> translate(dnaseq)
+'MV*'
+>>> transcribe(dnaseq)
+'AUGGUAUAA'
+>>> rnaseq = transcribe(dnaseq)
+>>> translate(rnaseq)
+'MV*'
+>>> back_transcribe(rnaseq)
+'ATGGTATAA'
+```
+
+**Los objetos Seq como una cadena**
+
+Los objetos Seq se comportan casi como una cadena por lo tanto las operaciones aplicadas a cadenas son permitidas:
+
+{line-numbers=off}
+```
+>>> seq = Seq('CCGGGTTAACGTA',Bio.Alphabet.IUPAC.unambiguous_dna)
+>>> seq[:5]
+Seq('CCGGG', IUPACUnambiguousDNA())
+>>> len(seq)
+13
+>>> print(seq)
+CCGGGTTAACGTA
+```
+Este comportamiento está constantemente evolucionando por lo que esperamos más características similares a una cadena en los próximos lanzamientos de Biopython.
+Si se necesita una representación de la cadena de un objeto Seq, se puede usar la función incorporada de Python **str()**. También está el método **tostring()** que también funciona, pero se recomienda solo si desea que el código sea compatible con versiones anteriores de Biopython.
+
+### MutableSeq
+
+Los objetos **Seq** no son mutables. Esto está destinado a que se puedan mantener los datos sin cambios. De esta manera, seq inmutable coincide con el comportamiento de la cadena en Python. Intentar modificarlo genera una excepción:
+
+{line-numbers=off}
+```
+>>> seq[0] = 'T'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+TypeError: 'Seq' object does not support item assignment
+```
+
+Este problema puede ser resuelto generando un **MutableSeq** con el método **tomutable()**:
+
+{line-numbers=off}
+```
+>>> mut_seq = seq.tomutable()
+>>> mut_seq
+MutableSeq('CCGGGTTAACGTA', IUPACUnambiguousDNA())
+```
+
+Introducir un cambio para testear si es mutable:
+
+{line-numbers=off}
+```
+>>> mut_seq[0] = 'T'
+>>> mut_seq
+MutableSeq('TCGGGTTAACGTA', IUPACUnambiguousDNA())
+```
+
+Podemos cambiar la secuencia como si fuera una lista con **append()**, **insert()**, **pop()** y **remove()**. Existen algunos métodos específicos para manipular una secuencia de ADN:
+
+{line-numbers=off}
+```
+>>> mut_seq.reverse()
+>>> mut_seq
+MutableSeq('ATGCAATTGGGCT', IUPACUnambiguousDNA())
+>>> mut_seq.complement()
+>>> mut_seq
+MutableSeq('TACGTTAACCCGA', IUPACUnambiguousDNA())
+>>> mut_seq.reverse_complement()
+>>> mut_seq
+MutableSeq('TCGGGTTAACGTA', IUPACUnambiguousDNA())
+```
+
+### SeqRecord
+La clase **Seq** es importante porque almacena el sujeto principal de estudio en bioinformática: la secuencia. A veces necesitamos más información que la secuencia sola como, el nombre, el id, la descripción y las referencias cruzadas a bases de datos externas y anotaciones. Para toda esta información relacionada con la secuencia existe la clase **SeqRecord**. En otras palabras, un **SeqRecord** es un objeto **Seq** con metadata asociada.
+
+{line-numbers=off}
+```
+>>> from Bio.SeqRecord import SeqRecord
+>>> SeqRecord(seq, id='001', name='MHC gene')
+SeqRecord(seq=Seq('CCGGGTTAACGTA', IUPACUnambiguousDNA()), id='001'<=
+, name='MHC gene', description='<unknown description>', dbxrefs=[])
+```
+
+SeqRecord tiene dos atributos principales:
+
+**id** Una cadena con un identificador. Este atributo es opcional pero altamente recomendado.
+
+**seq** Un objeto Seq. Este atributo es requerido.
+
+También hay algunos atributos adicionales:
+
+**name** Una cadena con el nombre de la secuencia.
+
+**description** Una cadena con más  información.
+
+**dbxrefs** Una lista de cadenas; cada cadena es el id de una base de datos de referencia cruzada.
+
+**features** Una lista de objetos **SeqFeature** que representan las caracteristicas de las secuencias de los registros en Genbank. Este atributo es usualmente completado cuando recuperamos una secuencia de GenBank (usando por ejemplo el parser **SeIO**). Dicho atributo contiene la ubicación de la secuencia, el tipo, la hebra y otras variables.
+
+**annotations** Un diccionario con más información de la secuencia entera. Este atributo no puede ser establecido cuando se inició un objeto **SeqRecord**.
+
+Creando un objeto **SeqRecord** desde cero:
+
+{line-numbers=off}
+```
+>>> from Bio.SeqRecord import SeqRecord
+>>> from Bio.Seq import Seq
+>>> from Bio.Alphabet import generic_protein
+>>> rec = SeqRecord(Seq('mdstnvrsgmksrkkkpkttvidddddcmtcsacqs'
+                        'klvkisditkvsldyintmrgntlacaacgsslkll',
+                        generic_protein),
+                        id = 'P20994.1', name = 'P20994',
+                        description = 'Protein A19',
+                        dbxrefs = ['Pfam:PF05077', 'InterPro:IPR007769',
+                        'DIP:2186N'])
+>>> rec.annotations['note'] = 'A simple note'
+>>> print(rec)
+ID: P20994.1
+Name: P20994
+Description: Protein A19
+Database cross-references: Pfam:PF05077, InterPro:IPR007769, DIP<=
+:2186N
+Number of features: 0
+/note=A simple note
+Seq('mdstnvrsgmksrkkkpkttvidddddcmtcsacqsklvkisditkvsldyint...kl<=
+l', ProteinAlphabet())
+```
+
+Para crear un SeqRecord desde un archivo GenBank, ver la [sección de SeqIO](#cap9-seqio).
+
+### Align
+
+El módulo **Align** contiene el código para trabajar con alineamientos. El objeto central de este módulo es la clase **MultipleSeqAlignment**. Este objeto almacena los alineamientos de secuencias. Lo cual no significa que hace los alineamientos, se supone que las secuencias ya están alineadas antes de almacenar los alineamientos en el objeto.
+Aquí podemos ver un alineamiento simple de dos péptidos pequeños:
+
+{line-numbers=off}
+```
+MHQAIFIYQIGYPLKSGYIQSIRSPEYDNW
+|| ||||||||*||||||||||||||  ||
+MH--IFIYQIGYALKSGYIQSIRSPEY-NW
+```
+
+Este alineamiento puede ser almacenado en un objeto usando Biopython como se muestra en el Listado 9.1:
+
+**Listado 9.1:** `align2seqs.py`: Usando el módulo **Align**
+
+```
+from Bio.Alphabet import generic_protein
+from Bio.Align import MultipleSeqAlignment
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+seq1 = 'MHQAIFIYQIGYPLKSGYIQSIRSPEYDNW'
+seq2 = 'MH--IFIYQIGYALKSGYIQSIRSPEY-NW'
+seq_rec_1 = SeqRecord(Seq(seq1, generic_protein), id = 'asp')
+seq_rec_2 = SeqRecord(Seq(seq2, generic_protein), id = 'unk')
+align = MultipleSeqAlignment([seq_rec_1, seq_rec_2])
+print(align)
+```
+
+**Explicación del código**: La clase **MultipleSeqAlignment** es llamada en la línea 9. `align` es el nombre del objeto MultipleSeqAlignment. Ambas secuencias son agregadas en la inicialización del objeto **MultipleSeqAlignment** como objetos **SeqRecord**.
+Salida del código previo:
+
+{line-numbers=off}
+```
+ProteinAlphabet() alignment with 2 rows and 30 columns
+MHQAIFIYQIGYPLKSGYIQSIRSPEYDNW  asp
+MH--IFIYQIGYALKSGYIQSIRSPEY-NW  unk
+```
+
+**MultipleSeqAlignment** puede ser tratado como una lista de secuencias (o los objetos **SeqRecord**), este comparte varios de sus métodos. Para agregar una nueva secuencia al alineamiento usamos **append** y para agregar secuencias múltiples, **extend**:
+
+{line-numbers=off}
+```
+>>> seq3 = 'M---IFIYQIGYAAKSGYIQSIRSPEY--W'
+>>> seq_rec_3 = SeqRecord(Seq(seq3, generic_protein), id = 'cas')
+>>> align.append(seq_rec_3)
+>>> print(align)
+ProteinAlphabet() alignment with 3 rows and 30 columns
+MHQAIFIYQIGYPLKSGYIQSIRSPEYDNW  asp
+MH--IFIYQIGYALKSGYIQSIRSPEY-NW  unk
+M---IFIYQIGYAAKSGYIQSIRSPEY--W  cas
+```
+
+Como podemos ver el nuevo objeto **SeqRecord** debe tener la misma longitud que el alineamiento original y un alfabeto compatible con el alfabeto del alineamiento.
+Otra propiedad en común que tiene con las listas es que podes traer un elemento (una fila o un objeto **SeqRecord**) usándolo como un índice entero:
+
+{line-numbers=off}
+```
+>>> align[0]
+SeqRecord(seq=Seq('MHQAIFIYQIGYPLKSGYIQSIRSPEYDNW', ProteinAlphabet()),<=
+id='asp', name='<unknown name>', description='<unknown description>', <=
+dbxrefs=[])
+```
+
+Usar *slice notation* de Python en lugar de un índice entero para traer un subalineamiento:
+
+{line-numbers=off}
+```
+>>> print(align[:2,5:11])
+ProteinAlphabet() alignment with 2 rows and 6 columns
+FIYQIG asp
+FIYQIG unk
+```
+
+Como en cualquier secuencia de Python podemos obtener la longitud del alineamiento con **len()**:
+
+{line-numbers=off}
+```
+>>> len(align)
+3
+```
+
+También soporta la interacción sobre todos sus elementos retornando un objeto **SeqRecord** para cada secuencia.
+El siguiente código calcula el punto isoeléctrico de cada secuencia del alineamiento:
+
+{line-numbers=off}
+```
+>>> from Bio.SeqUtils.ProtParam import ProteinAnalysis
+>>> for seq in align:
+... print(ProteinAnalysis(str(seq.seq)).isoelectric_point())
+6.50421142578125
+8.16033935546875
+8.13848876953125
+```
+
+### AlignIO
+
+Para leer un archivo con un alineamiento usamos **AlignIO.read()**. Esto requiere dos parámetros: El nombre del archivo (o el file handle) y el formato del alineamiento. Los formatos son: clustal, emboss, fasta, fasta-m10, ig, maf, nexus, phylip, phylip-sequential, phylip-relaxed y stockholm. El método **AlignIO.read()** devuelve un objeto **Multiple-SeqAlignment**.
+
+{line-numbers=off}
+```
+>>> from Bio import AlignIO
+>>> AlignIO.read('cas9al.fasta', 'fasta')
+print(align)
+SingleLetterAlphabet() alignment with 8 rows and 1407 columns
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD J7M7J1
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD A0A0C6FZC2
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD A0A1C2CVQ9
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD A0A1C2CV43
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD Q48TU5
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD M4YX12
+MKKPYSIGLDIGTNSVGWAVVTDDYKVPAKKMKVLGNTDKSHIK...GGD A0A0E2EP65
+--------------------------------------------...GED A0A150NVN1
+```
+
+Para leer archivos con más de un alineamiento usamos **AlignIO.parse()**. Este toma los mismos argumentos que **AlignIO.read()** y devuelve un iterador con todos los alineamientos presentes en el archivo. Lo que significa que será usado como un loop:
+
+{line-numbers=off}
+```
+>>> from Bio import AlignIO
+>>> for alignment in AlignIO.parse('example.aln', 'clustal'):
+...   print(len(alignment))
+
+1098
+233
+```
+
+Para escribir un alineamiento a disco usamos **AlignIO.write()**. Este método requiere como primer parámetro el objeto **MultipleSeqAlignment** y luego necesita los mismos parámetros que **AlignIO.read()** (nombre del archivo y formato). Los formatos aceptados son: clustal, fasta, maf, nexus, phylip, phylip-sequential, phylip-relaxed y stockholm. El método **AlignIO.write()** retorna el número de alineamientos guardados:
+
+{line-numbers=off}
+```
+>>> from Bio import AlignIO
+>>> AlignIO.write(align, 'cas9al.phy', 'phylip')
+1
+```
+
+Hay una función *helper* para convertir archivos de alineamientos en un paso: **AlignIO.convert()**. Tomamos cuatro parámetros: nombre del archivo a leer, formato del archivo para leer, nombre del archivo a escribir y el formato del archivo a escribir. También retorna el número de alineamientos guardados:
+
+{line-numbers=off}
+```
+>>> from Bio import AlignIO
+>>> AlignIO.convert('cas9al.fasta', 'fasta', 'cas9al.aln', 'clustal')
+1
+```
+
+**AlignInfo**
+
+El módulo AlignInfo es usado para extraer información de los objetos alineamientos. El módulo provee la función y las clases **SummaryInfo** y **PSSM**:
+
+* **print_info_content**:
+  Veamoslo en acción:
+
+{line-numbers=off}
+```
+>>> from Bio import AlignIO
+>>> from Bio.Align.AlignInfo import SummaryInfo
+>>> from Bio.Alphabet import ProteinAlphabet
+>>> align = AlignIO.read('cas9align.fasta', 'fasta')
+>>> align._alphabet = ProteinAlphabet()
+>>> summary = SummaryInfo(align)
+>>> print(summary.information_content())
+4951.072487965924
+>>> summary.dumb_consensus(consensus_alpha=ProteinAlphabet())
+Seq('MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIKKNL...GGD',<=
+ProteinAlphabet())
+>>> summary.gap_consensus(consensus_alpha=ProteinAlphabet())
+Seq('MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIKKNL...GGD',<=
+ProteinAlphabet())
+>>> print(summary.alignment)
+ProteinAlphabet() alignment with 8 rows and 1407 columns
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD J7M7J1
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD A0A0C6FZC2
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD A0A1C2CVQ9
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD A0A1C2CV43
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD Q48TU5
+MDKKYSIGLDIGTNSVGWAVITDDYKVPSKKFKVLGNTDRHSIK...GGD M4YX12
+MKKPYSIGLDIGTNSVGWAVVTDDYKVPAKKMKVLGNTDKSHIK...GGD A0A0E2EP65
+--------------------------------------------...GED A0A150NVN1
+>>> print(summary.pos_specific_score_matrix())
+- A C D E F G H I K L M N P Q
+M 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 7.0 0.0 0.0
+D 1.0 0.0 0.0 6.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0
+K 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 7.0 0.0 0.0 0.0 0.0
+K 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 6.0 0.0 0.0 0.0 1.0
+Y 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+S 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+I 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 7.0 0.0 0.0 0.0 0.0 0.0
+G 1.0 0.0 0.0 0.0 0.0 0.0 7.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+L 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 7.0 0.0 0.0 0.0
+D 1.0 0.0 0.0 7.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+```
+
+### ClustalW
+
+Este módulo tiene clases y funciones para interactuar con el **ClustalW**[^nota9-9]. Seguramente conocen **ClustaIX**, un programa gráfico para alineamientos múltiples muy popular creado por Julie Thompson y Francois Jeanmougin. El ClustalX es una interfaz gráfica para el ClustalW, un programa para hacer alineamientos múltiples desde la línea de comando.
+Biopython tiene soporte para ClustalW con el wrapper **ClustalCommandline**. Esta clase puede ser usada para construir la línea de comando del ClustalW.
+
+[^nota9-9]: Este programa está disponible en <http://www.clustal.org/download/current>.
+
+{line-numbers=off}
+```
+>>> from Bio.Align.Applications import ClustalwCommandline
+>>> clustalw_exe = 'clustalw2'
+>>> ccli = ClustalwCommandline(clustalw_exe, <=
+infile="input4align.fasta", outfile='../../aoutput.aln')
+>>> print(ccli)
+clustalw2 -infile=input4align.fasta -outfile=../../aoutput.aln
+```
+
+Si el programa `clustalw` no está en el path de tu sistema se debe especificar la ubicación cuando se inicializa el objeto. Por ejemplo, si el `clustalw` esta en `c:\windows\program file\clustal\clustalw.exe` reemplazamos la línea:
+
+{line-numbers=off}
+```
+>>> clustalw_exe = 'clustalw2'
+```
+
+por
+
+{line-numbers=off}
+```
+>>> clustalw_exe='c:\\windows\\program file\\clustal\\clustalw.exe'
+
+```
+
+Para correr el programa llamamos a la instancia creada:
+
+{line-numbers=off}
+```
+>>> from Bio.Align.Applications import ClustalwCommandline
+>>> clustalw_exe = 'clustalw2'
+>>> ccli = ClustalwCommandline(clustalw_exe,
+infile="input4align.fasta", outfile='../../aoutput.aln')
+>>> ccli()
+('\n\n\n CLUSTAL 2.1 Multiple Sequence Alignments\n\n\nSequence <=
+format is Pearson\nSequence 1:  AGA92859.1  106 aa\nSequence 2: <=
+AML31452.1 116 aa\nSequence 3:  AAH03888.1 473 aa\nSequence  4  <=
+: BAE71953.1 118 aa\nStart of Pairwise alignments\nAligning...  <=
+\n\nSequences (1:2) Aligned. Score: 88\nSequences (1:3) Aligned <=
+. Score: 93\nSequences (1:4) Aligned. Score: 82\nSequences (2:  <=
+(...)
+[alignoutput.txt]\n\n', '')
+```
+
+La función retorna una tupla con dos valores. El primer valor es lo que devuelve el programa (también denominado salida estándar) mientras que el segundo es el mensaje de error, si lo hay.
+Para procesar la salida, se lee el archivo con **AlignIO.read()**:
+
+{line-numbers=off}
+```
+>>> from Bio import AlignIO
+>>> seqs = AlignIO.read('../../aoutput.aln', 'clustal')
+>>> seqs[0] SeqRecord(seq=Seq('-------------------QVQLQQSDAELVKPGASVKISCKVSG<=
+YTFTDHTIH...---', SingleLetterAlphabet()), id='AGA92859.1', name<=
+='<unknown name>', description='AGA92859.1', dbxrefs=[])
+>>> seqs[1]
+SeqRecord(seq=Seq('MEWSWVFLFFLSVTTGVHSQVQLQQSDAELVKPGASVKISCKVSG<=
+YTFTDHTIH...PGK', SingleLetterAlphabet()), id='AAH03888.1', name<=
+='<unknown name>', description='AAH03888.1', dbxrefs=[])
+>>> seqs[2]
+SeqRecord(seq=Seq('-------------------EVQLQESDAELVKPGASVKISCKVSG<=
+YTFTDHSIH...---', SingleLetterAlphabet()), id='AML31452.1', name<=
+='<unknown name>', description='AML31452.1', dbxrefs=[])
+```
+
+**Pasando parámetros al ClustalW**
+
+Para pasar más parámetros al Clustalw lo hacemos cuando se inicializa **ClustalwCommmandline**. Por ejemplo para cambiar el *Gap opening penalty* usamos *pwgapopen*:
+
+{line-numbers=off}
+```
+>>> from Bio.Align.Applications import ClustalwCommandline
+>>> clustalw_exe = 'clustalw2'
+>>> ccli = ClustalwCommandline(clustalw_exe,
+infile="input4align.fasta", outfile='../../aoutput.aln',
+pwgapopen=5)
+>>> print(ccli)
+clustalw2 -infile=input4align.fasta -outfile=../../aoutput.aln <=
+-pwgapopen=5
+```
+
+Para ver el resto de los parámetros disponibles hacer:
+
+{line-numbers=off}
+```
+>>> from Bio.Align.Applications import ClustalwCommandline
+>>> ccli = ClustalwCommandline()
+>>> help(ccli)
+```
+
+o ver el manual online en <https://goo.gl/dJwoJx> o en la página de la página de la API: <http://biopython.org/DIST/docs/api/>.
+
+### SeqIO {#cap9-seqio}
+
+**BioSeqIO** es una interfaz común para entrada y salida de formatos de archivos de secuencias. Las secuencias traídas con esta interfaz son pasadas al programa como objetos **SeqRecord**. **Bio.SeqIO** puede leer también formatos de archivos de secuencias y retornar cada récord como un objeto **SeqRecord**. Para traer un alineamiento como un objeto **Alignment** usamos el módulo **Bio.AlignIO**.
+
+**Leyendo archivos de secuencias**
+
+El método usado para leer secuencias es **parse(file_handle, format)**. Donde `format` puede ser "fasta", "genbank" o cualquiera de los listados en la Tabla 10.1. Este parser retorna un generador. Los elementos retornados por este generador son del tipo SeqRecord:
+
+{line-numbers=off}
+```
+>>> from Bio import SeqIO
+>>> f_in = open('../../samples/a19.gp')
+>>> seq = SeqIO.parse(f_in, 'genbank')
+>>> next(seq)
+SeqRecord(seq=Seq('MGHHHHHHHHHHSSGHIDDDDKHMLEMDSTNVRSGMKSRKKKPKT<=
+TVIDDDDDC...FAS', IUPACProtein()), id='AAX78491.1', name='AAX784<=
+91', description='unknown [synthetic construct]', dbxrefs=[])
+```
+
+Cuando solo hay una secuencia en el archivo usamos **SeqIO.read()** en lugar de **SeqIO.parse()**:
+
+{line-numbers=off}
+```
+>>> f_in = open('../../samples/a19.gp')
+>>> SeqIO.read(f_in, 'genbank')
+SeqRecord(seq=Seq('MGHHHHHHHHHHSSGHIDDDDKHMLEMDSTNVRSGMKSRKKKPKT<=
+TVIDDDDDC...FAS', IUPACProtein()), id='AAX78491.1', name='AAX784<=
+91', description='unknown [synthetic construct]', dbxrefs=[])
+```
+
+En el Listado 9.2 hay un script que lee un archivo completo de secuencias en formato FASTA y muestra el título y la longitud de cada entrada:
+
+**Listado 9.2:** `readfasta.py`: Leer un archivo de FASTA.
+
+```
+from Bio import SeqIO
+
+FILE_IN = '../../samples/3seqs.fas'
+
+with open(FILE_IN) as fh:
+  for record in SeqIO.parse(fh, 'fasta'):
+    id_ = record.id
+    seq = record.seq
+    print('Name: {0}, size: {1}'.format(id_, len(seq)))
+```
+
+Contenido del archivo de entrada (`3seqs.fas`)
+
+{line-numbers=off}
+```
+>Protein-X [Simian immunodeficiency virus]
+NYLNNLTVDPDHNKCDNTTGRKGNAPGPCVQRTYVACH
+>Protein-Y [Homo sapiens]
+MEEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDA
+>Protein-Z [Rattus norvegicus]
+MKAAVLAVALVFLTGCQAWEFWQQDEPQSQWDRVKDFATVYVDAVKDSGRDYVSQFESST
+```
+
+El Listado 9.2 parsea el archivo `3seqs.fas` y genera la siguiente salida:
+
+{line-numbers=off}
+```
+(biopy169) $ python readfasta.py
+Name: Protein-X, size: 38
+Name: Protein-Y, size: 62
+Name: Protein-Z, size: 60
+```
+
+Tabla 9.1 Formatos de secuencias y alineamientos.
+
+| Nombre del formato  | Descripión  | Alineamiento (A) - Secuencia (S)  |
+| ------------------  | ----------  | --------------------------------  |
+| ace | Lee las secuencias de un conting desde un archivo de ensamblado.  | S |
+| embl  | Formato plano de archivos del EMBL  | S |
+| emboss  | Formato de alineamientos "pares" y "simple" de las herramientas de EMBOSS.  | A |
+| fasta | Un formato simple donde cada récord comienza con una línea identificatoria que empieza con el carácter ">" seguido por las líneas de secuencias.  | A / S |
+| Fasta-m10 | Salida de alineamientos de de las herramientas FASTA de Bill Pearson cuando se usa desde la línea de comando la opción -m 10. | A |
+| genbank | Los archivos de formato plano de Genbank o GenPept  | S |
+| ig  | Formato de archivos IntelliGenetics, también usados por MASE. | A / S |
+| nexus | Usado por MrBayes y PAUP. Ver también el módulo Bio.Nexus que también puede leer árboles filogenéticos en cualquiera de estos archivos. | A |
+| phd | Salida del PHRED  | S |
+| phylip  | Usado por las herramientas de PHYLIP | A  |
+| stockholm | Usado por PFAM  | A |
+| swiss | Formato Swiss-Prot (Uniprot). | S |
+| tab | Archivos de secuencias separadas por un tab en dos columnas simples.  | S |
+
+**Archivos de secuencias escritas**
+
+La **SeqIO** tiene un método para escribir secuencias **write(iterable, file_handle, format)**. El primer parámetro que está función toma es un objeto iterable con objetos **SeqRecord** (por ejemplo, una lista de objetos **SeqRecord**). El segundo parámetro es un manejador de archivo que le permitirá ser usado para escribir los secuencias. El argumento *format* funciona como en **parse**.
+El Listado 9.3 muestra como leer un archivo con una secuencia como un texto plano y escribirlo como una secuencia FASTA.
+
+**Listado 9.3:** `rwfasta.py`: Leer un archivo y escribirlo como una secuencia en formato FASTA.
+
+```
+from Bio
+import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+with open('../../samples/NC2033.txt') as fh:
+  with open('NC2033.fasta','w') as f_out:
+    rawseq = fh.read().replace('\n','')
+    record = (SeqRecord(Seq(rawseq),'NC2033.txt','',''),)
+    SeqIO.write(record, f_out,'fasta')
+```
+
+Sabiendo como leer y escribir la mayoría de los formatos de los archivos biológicos podemos leer un archivo con secuencias en un formato y escribirlas en otro formato:
+
+{line-numbers=off}
+```
+from Bio import SeqIO
+fo_handle = open('myseqs.fasta','w')
+readseq = SeqIO.parse(open('myseqs.gbk'), 'genbank')
+SeqIO.write(readseq, fo_handle, "fasta") fo_handle.close()
+```
+
+Hay más ejemplos de uso de **SeqIO** en el Capítulo 15.
+
+### AlignIO
+
+**AlignIO** es la interfaz de entrada/salida para los alineamientos y funciona principalmente como el SeqIO con la diferencia de que en lugar de retornar un objeto SeqRecord retorna un objeto Alignment. AlignIO tiene tres métodos principales: **read**, **parse** y **write**. Los primeros dos métodos son usados como entrada y el último como salida.
+
+* **read(handle,format[,sec_count])**: Toma el manejador de archivo y el formato del alineamiento como argumentos y retorna un objeto Alignment.
+
+{line-numbers=off}
+```
+>>> from Bio import AlignIO
+>>> fn = open('secu3.aln')
+>>> align = AlignIO.read(fn, 'clustal')
+>>> print(align)
+SingleLetterAlphabet() alignment with 3 rows and 1098 columns
+--------------------------------------...--- secu3
+--------------------------------------...--- AT1G14990.1-CDS
+GCTTTGCTATGCTATATGTTTATTACATTGTGCCTCTG...CAC AT1G14990.1-SEQ
+```
+
+El argumento *sec_count* puede ser usado con cualquier formato de archivo pero es más usado con alineamientos en formato FASTA. El *sec_count* indica el número de secuencias por alineamiento lo cual es útil para determinar si un archivo es solo un alineamiento con 15 secuencias o tres alineamientos de 5 secuencias.
+
+* **write(iterable,handle,format)**: Toma un conjunto de objetos Alignment, un manejador de archivo y un formato de archivo para escribirlos en un archivo. Se espera que llamemos esta función con todos los alineamientos en `iterable` y cerrando el manejador de archivos. El código siguiente lee un alineamiento en formato Clustal y lo escribe en formato Phylip.
+
+**Listado 9.4:** `clustal2phylip.py`: Convertir de Clustal a Phylip
+
+```
+from Bio import AlignIO
+fi = open('../../samples/example.aln')
+with open('../../samples/example.phy', 'w') as fo:
+  align = AlignIO.read(fi, 'clustal')
+  AlignIO.write([align], fo, 'phylip')
+```
+
+### BLAST
+
+El BLAST (por su sigla en inglés **B**asic **L**ocal **A**lignment **S**earch **T**ool) es un programa para buscar similitud secuencial, usado para comparar una búsqueda del usuario contra una base de datos de secuencias. Dada una secuencia de ADN o de aminoácidos, el algoritmo heurístico del BLAST encuentra pequeñas similitudes entre las dos secuencias e intenta comenzar el alineamiento desde estos "hot spots." El BLAST también proporciona información estadística sobre un alineamiento como por ejemplo el valor de "expect."[^nota9-10]
+El BLAST no es un programa simple sino una familia de programas que se utilizan para buscar similitudes entre secuencias, existe un programa de BLAST para cada tipo de búsqueda que queramos hacer. *blastn* por ejemplo es usado par buscar en bases de datos de nucleótidos usando una secuencia nucleotídica como input. Cuando la base de datos es de proteínas (aminoácidos) y el input es una secuencia nucleotídica el programa que debemos usar es el *blastx*. El *blastx* traduce la secuencia nucleotídica a una secuencia aminoacídica y realiza la búsqueda contra la base de datos de proteínas. Ver la tabla 9.2 para ver la lista de programas de BLAST y cuando debemos utilizarlos.
+
+[^nota9-10]: El valor de expect (E) es un parámetro que describe el número de hits que uno puede esperar ("expect") encontrar por azar cuando busca en una base de datos de un tamaño particular.
+
+Tabla 9.2 Programas del BLAST
+
+
+| Nombre del programa | Búsqueda / Combinación de base de datos |
+| ------------------- | --------------------------------------- |
+| blastn  | nucléotidos vs nucléotidos. |
+| blastp  | proteínas vs proteínas. |
+| blastx  | nucleótidos traducidos vs proteínas.  |
+| tblastn | proteínas vs nucleótidos traducidos.  |
+| tblastx | nucleótidos traducidos vs nucleótidos traducidos. |
+
+El BLAST es una de las herramientas bioinformáticas más ampliamente utilizada en investigación dado que tiene muchas aplicaciones. Veamos una lista de las aplicaciones típicas del BLAST:
+
+* Seguir el descubrimiento de un gen previamente desconocido en una especie, buscar en otros genomas para ver si otras especies tiene un gen similar.
+
+* Encontrar relaciones evolutivas y funcionales entre secuencias.
+
+* Buscar patrones de consenso regulatorios tales señales de promotores, sitios de splicing y sitios de unión de factores de transcripción.
+
+* Inferir la estructura de proteínas utilizando proteínas previamente cristalizadas.
+
+* Ayudar a identificar los miembros de una familia de genes.
+
+Si trabajas en bioinformática hay amplias chances de que tengas que correr búsquedas en  BLAST o procesar búsquedas realizada por vos o por otras personas. Biopython provee herramientas para ambas tareas.
+
+**Corriendo y procesando el BLAST con Biopython**
+
+El BLAST se puede correr online, en el web-server del NCBI, o en forma local sobre tu computadora. Correr el BLAST en Internet es una buena opción para trabajos pequeños que involucran pocas secuencias. Los trabajos más grandes tienden a ser abortados por el servidor remoto con el mensaje "CPU usage limit was exceeded" (se excedió el límite de uso de la CPU). Dado que NCBI BLAST es un servicio público tienen que poner cuotas en el uso del CPU para evitar la sobrecarga de sus servidores. Otra razón convincente para usar una versión local de BLAST es cuando se necesita consultar una base de datos personalizada. Existe cierta flexibilidad con respecto a las bases de datos que se pueden usar en el servidor del NCBI BLAST, pero no puede incorporar todo tipo y tamaño de datos personalizados.
+Por todas estas razones es frecuente que la mayoría de los laboratorios de investigación realicen búsquedas locales de BLAST.
+
+**Comenzando un trabajo con BLAST**
+
+Biopython tiene un *wrapper* para cada ejecutable de BLAST, por lo que se puede ejecutar un programa de BLAST desde un programa (script). El *wrapper* para el **blastn** es una función llamada **NcbiblastnCommandline**, dentro del módulo **Bio.Blast.Application**. El wrapper para **blastx** es *NcbiblastxCommandline*, y así sucesivamente. Veremos cómo usar *NcbiblastnCommandline*, vale aclarar que esto también se puede aplicar a todos los otros wrappers.
+Esta es la sintaxis *NcbiblastnCommandline*:
+
+{line-numbers=off}
+```
+NcbiblastnCommandline(blast executable, program name, database,<=
+input file, [align_view=7], [parameters])
+```
+
+Esta función devuelve una tupla con dos archivos de objetos. El primero es el resultado real, mientras que el segundo es el mensaje de error de BLAST (si corresponde). La mayoría de los parámetros son autoexplicativos. En el listado 9.5 se lo puede ver claramente:
+
+**Listado 9.5:** `runblastn.py`: Corriendo NCBI BlAST en modo local.
+
+```
+from Bio.Blast.Applications import NcbiblastnCommandline as blastn
+BLAST_EXE = '~/opt/ncbi-blast-2.6.0+/bin/blastn'
+f_in = 'seq3.txt'
+b_db = 'db/samples/TAIR8cds'
+blastn_cline = blastn(cmd=BLAST_EXE, query=f_in, db=b_db,
+                      evalue=.0005, outfmt=5)
+rh, eh = blastn_cline()
+```
+
+El programa BLAST se corre en la línea 5. Para obtener el resultado debemos leer el objeto obtenido como un archivo **rh**, tal como vimos en el capítulo 5:
+
+{line-numbers=off}
+```
+>>> rh.readline()
+<?xml version="1.0"?>
+>>> rh.readline()
+'<!DOCTYPE BlastOutput PUBLIC "-//NCBI//NCBI BlastOutput/EN"<=
+"http://www.ncbi.nlm.nih.gov/dtd/NCBI_BlastOutput.dtd">\n'
+```
+
+La salida está en formato XML. Esta información se puede analizar utilizando las herramientas que se van a ver en el Capítulo 11 o con las herramientas proporcionadas por **Biopython** (como veremos en la siguiente sección). También hay una manera para evitar trabajar con la salida XML forzando a **NcbiblastnCommandline** a usar texto plano como salida, usando **-outfmt 0**[^nota9-11] como un parámetro opcional en la línea de comandos o en la función Biopython. Esto dará como resultado una salida más fácil de leer (por un humano) pero difícil de analizar (por una computadora). Si la última oración parece extraña, tenga en cuenta algunos párrafos para comprender por qué un formato "legible por humanos" puede no ser adecuado para el procesamiento automatizado.
+El manejador de archivo `eh` almacena el mensaje de error devuelto por **NcbiblastnCommandline**. En este caso está vacío (ya que no hubo error):
+
+[^nota9-11]: **-outfmt 0** a 4 generará diferentes tipos de salidas legibles para humanos.
+
+{line-numbers=off}
+```
+>>> eh.readline()
+''
+```
+
+La función llamada en la línea 5 es equivalente a la entrada de la siguiente sentencia en línea de comando:
+
+{line-numbers=off}
+```
+$ ./blastn -query seq3.fasta -db db/TAIR8cds -outfmt 5
+```
+
+Todos los parámetros en la línea de comando pueden combinarse con un parámetro en la función de Biopython NcbiblastnCommandline. El último parámetro (**-outfmt 5**) obliga al resultado a generar un XML. Otros formatos de salida de BLAST, como texto sin formato y HTML, tienden a cambiar de una versión a otra, lo que hace que sea muy difícil mantener un parser actualizado[^nota9-12]. El texto legible por humanos tiende a ser desestructurado por lo cual una salida fácil de leer termina siendo más difícil de analizar.
+Hay muchos aspectos de una búsqueda de blast que pueden controlarse mediante parámetros opcionales que se adjuntan al final de la llamada a la función. Para obtener más información, consulte este apéndice en el Manual del usuario del NCBI BLAST en <https://www.ncbi.nlm.nih.gov/books/NBK279675>.
+Una vez que tenga el resultado del BLAST como un objeto de archivo, es posible que debamos procesarlo. Si planeamos almacenar el resultado para su procesamiento posterior se debe guardar:
+
+[^nota9-12]: Hay una sentencia oficial de NCBI sobre esto: “NCBI does not advocate the use of the plain text or HTML of BLAST output as a means of accurately parsing the data.” (El NCBI no aboga por el uso de texto plano o de HTML para analizar los datos de los resultados de BLAST con precisión.)
+
+{line-numbers=off}
+```
+>>> fh = open('testblast.xml','w')
+>>> fh.write(rh.read())
+>>> fh.close()
+```
+
+La mayoría de las veces necesitaremos extraer alguna información de la salida del BLAST. Para este fin el parser NCBIXML, explicado en la siguiente subsección, es útil.
+
+**Leyendo una salida de BLAST**
+
+Analizar el contenido de un archivo BLAST es algo con lo que cualquier bioinformático debe lidiar. Biopython proporciona un parser útil en el módulo `Bio.Blast.NCBIXML` (llamado `parse`). Con este parser el programador puede extraer cualquier bit significativo de un archivo de salida de BLAST. Este parser toma como entrada un objeto de archivo con el resultado del BLAST y devuelve un iterador para cada registro dentro del archivo. En este contexto, el registro representa un objeto con toda la información de cada resultado del BLAST (suponiendo que el archivo BLAST tenga el resultado de varias consultas de BLAST en su interior[^nota9-13]) Dada la manera en que devuelve un iterador se pueden recuperar los registros de BLAST uno por uno utilizando un bucle *for*:
+
+[^nota9-13]: Este es un bug en las versiones previas a la versión 2.2.14 por la manera que formatea los archivos XML con múltiples consultas, por lo cual debemos usar versiones más recientes.
+
+{line-numbers=off}
+```
+from Bio.Blast import NCBIXML
+for blast_record in NCBIXML.parse(rh):
+  # Do something with blast_record
+```
+
+**¿Qué hay en un objeto de registro del BLAST?**
+
+Cada bit de información presente en un archivo BLAST puede recuperarse del objeto de registro de **blast**. A grandes rasgos: un registro BLAST contiene la información de la ejecución del BLAST. Esta información se divide en dos grupos. Primero, hay características fijas como las características del programa, la secuencia de consulta y la base de datos (como el nombre del programa, la versión del programa, el nombre de la consulta, la longitud de la base de datos y el nombre). El otro grupo de datos está relacionado con las alineaciones (o hits). Cada hit es el alineamiento entre la secuencia de consulta y el target encontrado. A su vez, cada alineamiento puede tener más de un HSP (de sus siglas en inglés High-scoring Segment Pairs). Un HSP es un segmento de una alineamiento. Veamos la figura 9.1 para clarificar estos conceptos.
+
+![**Figura 9.1** Anatomía del resultado de un BLAST. Esta secuencia de búsqueda tiene tres alineamientos. Cada alineamiento tiene al menos un HSP. Como se puede observar un alineamiento (o hit) puede tener más de un HSP como sucede en el "Alignment 3"](images/hsps1.png)
+
+El objeto récord del BLAST refleja esta estructura. El objeto tiene una propiedad *alignments*, que es una lista de (BLAST) objetos de alineamientos. Cada objeto alineamiento tiene la información del hit (`hit_id`, `hit_definition`, `title`) y una lista (`hsps`) con la información de cada HSP. La información asociada con cada HSP es la información más pedida del récord de un BLAST (como `bit score`, `E value`, `position`). Veamos una salida de BLAST en texto plano en el Listado 9.6:
+
+**Listado 9.6:** Una salida de BLAST
+
+{line-numbers=on,lang=text}
+```
+BLASTX 2.6.0+
+
+Reference: Stephen F. Altschul, Thomas L. Madden, Alejandro A. Schaffer,<=
+ Jinghui Zhang, Zheng Zhang, Webb Miller, and David J. Lipman (1997), <=
+ "Gapped BLAST and PSI-BLAST: a new generation of protein database search<=
+ programs", Nucleic Acids Res. 25:3389-3402.
+
+Database: Non-redundant UniProtKB/SwissProt sequences
+  466,658 sequences; 175,602,800 total letters
+
+Query= sample X
+
+Length=257
+
+                                            Score   E
+Sequences producing significant alignments: (Bits) Value
+
+P04252.1 RecName: Full=Bacterial hemoglobin; ... 93.6 1e-34
+Q9RC40.1 RecName: Full=Flavohemoprotein; AltN... 66.2 2e-17
+Q8ETH0.1 RecName: Full=Flavohemoprotein; AltN... 66.6 1e-16
+
+>P04252.1 RecName: Full=Bacterial hemoglobin; AltName:
+Full=Soluble cytochrome O
+Length=146
+
+Score = 93.6 bits (231), Expect(2) = 1e-34,
+Method: Compositional matrix adjust.
+Identities = 45/45 (100%), Positives = 45/45 (100%),
+Gaps = 0/45 (0%)
+Frame = +3
+
+Query  123  VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI  257
+            VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI
+Sbjct  90   VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI  134
+
+Score = 72.8 bits (177), Expect(2) = 1e-34,
+Method: Compositional matrix adjust.
+Identities = 36/36 (100%), Positives = 36/36 (100%),
+Gaps = 0/36 (0%)
+Frame = +2
+
+Query  2    PKALAMTVLAAAQNIENLPAILPAVKKIAVKHCQAG  109
+            PKALAMTVLAAAQNIENLPAILPAVKKIAVKHCQAG
+Sbjct  54   PKALAMTVLAAAQNIENLPAILPAVKKIAVKHCQAG  89
+
+>Q9RC40.1 RecName: Full=Flavohemoprotein; AltName: Full=Flavohemoglobin;
+AltName: Full=Hemoglobin-like protein; AltName: Full=Nitric
+oxide dioxygenase; Short=NO oxygenase; Short=NOD
+Length=411
+
+Score = 66.2 bits (160), Expect(2) = 2e-17,
+Method: Composition-based stats.
+Identities = 28/45 (62%), Positives = 37/45 (82%),
+Gaps = 0/45 (0%)
+Frame = +3
+
+Query 123 VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI 257
+          +    YPIVG+ LL A++EVLGDAA+DD+L+AW +AY +IADVFI
+Sbjct  94 IKPEQYPIVGENLLAAMREVLGDAASDDVLEAWREAYELIADVFI  138
+
+Score = 41.6 bits (96), Expect(2) = 2e-17,
+Method: Composition-based stats.
+Identities = 19/32 (59%), Positives = 26/32 (81%),
+Gaps = 0/32 (0%)
+Frame = +2
+
+Query  2   PKALAMTVLAAAQNIENLPAILPAVKKIAVKH  97
+           P+ALA ++ AAA++I+NL AILP V +IA KH
+Sbjct  58  PQALANSIYAAAEHIDNLEAILPVVSRIAHKH  89
+
+>Q8ETH0.1 RecName: Full=Flavohemoprotein;
+AltName: Full=Flavohemoglobin;
+AltName: Full=Hemoglobin-like protein; AltName: Full=Nitric
+oxide dioxygenase; Short=NO oxygenase; Short=NOD
+Length=406
+
+Score = 66.6 bits (161), Expect(2) = 1e-16,
+Method: Composition-based stats.
+Identities = 31/45 (69%), Positives = 37/45 (82%),
+Gaps = 0/45 (0%)
+Frame = +3
+
+Query  123  VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI  257
+            +    YPIVG+ LL AIKEVLGDAATD+I++AW KAY VIAD+FI
+Sbjct  96   IKPEQYPIVGKYLLIAIKEVLGDAATDEIIEAWEKAYFVIADIFI  140
+
+Score = 39.3 bits (90), Expect(2) = 1e-16,
+Method: Composition-based stats.
+Identities = 22/31 (71%), Positives = 23/31 (74%),
+Gaps = 0/31 (0%)
+Frame = +2
+
+Query  5   KALAMTVLAAAQNIENLPAILPAVKKIAVKH  97
+           KALA TV AAA NIE L  ILP VK+IA KH
+Sbjct  61  KALANTVYAAAANIEKLEEILPHVKQIAHKH  91
+
+Lambda  K H a alpha
+0.318 0.134 0.401 0.792 4.96
+
+Gapped
+Lambda  K H a alpha sigma
+0.267 0.0410  0.140 1.90  42.6  43.6
+
+Effective search space used: 4334628608
+
+  Database: Non-redundant UniProtKB/SwissProt sequences
+    Posted date: May 14, 2017 12:32 PM
+  Number of letters in database: 175,602,800
+  Number of sequences in database: 466,658
+
+  Matrix: BLOSUM62
+  Gap Penalties: Existence: 11, Extension: 1
+  Neighboring words threshold: 12
+  Window for multiple hits: 40
+```
+
+El Listado 9.6 es el producto de un *blastx* de una secuencia de ADN con la base de datos de proteínas SwissProt usando las siguientes configuraciones:
+
+{line-numbers=off}
+```
+./blastx -db db/swissprot -query sampleX.fas -evalue 1e-15 -outfmt 5
+```
+
+Las configuraciones por defecto del programa[^nota9-14] Observemos que hay tres alineamientos en este resultado. El primero es el alineamiento más largo tiene un solo HPS, mientras que el segundo tiene dos HPSs.
+En el Listado 9.7 se puede ver como obtener el nombre de todas las secuencias target:
+
+[^nota9-14]: Este listado es una versión reducida de la salida real, algunos resultados fueron intencionalmente removidos para no mostrar información redundante para facilitar la lectura y focalizarnos en cómo trabaja el parser.
+
+**Listado 9.7:** `BLASTparser1.py`: Extraer los títulos de los alineamientos de una salida de BLAST.
+
+```
+from Bio.Blast import NCBIXML
+with open('../../samples/sampleXblast.xml') as xmlfh:
+  for record in NCBIXML.parse(xmlfh):
+    for align in record.alignments:
+      print(align.title)
+```
+
+El Listado 9.7 (programa **BLASTparser1.py**) produce un resultado como este:
+
+{line-numbers=off}
+```
+gi|114816|sp|P04252.1|BAHG_VITST RecName: Full=Bacterial hemoglob<=
+in; AltName: Full=Soluble cytochrome O
+gi|52000645|sp|Q9RC40.1|HMP_BACHD RecName: Full=Flavohemoprotein;<=
+AltName: Full=Flavohemoglobin; AltName: Full=Hemoglobin-like pro<=
+tein; AltName: Full=Nitric oxide dioxygenase; Short=NO oxygenase;<=
+Short=NOD
+gi|52000637|sp|Q8ETH0.1|HMP_OCEIH RecName: Full=Flavohemoprotein;<=
+AltName: Full=Flavohemoglobin; AltName: Full=Hemoglobin-like pro<=
+tein; AltName: Full=Nitric oxide dioxygenase; Short=NO oxygenase;<=
+Short=NOD
+```
+
+Podemos obtener más información de cada alineamiento como por ejemplo la longitud de la secuencia target y otra información relacionada:
+
+{line-numbers=off}
+```
+>>> align.length
+406
+>>> align.hit_id
+'gi|52000637|sp|Q8ETH0.1|HMP_OCEIH'
+>>> align.hit_def
+'RecName: Full=Flavohemoprotein; AltName: Full=Flavohemoglobin; A<=
+ltName: Full=Hemoglobin-like protein; AltName: Full=Nitric oxide <=
+dioxygenase; Short=NO oxygenase; Short=NOD'
+>>> align.hsps
+[<Bio.Blast.Record.HSP object at 0x7fa444665eb8>, <Bio.Blast.Reco<=
+rd.HSP object at 0x7fa444665ef0>]
+```
+
+**hsps** contiene una lista de los *HPSs*. Cada instancia *HSP*, como se mencionó anteriormente, tiene la información que la mayoría de los usuarios quieren extraer de un resultado de BLAST. Veamoslo en un HSP:
+
+{line-numbers=off}
+```
+>P04252.1 RecName: Full=Bacterial hemoglobin; AltName:
+Full=Soluble cytochrome O
+Length=146
+
+Score = 93.6 bits (231), Expect(2) = 1e-34,
+Method: Compositional matrix adjust.
+Identities = 45/45 (100%), Positives = 45/45 (100%),
+Gaps = 0/45 (0%)
+Frame = +3
+
+Query  123  VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI  257
+            VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI
+Sbjct  90   VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI  134
+```
+
+Acá vemos cómo esta información puede ser obtenida con el parser de BLAST:
+
+{line-numbers=off}
+```
+>>> xmlfile = '../../samples/sampleXblast.xml'
+>>> blast_records = NCBIXML.parse(open(xmlfile))
+>>> blast_record = next(blast_records)
+>>> align = blast_record.alignments[0]
+>>> align.hsps
+[<Bio.Blast.Record.HSP object at 0x7fa444677e80>, <Bio.Blast.Re<=
+cord.HSP object at 0x7fa444677f28>]
+>>> hsp = align.hsps[0]
+>>> hsp.bits
+93.5893
+>>> hsp.score
+231.0
+>>> hsp.expect
+1.06452e-34
+>>> hsp.identities
+45
+>>> hsp.align_length
+45
+>>> hsp.frame
+(3, 0)
+>>> hsp.query_start
+123
+>>> hsp.query_end
+257
+>>> hsp.sbjct_start
+90
+>>> hsp.sbjct_end
+134
+>>> hsp.query
+'VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI'
+>>> hsp.match
+'VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI'
+>>> hsp.sbjct
+'VAAAHYPIVGQELLGAIKEVLGDAATDDILDAWGKAYGVIADVFI'
+```
+
+Teniendo esto en mente podemos responder preguntas que involucren los números de acceso de los alineamientos con un valor `E value` menor que un valor límite (Listado 9.8) y otras preguntas que involucren algún parámetro incluido en la salida del BLAST.
+
+**Listado 9.8:** `BLASTparser2.py`: Extraer el número de acceso de las secuencias que tienen un E-value menor al umbral especificado.
+
+```
+from Bio.Blast import NCBIXML
+threshold = 0.0001
+  with open('../../samples/other.xml') as xmlfh:
+    blast_record = next(NCBIXML.parse(xmlfh))
+  for align in blast_record.alignments:
+    if align.hsps[0].expect < threshold
+      print(align.accession)
+```
+
+**Explicación del código**: Este programa es muy similar al Listado 9.7 trae el primer récord del BLAST en el archivo xml (ver la función **next()** incorporada en la línea 4). Este método es usado porque la versión más antigua de Biopython carecía del método **NCBIXML.read()**. Si usamos Biopyhton 1.50 y hay solo un récord de BLAST en el archivo XML usar **NCBIXML.read(open(xmlfh))**. El programa recorre todos los alineamientos en `blast_record` (en la línea 5).  Para cada alineamiento (`align` en la línea 5) chequea el valor de expect del primer *HSP* (línea 6). Si el E value es menor que el valor límite definido en la línea 2, el programa imprime el número de acceso del alineamiento.
+Tener en cuenta que cuando se hace una búsqueda en BLAST se puede setear el E value desde el comando de línea o desde el NcbiblastnCommandline wrapper. Una vez que se tiene el resultado se le puede aplicar un filtro como el que aparece en el Listado 9.8.
+
+T> ### Correr y procesar el BLAST sin Biopython
+T>
+T> Aunque se puede usar Biopython para ejecutar y analizar las búsquedas de BLAST también podemos hacerlo sin Biopython en el caso que sea necesario.
+T> BLAST puede ejecutarse como cualquier programa externo con **os.system** o con un **sub-process.Popen**. Recuerden configurar la opción "m" de acuerdo a cómo se planea procesar la salida.
+T> Hay dos formas de procesar la salida BLAST. Si se configuró el BLAST para producir la salida en XML (con la opción de la línea de comando “-m 7”), el resultado se puede analizar con las herramientas que se muestran en el Capítulo 11. Otra forma más fácil de analizar los resultados de BLAST es usar el módulo CSV (que vimos en la [sección Archivos CSV](#seccionCSV)). Para lo cual la salida de BLAST debe formatearse de una manera compatible (con la opción de la línea de comando "-m 8").
+
+### Información biológica relacionada
+
+Biopython no es solo una colección de herramientas sino que también tiene información biológica relacionada. Esta información está incluida en Biopython para uso interno como por ejemplo las tablas de traducción (**CodonTable.unambiguous_dna_by_name**) para la función **Translate** y los pesos de los aminoácidos (**protein_weights**) para la función **molecular_weight**.
+Tu código puede acceder también a estos datos. Por ejemplo, el código en esta sección interactiva accede al diccionario que convierte un "valor de ADN ambiguo" en sus posibles valores:
+
+{line-numbers=off}
+```
+>>> from Bio.Data import IUPACData
+>>> IUPACData.ambiguous_dna_values['M']
+'AC'
+>>> IUPACData.ambiguous_dna_values['H']
+'ACT'
+>>> IUPACData.ambiguous_dna_values['X']
+'GATC'
+```
+
+Recordemos la calculadora del peso molecular de las proteínas del Listado 4.8. Con Biopython no hay necesidad de definir un diccionario con los pesos de los aminoácidos dado que dicho diccionario ya está incluido:
+
+**Listado 9.9:** `protwwbiopy.py`: Calcular el peso de una proteína con Biopyhon.
+
+```
+from Bio.Data.IUPACData import protein_weights as pw
+protseq = input('Enter your protein sequence: ')
+total_w = 0
+for aa in protseq:
+  total_w += pw.get(aa.upper(),0)
+total_w -= 18*(len(protseq)-1)
+print('The net weight is: {0}'.format(total_w))
+```
+
+El programa resultante es más corto que la versión original y no hay necesidad de definir un diccionario con los valores tomados de una tabla de referencia, los desarrolladores de Biopython lo hacen por vos.
+La mayoría de la información está disponible en **Bio.Data.IUPACData** y **Bio.Data.Codon-Table** es presentada en los Listados 9.10 y 9.11, respectivamente.
+
+**Listado 9.10:** Información de Bio.Data.IUPACData
+
+```
+protein_letters
+extended_protein_letters
+ambiguous_dna_letters
+unambiguous_dna_letters
+ambiguous_rna_letters
+unambiguous_rna_letters
+ambiguous_dna_complement
+ambiguous_dna_values
+ambiguous_dna_weight_ranges
+ambiguous_rna_complement
+ambiguous_rna_values
+ambiguous_rna_weight_ranges
+avg_ambiguous_dna_weights
+avg_ambiguous_rna_weights
+avg_extended_protein_weights
+extended_protein_values
+extended_protein_weight_ranges
+protein_weight_ranges
+protein_weights
+unambiguous_dna_weight_ranges
+unambiguous_dna_weights
+unambiguous_rna_weight_ranges
+unambiguous_rna_weights
+```
+
+**Listado 9.11:** Información de Bio.Data.CodonTable
+
+```
+ambiguous_dna_by_id
+ambiguous_dna_by_name
+ambiguous_generic_by_id
+ambiguous_generic_by_name
+ambiguous_rna_by_id
+ambiguous_rna_by_name
+generic_by_id
+generic_by_name
+standard_dna_table
+standard_rna_table
+unambiguous_dna_by_id
+unambiguous_dna_by_name
+unambiguous_rna_by_id
+unambiguous_rna_by_name
+```
+
+Para dar la tabla de traducción de ADN bacteriano:
+
+{line-numbers=off}
+```
+>>> from Bio.Data.CodonTable import unambiguous_dna_by_id
+>>> bact_trans=unambiguous_dna_by_id[11]
+>>> bact_trans.forward_table['GTC']
+'V'
+>>> bact_trans.back_table['R']
+'CGT'
+```
+
+Para tener una representación gráfica de una tabla de traducción:
+
+{line-numbers=off}
+```
+>>> from Bio.Data import CodonTable
+>>> print(CodonTable.generic_by_id[2])
+Table 2 Vertebrate Mitochondrial, SGC1
+
+  |  U      |  C      |  A      |  G      |
+--+---------+---------+---------+---------+--
+U | UUU F   | UCU S   | UAU Y   | UGU C   | U
+U | UUC F   | UCC S   | UAC Y   | UGC C   | C
+U | UUA L   | UCA S   | UAA Stop| UGA W   | A
+U | UUG L   | UCG S   | UAG Stop| UGG W   | G
+--+---------+---------+---------+---------+--
+C | CUU L   | CCU P   | CAU H   | CGU R   | U
+C | CUC L   | CCC P   | CAC H   | CGC R   | C
+C | CUA L   | CCA P   | CAA Q   | CGA R   | A
+C | CUG L   | CCG P   | CAG Q   | CGG R   | G
+--+---------+---------+---------+---------+--
+A | AUU I(s)| ACU T   | AAU N   | AGU S   | U
+A | AUC I(s)| ACC T   | AAC N   | AGC S   | C
+A | AUA M(s)| ACA T   | AAA K   | AGA Stop| A
+A | AUG M(s)| ACG T   | AAG K   | AGG Stop| G
+--+---------+---------+---------+---------+--
+G | GUU V   | GCU A   | GAU D   | GGU G   | U
+G | GUC V   | GCC A   | GAC D   | GGC G   | C
+G | GUA V   | GCA A   | GAA E   | GGA G   | A
+G | GUG V(s)| GCG A   | GAG E   | GGG G   | G
+--+---------+---------+---------+---------+--
+```
+
+### Entrez
+
+Entrez es un motor de búsqueda que integra muchas bases de datos de ciencias de la salud en el sitio web del Centro Nacional de Información Biotecnológica (NCBI por sus siglas en inglés). Es una página web simple donde podemos buscar en diversos datasets como: literatura científica, bases de datos de secuencias de ADN y proteínas, estructura tridimensional de proteínas y datos de dominios de proteínas, datos de expresión, genomas completos ensamblados e información taxonómica.[^nota9-15]
+Este motor de búsqueda está disponible en <https://www.ncbi.nlm.nih.gov/sites/gquery>. Lo podemos usar online como cualquier motor de búsqueda estándar pero no es útil para incorporar información desde el navegador en nuestros programas. Por esto el NCBI ha creado el "Entrez Programming Utilities"(eUtils). Este es un conjunto de herramientas del lado del servidor para hacer búsquedas en las bases de datos de Entrez sin un navegador web y puede ser usado para obtener resultados de búsquedas que podemos incluirlos en nuestros programas.
+
+[^nota9-15]: <https://www.ncbi.nlm.nih.gov/books/NBK3807/>
+
+**Un vistazo sobre los eUtils**
+
+El usuario debe construir a mano un URL. Este URL debería contener el nombre de un programa a usar en el servidor web del NCBI y todos los parámetros requeridos (como el nombre de la base de datos y los términos de búsqueda). Una vez que el URL es posteado, el NCBI enviá la información resultante al usuario. La información es enviada, generalmente, en formato XML.
+El fundamento detrás de este procedimiento es que el programa debe construir un URL automáticamente, postearlo, devolver y procesar los resultados. No se supone que el URL sea construido manualmente, sino por un programa, al igual que el archivo XML resultante.
+Es posible combinar los componentes de eUtils para generar pipelines de información customizados entre esas aplicaciones.
+
+**Biopython y eUtils**
+
+Python tiene herramientas para buscar un URL (urllib2) y parsear archivos XML (como miniDOM) que podrían usarse para acceder a eUtils. Aún usando los módulos relevantes para interactuar con el eUtils esto involucra mucho trabajo. Por esta razón Biopython incluye el módulo **ENTREZ**. El módulo **Bio.ENTREZ** provee funciones para llamar a cada programa de **eUtils** sin necesidad de saber comó construir un URL o como parsear un archivo XML.
+Hay dos maneras de interactuar con la base de datos Entrez: Buscar la base de datos y traer el dato. La primera acción se puede hacer con las funciones **esearch** y **equery Bio.Entrez**, mientras que las funciones **efetch** y **esummary** son usadas para obtener información. La Tabla 9.3 resume todas las funciones disponibles en el módulo **eUtils**.
+
+TABLA 9.3 eUtils
+
+| Nombre  | Descripción |
+| ------  | ----------- |
+| efetch  | Recupera registros en el formato solicitado de una lista de uno o más IDs primarios o del entorno del usuario.
+| einfo | Proporciona recuentos de términos de índice de campo, última actualización y enlaces disponibles para cada base de datos. |
+| egquery | Proporciona los recuentos de la base de datos Entrez en XML para una única búsqueda utilizando Global Query.  |
+| elink | Comprueba la existencia de un enlace externo o de artículos relacionados de una lista de uno o más IDs primarios. |
+| epost | Postea un archivo que contiene una lista de IDs primarios para futuros usos en el entorno del usuario para usar las estrategias con las subsecuentes estrategias de búsqueda. |
+| esearch | Busca y devuelve los IDs primarios (usado en Efetch, Elink y ESummary). |
+| espell  | Da sugerencias ortográficas.  |
+| esummary  | Devuelve los documentos resumidos desde una lista de IDs primarios o desde el entorno del usuario.  |
+| read  | Parsea los resultados XML devueltos por alguna de las funciones mencionadas anteriormente.  |
+
+**eUtils: Obteniendo la bibliografía**
+
+El siguiente programa busca en PubMed usando Entrez. PubMed es un motor de búsqueda para MEDLINE, una base de datos con información biomédica y de ciencias de la vida.
+
+**Listado 9.12:** `entrez1.py`: Obtener y mostrar información de PubMed.
+
+```
+from Bio import Entrez
+my_em = 'user@example.com'
+db = "pubmed"
+# Search de Entrez website using esearch from eUtils
+# esearch returns a handle (called h_search)
+h_search = Entrez.esearch(db=db, email=my_em,
+                          term='python and bioinformatics')
+# Parse the result with Entrez.read()
+record = Entrez.read(h_search)
+# Get the list of Ids returned by previous search
+res_ids = record["IdList"]
+# For each id in the list
+for r_id in res_ids:
+  # Get summary information for each id
+  h_summ = Entrez.esummary(db=db, id=r_id, email=my_em)
+  # Parse the result with Entrez.read()
+  summ = Entrez.read(h_summ)
+  print(summ[0]['Title'])
+  print(summ[0]['DOI'])
+  print('==============================================')
+```
+
+Probando que hay una conexión a Internet funcionando cuando corremos el Listado 9.12, su salida se ve de la siguiente manera:
+
+{line-numbers=off,lang=text}
+```
+Optimal spliced alignments of short sequence reads.
+10.1093/bioinformatics/btn300
+==========================================
+Mixture models for protein structure ensembles.
+10.1093/bioinformatics/btn396
+==========================================
+Contact replacement for NMR resonance assignment.
+10.1093/bioinformatics/btn167
+==========================================
+
+```
+
+**EUtils: Obteniendo información genética**
+
+`EUtils` es una interfaz para muchas bases de datos, el mismo programa que usamos para obtener información bibliográfica (Listado 9.12) se puede usar para obtener información genética. El cambio de la clave en el Listado 9.13 es el campo de la base de datos (línea 3).
+
+**Listado 9.13:** `entrez2.py`: Obtener y mostrar información de PubMed.
+
+```
+from Bio import Entrez
+my_em = 'user@example.com'
+db = "gene"
+term = 'cobalamin synthase homo sapiens'
+h_search = Entrez.esearch(db=db, email=my_em, term=term)
+record = Entrez.read(h_search)
+res_ids = record["IdList"]
+for r_id in res_ids:
+  h_summ = Entrez.esummary(db=db, id=r_id, email=my_em)
+  summ = Entrez.read(h_summ)
+  print(r_id)
+  name = s['DocumentSummarySet']['DocumentSummary'][0]['Name']
+  print(name)
+  su = s['DocumentSummarySet']['DocumentSummary'][0]['Summary']
+  print(su)
+  print('==============================================')
+```
+
+El Listado 9.13 (`entrez2.py`) produce un resultado como este:
+
+{line-numbers=off,lang=text}
+```
+25974
+MMACHC
+The exact function of the protein encoded by this gene is not known<=
+, however, its C-terminal region shows similarity to TonB, a bacter<=
+ial protein involved in energy transduction for cobalamin (vitamin <=
+B12) uptake. Hence, it is postulated that this protein may have a r<=
+ole in the binding and intracellular trafficking of cobalamin. Muta<=
+tions in this gene are associated with methylmalonic aciduria and h<=
+omocystinuria type cblC. [provided by RefSeq, Oct 2009]
+==============================================
+326625
+MMAB
+This gene encodes a protein that catalyzes the final step in the co<=
+nversion of vitamin B(12) into adenosylcobalamin (AdoCbl), a vitami<=
+n B12-containing coenzyme for methylmalonyl-CoA mutase. Mutations i<=
+n the gene are the cause of vitamin B12-dependent methylmalonic aci<=
+duria linked to the cblB complementation group. Alternatively splic<=
+ed transcript variants have been found. [provided by RefSeq, Apr 20<=
+11]
+==============================================
+(...)
+```
+
+Veamos que hay un número en esta salida que no estuvo presente en el resultado del Listado 9.12. Este número es el ID retornado por la función **esearch**. Este ID fue usado para devolver el resumen con la función **esummary**. El próximo código usa este ID para devolver una secuencia de ADN:
+
+{line-numbers=off}
+```
+>>> n = "nucleotide"
+>>> handle = Entrez.efetch(db=n, id="326625", rettype='fasta')
+>>> print handle.read()
+>gi|326625|gb|M77599.1|HIVED82FO Human immunodeficiency virus<=
+ type 1 gp120 (env) gene sequence
+TTAATAGTACTTGGAATTCAACATGGGATTTAACACAACTTAATAGTACTCAGAATAAAGA
+AGAAAATATCACACTCCCATGTAGAATAAAACAAATTATAAACATGTGGCAGGAAGTAGGA
+AAAGCAATGTATGCCCCTCCCATCAAAGGACAAATTAAATGTTCATCAAATATTACAGGGC
+TACTATTAACAAGAGATGGTGGTAATAGTGGTAACAAAAGCAACGACACCACCGAGACCTT
+CAGACC
+```
+
+Cambiando el parámetro **rettype** a "*genbank*" podemos obtener el récord GenBank en lugar de la secuencia plana. Con la secuencia en formato GenBank la podemos parsear con el módulo **SeqIO** como lo vimos en la página 173. Una forma alternativa para parsear los resultados es obtenerlos en formato XML y luego parsearlos con la función **Entrez.read()**:
+
+{line-numbers=off}
+```
+>>> handle = Entrez.efetch(db=n, id="326625", retmode='xml')
+>>> record[0]['GBSeq_moltype']
+'RNA'
+>>> record[0]['GBSeq_sequence']
+'ttaatagtacttggaattcaacatgggatttaacacaacttaatagtactcagaataaaga<=
+agaaaatatcacactcccatgtagaataaaacaaattataaacatgtggcaggaagtaggaa<=
+aagcaatgtatgcccctcccatcaaaggacaaattaaatgttcatcaaatattacagggcta<=
+ctattaacaagagatggtggtaatagtggtaacaaaagcaacgacaccaccgagaccttcag<=
+acc'
+>>> record[0]['GBSeq_organism']
+'Human immunodeficiency virus 1'
+```
+
+### PDB
+
+Los archivos PDB almacenan la información de las estructuras tridimensionales de las moléculas contenidas en el Banco de Datos de Proteínas.
+Esta base de datos, con más de 170.000 registros, es el repositorio de referencia de datos estructurales de proteínas. Un archivo PDB almacena las posiciones espaciales de los átomos obtenidos por cristalografía de rayos X, espectroscopia de RMN y otras técnicas experimentales.
+
+Estos datos son utilizados por varios programas, como visualizadores de estructuras moleculares como Deep Views[^nota9-16],  Cn3D[^nota9-17] y PyMol[^nota9-18], análisis de proteínas y software de predicción de estructuras como MakeMultimer[^nota9-19] y Modeller[^nota9-20].
+
+Los registros de esta base de datos pueden ser accedidos en la página web del RCSB (<http://www.rcsb.org/pdb/home/home.do>[^nota9-21]). Si deseamos crear una aplicación propia para analizar los datos de la estructura de proteínas, dicho programa tendrá que ser capaz de analizar los datos de los archivos PDB. Esta es la función del módulo **Bio.pdb**.
+Para utilizar efectivamente el módulo **Bio.PDB**, primero debe comprender la estructura de archivos PDB. Una estructura de proteína se modela con una jerarquía de arriba hacia abajo,  comienza con la clase structure, hasta la subclase atom. Los pedidos intermedios son model, chain y residue. Esta jerarquía también se conoce como **SMCRA**. Algunas proteínas no siguen este patrón, pero los archivos PDB sí lo hacen.[^nota9-22]
+
+[^nota9-16]: <http://spdbv.vital-it.ch>
+[^nota9-17]: <http://www.ncbi.nlm.nih.gov/Structure/CN3D/cn3d.shtml>
+[^nota9-18]: <http://www.pymol.org>
+[^nota9-19]: <http://watcut.uwaterloo.ca/cgi-bin/makemultimer>
+[^nota9-20]: <http://www.salilab.org/modeller>
+[^nota9-21]: RCSB es el Research Collaboratory for Structural Bioinformatics, el consorcio que tiene a cargo el manejo de la PDB.
+[^nota9-22]: Hay algunos archivos PDB están malformados. Cuando el módulo **Bio.PDB** encuentra el problema puede generar una excepción o una advertencia, dependiente del argumento PERMISSIVE (0 para ninguna tolerancia y 1 para parsear con advertencias de problemas)
+
+**Módulo Bio.PDB**
+
+El módulo PDB provee la clase PDBparser.[^nota9-23] Esta clase tiene el método **get_structure**. Este método necesita, como entrada, un id y un nombre de archivo y retorna un objeto **structure**. Esta jerarquía **SMCRA** puede ser accedida por un identificador como una clave:
+
+[^nota9-23]: En algunas instalaciones de Linux podemos tener instalar el paquete python-numeric-ext para correr este módulo.
+
+{line-numbers=off}
+```
+>>> from Bio.PDB.PDBParser import PDBParser
+>>> pdbfn = '../../samples/1FAT.pdb'
+>>> parser = PDBParser(PERMISSIVE=1)
+>>> structure = parser.get_structure("1fat", pdbfn)
+WARNING: Chain A is discontinuous at line 7808.
+(... some warnings removed ...)
+WARNING: Chain D is discontinuous at line 7870.
+>>> structure.child_list
+[<Model id=0>]
+>>> model = structure[0]
+>>> model.child_list
+[<Chain id=A>, <Chain id=B>, <Chain id=C>, <Chain id=D>, <=
+<Chain id= >]
+>>> chain = model['B']
+>>> chain.child_list[:5]
+[<Residue SER het= resseq=1 icode= >, <Residue ASN het= <=
+ resseq=2 icode= >, <Residue ASP het= resseq=3 icode= >,<=
+ <Residue ILE het= resseq=4 icode= >, <Residue TYR het= <=
+ resseq=5 icode= >]
+>>> residue = chain[4]
+>>> residue.child_list
+[<Atom N>, <Atom CA>, <Atom C>, <Atom O>, <Atom CB>, <=
+<Atom CG1>, <Atom CG2>, <Atom CD1>]
+>>> atom = residue['CB']
+>>> atom.bfactor
+14.130000000000001
+>>> atom.coord
+array([ 34.30699921, -1.57500005, 29.06800079],'f')
+```
+
+El siguiente programa abre un archivo PDB que esta comprimido con **gzip**.[^nota9-24] Como podemos ver el programa escanea todas las cadenas de proteínas y en cada cadena recorre todos los átomos en cada residuo para imprimir el residuo y el nombre del átomo cuando hay un átomo desordenado:
+
+[^nota9-24]: gzip es una aplicación "estándar" usado en los sistemas Unix para comprimir archivos, también está disponible en la mayoría de las plataformas comunes. Lo mostramos en este ejemplo porque la mayoría de los archivos con información molecular están comprimidos en este formato.
+
+**Listado 9.14:** `pdb2.py`: Parsear un archivo PDB comprimido con gzip.
+
+```
+import gzip
+import io
+from Bio.PDB.PDBParser import PDBParser 4
+
+def disorder(structure):
+  for chain in structure[0].get_list():
+    for residue in chain.get_list():
+      for atom in residue.get_list():
+        if atom.is_disordered():
+          print(residue, atom)
+
+  return None
+
+pdbfn = '../../samples/pdb1apk.ent.gz'
+handle = gzip.GzipFile(pdbfn)
+handle = io.StringIO(handle.read().decode('utf-8'))
+parser = PDBParser()
+structure = parser.get_structure('test', handle)
+disorder(structure)
+```
+
+### PROSITE
+
+PROSITE es una base de datos de documentación que describe familias y dominios de proteínas y sitios funcionales con patrones asociados y perfiles usados para identificarlos.
+La base de datos se accede en el sitio de PROSITE (<http://www.expasy.org/prosite>) o se obtiene como un archivo de texto plano.[^nota9-25] Este puede ser parseado con la función *parse* en el módulo *Prosite*:
+
+[^nota9-25]: La actualización 20.36 del 2 de Septiembre de 2018 es un archivo de 22 Mb está disponible en <ftp://ftp.expasy.org/databases/prosite/prosite.dat>.
+
+{line-numbers=off}
+```
+>>> from Bio import Prosite
+>>> handle = open("prosite.dat")
+>>> records = Prosite.parse(handle)
+>>> for r in records:
+  print(r.accession)
+  print(r.name)
+  print(r.description)
+  print(r.pattern)
+  print(r.created)
+  print(r.pdoc)
+  print("===================================")
+
+PS00001
+ASN_GLYCOSYLATION
+N-glycosylation site.
+N-{P}-[ST]-{P}.
+APR-1990
+PDOC00001
+===================================
+PS00004
+CAMP_PHOSPHO_SITE
+cAMP- and cGMP-dependent protein kinase phosphorylation site.
+[RK](2)-x-[ST].
+APR-1990
+PDOC00004
+===================================
+PS00005
+PKC_PHOSPHO_SITE
+Protein kinase C phosphorylation site.
+[ST]-x-[RK].
+APR-1990
+PDOC00005
+===================================
+```
+
+### Restricción
+
+Las tecnologías del ADN recombinante están basadas en la posibilidad de combinar secuencias de ADN (generalmente de diferentes organismos) que normalmente no ocurrirían. Este manera de cortar y pegar biológicamente es realizado por una endonucleasa de restricción, un grupo especial de enzimas que trabajan como tijeras moleculares específicas.
+La característica principal de estas enzimas es que reconocen una secuencia específica de nucleótidos y cortan ambas cadenas del ADN. Cuando un investigador quiere introducir un corte en una secuencia de ADN conocida primero debe chequear que enzima tiene especificidad para un sitio de corte en dicha secuencia. Todas las enzimas de restricción están almacenadas de la base de datos REBASE.[^nota9-26]
+Muy conocida es la enzima de restricción EcoRI que reconoce la secuencia "GAATTC" y corta cualquier doble cadena de ADN que tenga dicha secuencia:
+
+[^nota9-26]: REBASE está disponible en <http://rebase.neb.com/rebase/rebase.html>.
+
+{line-numbers=off}
+```
+CGCGAATTCGCG
+GCGCTTAAGCGC
+```
+
+En este caso el sitio de restricción se encuentra en el medio de la secuencia superior (marcada entre '-'): CGC-GAATTC-GCG. Las piezas separadas serán:
+
+{line-numbers=off}
+```
+CGC	GAATTCGCG
+GCGCTTAA	GCGC
+```
+**Módulo Bio.Restriction**
+
+Biopython cuenta con herramientas para trabajar con enzimas de restricción incluyendo información de las enzimas extraídas de la REBASE. Todas las enzimas de restricción están disponibles en el **módulo Restriction**:
+
+{line-numbers=off}
+```
+>>> from Bio import Restriction
+>>> Restriction.EcoRI
+EcoRI
+```
+
+El objeto enzima de restricción tiene muchos métodos, como **search** que puede ser usado para buscar un sitio de restricción en una secuencia de ADN:
+
+{line-numbers=off}
+```
+>>> from Bio.Seq import Seq
+>>> from Bio.Alphabet.IUPAC import IUPACAmbiguousDNA
+>>> alfa = IUPACAmbiguousDNA()
+>>> gi1942535 = Seq('CGCGAATTCGCG', alfa)
+>>> Restriction.EcoRI.search(gi1942535)
+[5]
+```
+
+Observemos que la función **search** devuelve una lista con todas las posiciones donde la enzima corta. La posición es el primer nucleótido después del corte, empezando en 1 en lugar de 0 (como es común en otras partes de Python). Otro parámetro en **search** es *linear*, por defecto **False** (Falso). Si trabajamos con una secuencia circular deberíamos setearlo como **True** (Verdadero).
+Los segmentos producidos después de una restricción pueden ser vistos con la función **catalyze**:
+
+{line-numbers=off}
+```
+>>> Restriction.EcoRI.catalyse(gi1942535)
+(Seq('CGCG', IUPACAmbiguousDNA()), Seq('AATTCGCG', <=
+IUPACAmbiguousDNA()))
+```
+
+Para analizar muchas enzimas al mismo tiempo tenemos la clase **RestrictionBatch**:
+
+{line-numbers=off}
+```
+>>> enz1 = Restriction.EcoRI
+>>> enz2 = Restriction.HindIII
+>>> batch1 = Restriction.RestrictionBatch([enz1, enz2])
+>>> batch1.search(gi1942535)
+{EcoRI: [5], HindIII: []}
+```
+
+La función **search** aplicada sobre un conjunto de enzimas retorna un diccionario:
+
+{line-numbers=off}
+```
+>>> dd = batch1.search(gi1942535)
+>>> dd.get(Restriction.EcoRI)
+[5]
+>>> dd.get(Restriction.HindIII)
+[]
+```
+
+Las enzimas pueden ser agregadas o removidas como si la instancia **RestrictionBatch** fuese un conjunto:
+
+{line-numbers=off}
+```
+>>> batch1.add(Restriction.EarI)
+>>> batch1
+RestrictionBatch(['EarI', 'EcoRI', 'HindIII'])
+>>> batch1.remove(Restriction.EarI)
+>>> batch1
+RestrictionBatch(['EcoRI', 'HindIII'])
+```
+
+Hay también una serie de conjuntos predefinidos en el módulo **Restriction**, como **AllEnzymes**, **CommOnly** y **NonComm**:
+
+{line-numbers=off}
+```
+>>> batch2 = Restriction.CommOnly
+```
+
+**Clase Analysis: Todo en uno**
+
+La clase **Analysis** simplifica el trabajo con múltiples enzimas:
+
+{line-numbers=off}
+```
+>>> an1 = Restriction.Analysis(batch1,gi1942535)
+>>> an1.full()
+{HindIII: [], EcoRI: [5]}
+```
+
+Hasta este punto el resultado del método **full()** en el objeto `Analysis` es el mismo que en **search** sobre un **RestrictionBatch**. `Analysis` provee:
+
+{line-numbers=off}
+```
+>>> an1.print_that()
+
+EcoRI : 5.
+
+    Enzymes which do not cut the sequence.
+
+HindIII
+
+>>> an1.print_as('map')
+>>> an1.print_that()
+
+5 EcoRI
+    |
+CGCGAATTCGCG
+||||||||||||
+GCGCTTAAGCGC
+1                           12
+
+    Enzymes which do not cut the sequence.
+
+HindIII
+
+>>> an1.only_between(1,8)
+{EcoRI: [5]}
+```
+
+Esto cubre la mayoría de las funciones disponibles en el módulo de **Restriction**. Para más información ver el tutorial de Biopython en: <http://biopython.org/DIST/docs/cookbook/Restriction.html>.
+
+### SeqUtils
+
+Este módulo tiene muchas funciones para trabajar con secuencias de ADN y proteínas, tales como CG, GC skew, peso molecular, algoritmos de checksum, uso de codones, temperatura de fusión, entre otros. Todas las funciones están ampliamente documentadas, aquí solo voy a explicar algunas de ellas para tener una idea de como usarlas.
+
+**ADN Utilis**
+
+**SeqUtils** tiene muchas de las funciones que pueden ser aplicadas a las secuencias de ADN. Veamos algunas de ellas:
+
+**Contenido GC**: El porcentaje de las bases guanina (G) y citosina (C) es un parámetro que afecta algunas propiedades de la molécula de ADN. Dicho porcentaje es calculado con la función GC:
+
+{line-numbers=off}
+```
+>>> from Bio.SeqUtils import GC
+>>> GC('gacgatcggtattcgtag')
+50.0
+```
+
+**Temperatura de fusión del ADN**: La temperatura de fusión puede ser calculada con la función **Melting-Temp.Tm_staluc**. Está función implementa el "método del vecino más próximo" (nearest neighbor method)[^nota9-27] y puede ser usada tanto para secuencias de ADN como de ARN:
+
+[^nota9-27]: Para mas información sobre este método: "Santalucía, et al. (1996) Biochemestry 35, 3555-3562"
+
+{line-numbers=off}
+```
+>>> from Bio.SeqUtils import MeltingTemp
+>>> MeltingTemp.Tm_staluc('tgcagtacgtatcgt')
+42.211472744873447
+>>> print('%.2f'%MeltingTemp.Tm_staluc('tgcagtacgtatcgt'))
+42.21
+```
+
+**Funciones CheckSum**: Un checksum, en general, es una cadena alfanumérica basada en un archivo de entrada, mayormente usada para testear la integridad de los datos. Desde cualquier tipo de datos (como un archivo de texto, un secuencia de ADN) usando un algoritmo podemos generar una cadena pequeña (llamada usualmente "firma") que puede representar la data original. Algunos programas agregan la información de checksum a la información de secuencia para asegurar la integración de la data. Un checksum simple es implementado por el programa GCG.
+Esta es una secuencia en el formato gcg:
+
+{line-numbers=off}
+```
+ID  AB000263 standard; RNA; PRI; 368 BP.
+XX
+AC  AB000263;
+XX
+DE  Homo sapiens mRNA for prepro cortistatin like peptide.
+XX
+SQ  Sequence 37 BP;
+AB000263 Length: 37 Check: 1149 ..
+      1  acaagatgcc attgtccccc ggcctcctgc tgctgct
+```
+
+El número **Check** (1149 en este caso) es derivado de la secuencia. Si la secuencia es cambiada, esperamos que este número cambie. Siempre hay una chance de una colisión al azar, es decir cuando dos secuencias diferentes generan el mismo número (o firma como también se lo conoce). El "gcg checksum" es débil en el sentido que permite solo 10.000 firmas diferentes. Existen algunos checksums más fuertes como el crc32, crc64 y seguid.[^nota9-28]
+Todos estos checksums están disponibles en el módulo **Checksum** y son mostrados en orden desde los más débiles a los algoritmos checksum más fuertes.
+
+{line-numbers=off}
+```
+>>> from Bio.SeqUtils import CheckSum
+>>> myseq = 'acaagatgccattgtcccccggcctcctgctgctgct'
+>>> CheckSum.gcg(myseq)
+1149
+>>> CheckSum.crc32(myseq)
+-2106438743
+>>> CheckSum.crc64(myseq)
+'CRC-A2CFDBE6AB3F7CFF'
+>>> CheckSum.seguid(myseq)
+'9V7Kf19tfPA5TntEP75YiZEm/9U'
+```
+
+[^nota9-28]: Para más información sobre los checksums ver: “Bassi, Sebastian and Gonzalez, Virginia. New checksum functions for Biopython.” Disponible en Nature Precedings <http://dx.doi.org/10.1038/npre.2007.278.1> (2007).
+
+**Protein Utils**
+
+Las funciones relacionadas a proteínas son accesibles desde la clase **ProtParam**. Las propiedades disponibles para proteínas son: *Peso molecular, aromaticidad, índice de inestabilidad, flexibilidad, punto isoeléctrico y estructura secundaria*. Los nombres de las funciones son simples, podemos verlos en el Listado 9.15:
+
+**Listado 9.15:** `protparam.py`: Aplicar la función ProParam a un grupo de proteínas.
+
+```
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
+from Bio.SeqUtils import ProtParamData
+from Bio import SeqIO
+
+with open('../../samples/pdbaa') as fh:
+  for rec in SeqIO.parse(fh,'fasta'):
+    myprot = ProteinAnalysis(str(rec.seq))
+    print(myprot.count_amino_acids())
+    print(myprot.get_amino_acids_percent())
+    print(myprot.molecular_weight())
+    print(myprot.aromaticity())
+    print(myprot.instability_index())
+    print(myprot.flexibility())
+    print(myprot.isoelectric_point())
+    print(myprot.secondary_structure_fraction())
+    print(myprot.protein_scale(ProtParamData.kd, 9, .4))
+```
+
+### Secuenciación
+
+Los proyectos de secuenciación generan usualmente archivos *.ace* y *phd.1*.[^nota9-29]
+
+[^nota9-29]: Esto depende de la tecnología de secuenciación; estos archivos se generan al procesar el cromatograma de seguimiento de secuencia con softwares populares como Phred, Phrap, CAP3 y Consed.
+
+**Archivos Phd**
+
+Los datos del secuenciador de ADN son leídos por el programa Phred. Este programa llama las bases, los valores de calidad asignados a las bases y escribe las bases y los valores de calidad en archivos de salida (con extensión *.phd.1*).
+El siguiente código (Listado 9.16) muestra cómo extraer la información desde los archivos *.phd.1.*
+
+**Listado 9.16:** `phd1.py`: Extrer la información de un archivo phd.1.
+
+```
+import pprint
+from Bio.Sequencing import Phd
+fn = '../../samples/phd1'
+with open(fn) as fh:
+  rp = Phd.read(fh)
+# All the comments are in a dictionary
+pprint.pprint(rp.comments)
+# Sequence information
+print('Sequence: %s' % rp.seq)
+# Quality information for each base 11
+print('Quality: %s' % rp.sites)
+```
+
+Si solo queremos extraer la secuencia es más fácil usar SeqIO:
+
+{line-numbers=off}
+```
+>>> from Bio import SeqIO
+>>> fn = '../../samples/phd1'
+>>> fh = open(fn)
+>>> seqs = SeqIO.parse(fh,'phd')
+>>> for s in seqs:
+  print(s.seq)
+
+ctccgtcggaacatcatcggatcctatcacagagtttttgaacgagttctcg
+(...)
+```
+
+**Ace Files**
+
+En una estrategia de secuenciación típica muchas secuencias solapadas están ensambladas electrónicamente en una secuencia larga de secuencias contiguas. Las secuencias contiguas son llamadas "conting" los cuales son hechos con programas especializados, CAP3 y Phrap. Los archivos de conting son usados para visualización y luego para análisis. Biopython tiene el **ACEParser** en el **módulo Ace*. Para cada archivo `.ace` podemos dar el número de contigs, el número de lecturas y algunos archivos informativos:
+
+{line-numbers=off}
+```
+>>> from Bio.Sequencing import Ace
+>>> fn = '836CLEAN-100.fasta.cap.ace'
+>>> acefilerecord = Ace.read(open(fn))
+>>> acefilerecord.ncontigs
+87
+>>> acefilerecord.nreads
+277
+>>> acefilerecord.wa[0].info
+['phrap 304_nuclsu.fasta.screen -new_ace -retain_duplicates', <=
+'phrap version 0.990329']
+>>> acefilerecord.wa[0].date
+'040203:114710'
+```
+
+El **Ace.read** trae también información relevante de cada conting como se muestra en el Listado 9.17.
+
+**Listado 9.17:** `ace.py`: Traer información de un archivo ".ace".
+
+```
+from Bio.Sequencing import Ace
+
+fn = '../../samples/contig1.ace'
+acefilerecord = Ace.read(open(fn))
+
+# For each contig:
+for ctg in acefilerecord.contigs:
+  print('==========================================')
+  print('Contig name: %s'%ctg.name)
+  print('Bases: %s'%ctg.nbases)
+  print('Reads: %s'%ctg.nreads)
+  print('Segments: %s'%ctg.nsegments)
+  print('Sequence: %s'%ctg.sequence)
+  print('Quality: %s'%ctg.quality)
+  # For each read in contig:
+  for read in ctg.reads:
+    print('Read name: %s'%read.rd.name)
+    print('Align start: %s'%read.qa.align_clipping_start)
+    print('Align end: %s'%read.qa.align_clipping_end)
+    print('Qual start: %s'%read.qa.qual_clipping_start)
+    print('Qual end: %s'%read.qa.qual_clipping_end)
+    print('Read sequence: %s'%read.rd.sequence)
+    print('==========================================')
+```
+
+### SwissProt
+
+SwissProt[^nota9_30] es una base de secuencias de proteínas anotada manualmente. SwissProt es mantenida colaborativamente por el Instituto Suizo de Bioinformática (SIB) y el Instituto Europeo de Bioinformática (EBI) que conforman el consorcio Uniprot. Es conocida la confianza en sus secuencias de proteínas con un alto nivel de anotación por lo que es la base de datos de referencia para proteínas. En Enero de 2021 contaba con casi 600.000 entradas mientras la base de datos UNIPROT cuenta con más de 210.000.000 de registros. La diferencia de tamaños se debe al proceso de curado manual que tiene SwissProt.
+Los archivos de SwissProt son archivos de texto estructurados que permiten ser leídos tanto por humanos como por programas de computadoras. Las especificaciones para este formato de archivos están disponibles en <http://www.expasy.org/sprot/userman.html> pero no es necesario saber dichas especificaciones para parsear este tipo de archivos con Biopython.
+Un ejemplo de archivos SwissProt podemos verlo a continuación:[^nota9_31]
+
+[^nota9_30]: <http://www.expasy.org/sprot>
+[^nota9_31]: El archivo está levemente modificado para que entre en la página, el archivo original puede ser bajado de <http://www.expasy.org/uniprot/B1IXL9.txt>.
+
+{line-numbers=off,lang=text}
+```
+ID 6PGL_ECOLC Reviewed; 331 AA. AC B1IXL9;
+DT 20-MAY-2008, integrated into UniProtKB/Swiss-Prot. DT 29-APR-2008, sequence<=
+ version 1.
+DT 02-SEP-2008, entry version 5.
+DE RecName: Full=6-phosphogluconolactonase;
+DE  Short=6-P-gluconolactonase;
+DE  EC=3.1.1.31;
+GN Name=pgl; OrderedLocusNames=EcolC_2895;
+OS Escherichia coli (strain ATCC 8739 / DSM 1576 / Crooks).
+OC Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; OC Entero<=
+bacteriaceae; Escherichia.
+OX NCBI_TaxID=481805;
+RN [1]
+RP NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA].
+RA Copeland A., Lucas S., Lapidus A., Glavina del Rio T., Dalin E., RA Tice H.<=
+, Bruce D., Goodwin L., Pitluck S., Kiss H., Brettin T.; RT "Complete sequence<=
+ of Escherichia coli C str. ATCC 8739.";
+RL Submitted (FEB-2008) to the EMBL/GenBank/DDBJ databases.
+CC -!- FUNCTION: Catalyzes the hydrolysis of 6-phosphogluconolactone
+CC  to 6-phosphogluconate (By similarity).
+CC -!- CATALYTIC ACTIVITY: 6-phospho-D-glucono-1,5-lactone + H(2)O
+CC  = 6-phospho-D-gluconate.
+CC -!- PATHWAY: Carbohydrate degradation; pentose phosphate pathway;
+CC  D-ribulose 5-phosphate from D-glucose 6-phosphate (oxidative
+CC  stage): step 2/3.
+CC -!- SIMILARITY: Belongs to the cycloisomerase 2 family.
+CC -----------------------------------------------------------------
+CC Copyrighted by the UniProt Consortium, see
+CC http://www.uniprot.org/terms Distributed under the Creative
+CC Commons Attribution-NoDerivs License
+CC ----------------------------------------------------------------- DR EMBL; <=
+CP000946; ACA78522.1; -; Genomic_DNA.
+DR RefSeq; YP_001725849.1; -.
+DR GeneID; 6065358; -.
+DR GenomeReviews; CP000946_GR; EcolC_2895.
+DR KEGG; ecl:EcolC_2895; -.
+DR GO; GO:0017057; F:6-phosphogluconolactonase activity; IEA:HAMAP. DR GO; GO:<=
+0006006; P:glucose metabolic process; IEA:HAMAP.
+DR HAMAP; MF_01605; -; 1.
+DR InterPro; IPR015943; WD40/YVTN_repeat-like.
+DR Gene3D; G3DSA:2.130.10.10; WD40/YVTN_repeat-like; 1.
+PE 3: Inferred from homology;
+KW Carbohydrate metabolism; Complete proteome; Glucose metabolism;
+KW Hydrolase.
+FT CHAIN    1   331   6-phosphogluconolactonase
+FT                    /FTId=PRO_1000088029.
+SQ  SEQUENCE   331 AA;  36308 MW;  D731044CFCF31A8F CRC64;
+    MKQTVYIASP ESQQIHVWNL NHEGALTLTQ VVDVPGQVQP MVVSPDKRYL YVGVRPEFRV
+    LAYRIAPDDG ALTFAAESAL PGSPTHISTD HQGQFVFVGS YNAGNVSVTR LEDGLPVGVV
+    DVVEGLDGCH SANISPDNRT LWVPALKQDR ICLFTVSDDG HLVAQDPAEV TTVEGAGPRH
+    MVFHPNEQYA YCVNELNSSV DVWELKDPHG NIECVQTLDM MPENFSDTRW AADIHITPDG
+    RHLYACDRTA SLITVFSVSE DGSVLSKEGF QPTETQPRGF NVDHSGKYLI AAGQKSHHIS
+    VYEIVGEQGL LHEKGRYAVG QGPMWVVVNA H
+//
+```
+El Listado 9.18 muestra como traer información desde un archivo SwissProt con múltiples registros:
+
+**Listado 9.18:** `sp1.py`: Traer información de un archivo SwissProt.
+
+```
+from Bio import SwissProt
+with open('../../samples/spfile.txt') as fh:
+  records = SwissProt.parse(fh)
+  for record in records:
+    print('Entry name: %s' % record.entry_name)
+    print('Accession(s): %s' % ','.join(record.accessions))
+    print('Keywords: %s' % ','.join(record.keywords))
+    print('Sequence: %s' % record.sequence)
+```
+
+El Listing 9.19 muestra todos los atributos en registros parseados por el **módulo SwissProt**.
+
+**Listado 9.19:** `sp2.py`: Traer información de un archivo SwissProt.
+
+```
+from Bio import SwissProt
+with open('../../samples/spfile.txt') as fh:
+  records = next(SwissProt.parse(fh))
+    for att in dir(record):
+      if not att.startswith('__'):
+        print(att,getattr(record,att))
+```
+
+## CONCLUSION
+
+La mayoría de las características usadas en Biopython fueron cubiertas en este capítulo. Siguiendo las muestras del código presentadas en este capítulo y los programas completos que hay al final del libro deberían darte una visión de como usar Biopython. También se debe aprender a usar la ayuda incorporada de Python, ya que la documentación online tiende a estar más actualizada que cualquier otro material impreso. El desarrollo del Biopython ocurre a un ritmo rápido, tan rápido que este capítulo fue reescrito varias veces mientras trabajaba en él. La mejor manera de mantenerse actualizado con el desarrollo de Biopython es suscribirse a la lista de correo de desarrollo de Biopython y recibir la fuente RSS del repositorio de códigos.
+
+## RECURSOS ADICIONALES
+
+* [Chang J., Chapman B., Friedberg I., Hamelryck T., de Hoon M., Cock P., and Antão, T. Biopython tutorial and cookbook.](http://www.biopython.org/DIST/docs/tutorial/Tutorial.html)
+
+* [Hamelryck T, and Manderick B., PDB file parser and structure class implemented in Python. Bioinformatics. 2003 Nov 22;19(17):2308–10.](https://www.ncbi.nlm.nih.gov/pubmed/14630660)
+
+* [Sohm, F., Manual in cookbook style on using the Restriction module.](http://biopython.org/DIST/docs/cookbook/Restriction.html)
+
+* Wu C.H., Apweiler R., Bairoch A., Natale D.A, Barker W.C., Boeckmann B., Ferro S., Gasteiger E., Huang H., Lopez R., Magrane M., Martin M.J., Mazumder R., O'Donovan C., Redaschi N. and Suzek B. (2006). The Universal Protein Resource (UniProt): An expanding universe of protein information. Nucleic Acids Research 34: D187–D191.
+
+* [Magrane M., and Apweiler R. (2002). Organisation and standardisation of information in Swiss-Prot and TrEMBL. Data Science Journal 1(1): 13–18.208](http://datascience.codata.org/articles/10.2481/dsj.1.13/galley/168/download/)
+
+* [Benson Dennis A., Karsch-Mizrachi Ilene, Lipman David J., Ostell James, and Wheeler David L.. GenBank. Nucleic Acids Res. 2008 January; 36(Database issue): D25–D30.](http://dx.doi.org/10.1093/nar/gkm929)
+
+* Larkin M.A., Blackshields G., Brown N.P., Chenna R., McGettigan P.A., McWilliam H., Valentin F., Wallace I.M., Wilm A., Lopez R., Thompson J.D., Gibson T.J., Higgins D.G.. Clustal W and Clustal X version 2.0. Bioinformatics. 2007 Nov 1;23(21):2947-8. Epub 2007 Sep 10.
+
+* [Wikipedia contributors. Restriction enzyme. Wikipedia, The Free Encyclopedia. February 13, 2009, 16:44 UTC.](http://en.wikipedia.org/wiki/Restriction_enzyme.)
+
+* [EFetch for Sequence and other molecular biology databases.](https://www.ncbi.nlm.nih.gov/books/NBK25499/#chapter4.EFetch)
+
+* [Cock P. Clever tricks with NCBI Entrez EInfo (& Biopython).](https://news.open-bio.org/2009/06/21/ncbi-einfo-biopython/).
+
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Qué es un alfabeto en Biopython? Nombrar al menos cuatro de ellos.
+X>
+X> 2- Describir los objetos Seq y SeqRecord.
+X>
+X> 3- ¿Qué ventaja provee un objeto Seq sobre una cadena?
+X>
+X> 4- El objeto Seq provee algunas operaciones de cadenas. ¿Por qué?
+X>
+X> 5- ¿Qué es un objeto MutableSeq?
+X>
+X> 6- ¿Cuál es la relación entre los módulos Align y ClustalW?
+X>
+X> 7- Nombrar los métodos del módulo SeqIO.
+X>
+X> 8- ¿Por qué hay una coma cerca del final de la línea 7 en el código 9.3?
+X>
+X> 9- Nombrar cinco funciones encontradas en SeqUtils.
+X>
+X> 10- ¿Qué tipo de archivos de secuencia puede ser leído con el módulo **Sequencing**?
+X>
+X> 11- ¿Qué módulo usarías para traer información desde el web server del NCBI?
+X>
+X> 12- Hacer un programa para contar todos los átomos ordenados en un archivo PDB. El archivo PDB debe ser pasado al programa desde la línea de comando en la forma: `program.py` `file.pdb`.
