@@ -1,0 +1,88 @@
+{:: encoding="UTF-8" /}
+
+# Filtrando campos específicos de un archivo de GenBank
+
+En GenBank hay genomas completos de organismos. El Centro Nacional de Información Biotecnológica (NCBI) de la Biblioteca Nacional de Medicina (NLM) de los Institutos Nacionales de Salud (NIH) es el responsable de producir, distribuir y mantener la base de secuencias GenBank. GenBank también es el nombre del formato en que son guardados los archivos (formato de archivo plano de GenBank). Biopython tiene soporte de lectura para esta clase de archivos (con el módulo **Bio.SeqIO**).
+
+## EXTRAYENDO SECUENCIAS DE PROTEÍNAS SELECCIONADAS
+
+Un investigador quiere extraer las secuencias proteicas de cada NADH encontrado en la mitocondria de *Nicotiana tabacum*.
+
+### Código fuente comentado
+
+**Listado 19.1:** `genbank1.py`: Extrayendo secuencias de un archivo de GenBank.
+
+```
+from Bio import SeqIO, SeqRecord, Seq
+from Bio.Alphabet import IUPAC
+
+GB_FILE = '../../samples/NC_006581.gb'
+OUT_FILE = 'nadh.fasta'
+with open(GB_FILE) as gb_fh:
+  record = SeqIO.read(gb_fh, 'genbank')
+seqs_for_fasta = []
+for feature in record.features:
+  # Each Genbank record may have several features, the program
+  # will walk over all of them.
+  qualifier = feature.qualifiers
+  # Each feature has several parameters
+  # Pick selected parameters.
+  if 'NADH' in qualifier.get('product',[''])[0] and \
+  'product' in qualifier and 'translation' in qualifier:
+    id_ = qualifier['db_xref'][0][3:]
+    desc = qualifier['product'][0]
+    # nadh_sq is a NADH protein sequence
+    nadh_sq = Seq.Seq(qualifier['translation'][0],
+                      IUPAC.protein)
+    # 'srec' is a SeqRecord object from nadh_sq sequence.
+    srec = SeqRecord.SeqRecord(nadh_sq, id=id_,
+                      description=desc)
+    # Add this SeqRecord object into seqsforfasta list.
+    seqs_for_fasta.append(srec)
+with open(OUT_FILE, 'w') as outf:
+  # Write all the sequences as a FASTA file.
+  SeqIO.write(seqs_for_fasta, outf, 'fasta')
+```
+
+## EXTRAYENDO REGIONES UPSTREAM DE PROTEÍNAS SELECCIONADAS
+
+Los elementos regulatorios se encuentran normalmente al principio de los genes. Estos incluyen señales de poliadenilación, caja TAT, mejoradores y otros.
+Para este programa tenemos un archivo de GenBank y una lista de genes (cox2, atp6, atp9, cob) cuyas secuencias queremos extraer, junto con 1000 nucleotidos de la región upstream.
+
+### Código fuente comentado
+
+**Listado 19.2:** `genbank2.py`: Extraer regiones upstream.
+
+```
+from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
+
+GB_FILE = '../../samples/NC_006581.gb'
+OUT_FILE = 'tg.fasta'
+with open(GB_FILE) as gb_fh:
+  record = SeqIO.read(gb_fh, 'genbank')
+seqs_for_fasta = []
+tg = (['cox2'],['atp6'],['atp9'],['cob'])
+for feature in record.features:
+  if feature.qualifiers.get('gene') in tg:
+    if feature.type=='gene':
+      # Get the name of the gene
+      genename = feature.qualifiers.get('gene')
+      # Get the start position
+      startpos = feature.location.start.position
+      # Get the required slice
+      newfrag = record.seq[startpos-1000: startpos]
+      # Build a SeqRecord object
+      seq = genename[0] + ' 1000bp upstream'
+      newrec = SeqRecord(newfrag, seq, '','')
+      seqs_for_fasta.append(newrec)
+with open(OUT_FILE,'w') as outf:
+  # Write all the sequences as a FASTA file.
+  SeqIO.write(seqs_for_fasta, outf, 'fasta')
+```
+
+## RECURSOS ADICIONALES
+
+* [Benson D.A., Karsch-Mizrachi I., Lipman D.J., Ostell J., Wheeler D.L. GenBank.  Nucleic Acids Res. 36(Database issue), D25--30 (2008).](http://www.ncbi.nlm.nih.gov/pubmed/18073190)
+
+* [GenBank Flat File Format. Sample record with detailed specifications.](http://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html)
