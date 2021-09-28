@@ -1,0 +1,96 @@
+{frontmatter}
+
+# Prefacio a la primera edición en Español
+
+La primera edición de Python para bioinformática fue escrita en 2008 y publicada en 2009. Incluso luego de 8 años, las lecciones de ese libro siguen teniendo valor. Esto es un logro en un campo que evoluciona tan rápidamente. Pese a su utilidad, el libro evidencia su edad y se beneficiaría de una segunda edición.
+
+La versión predominante de Python es la 3.6, aunque la 2.7 aún se usa en producción. Como hay mucha incompatibilidad entre estas versiones, se hizo mucho esfuerzo para que todo el código de este libro sea compatible con Python 3.
+
+No solo cambió el software en estos 8 años, pero tanto la actitud de las empresas como el soporte del software libre en general y Python en particular han cambiado drásticamente. Hay nuevos paradigmas que no pueden ser ignorados como el desarrollo colaborativo y cloud computing.
+
+El desarrollo web es otra area de cambió completamente. Aunque este no es un libro sobre desarrollo web, el capítulo "Aplicaciones web" ahora refleja el uso actual de los procesos que corren permanentemente y los frameworks en lugar de CGI/WSGI y aplicaciones basadas en middleware. En el libro anterior los frameworks estaban nombrados como una nota menor, pero ahora el capítulo entero está basado en un framework (**Bottle**) y el método anterior quedó como una nota al pié histórica.
+
+Con respecto a las bases de datos, las del tipo NoSQL se popularizaron, desde ser un item en una lista a tener su propia sección (MongoDB), y una de las recetas fue cambiada para usar esta base NoSQL.
+
+Las librerias gráficas han han mejorado desde 2009, y hay una gran cantidad de librerias gráficas de gran calidad disponibles para Python.
+
+Otro cambio que se ve reflejado en el libro es el uso de Anacoda y Jupyter Notebooks (con todos los códigos del libro en una [notebook en la nube provista por Microsoft Azure.](https://notebooks.azure.com/library/py3.us)
+
+Con respecto al código fuente, hay un [repositorio de GitHub](https://github.com/ToyokoLabs/Py4Bio) donde pódes bajar todo el código y los archivos de ejemplo usados en el libro. También el texto del libro está disponible, por lo que si queres hacer una correción al libro, o agregar algún contenido relevante, podés enviar un *pull request*. Si no saber como hacerlo, podes abrir un *issue* en GitHub comentando el problema para que alguien lo solucione.
+
+Hay correcciones en todos los capítulos. A veces son por errores reales pero en la mayoría de los casos es por la actualización a Python 3 y por estar al día con las buenas prácticas. Con respecto a nuevas correcciones, como esta versión es open source, quienes encuentren errores podrán reportarlo en el sitio de GitHub mencionado arriba.
+
+Ademas de la evolución del software y cambios de paradigmas, también gané experiencia y cambié mi visión sobre temas pedagogicos. Durante estos años trabajé en un proyecto de secuenciamiento genómico en un consorcio internacional y como desarrollador de software en una empresa que cotiza en bolsa (Globant). En los últimos 5 años trabajé para clientes importantes como Salesforce, National Geographic y PLOS (Public Library of Science).
+
+Otro diferencia entre la versión en original y la versión en español es que esta versión tiene una licencia Creative Commons BY-NC-SA 4.0, esto significa que el libro puede distribuirse gratuitamente mietras se haga sin fines comerciales.
+
+Con respecto al logo de Biopython que está en la tapa, aqui está la licencia de uso:
+
+Biopython is currently released under the "Biopython License Agreement"
+(given in full below). Unless stated otherwise in individual file headers,
+all Biopython's files are under the "Biopython License Agreement".
+
+Some files are explicitly dual licensed under your choice of the
+"Biopython License Agreement" or the "BSD 3-Clause License" (both given
+in full below). This is with the intention of later offering all of
+Biopython under this dual licensing approach.
+
+
+------------------------------------------------------------------------------
+
+
+Biopython License Agreement
+---------------------------
+
+Permission to use, copy, modify, and distribute this software and its
+documentation with or without modifications and for any purpose and
+without fee is hereby granted, provided that any copyright notices
+appear in all copies and that both those copyright notices and this
+permission notice appear in supporting documentation, and that the
+names of the contributors or copyright holders not be used in
+advertising or publicity pertaining to distribution of the software
+without specific prior permission.
+
+THE CONTRIBUTORS AND COPYRIGHT HOLDERS OF THIS SOFTWARE DISCLAIM ALL
+WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL THE
+CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT
+OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
+OR PERFORMANCE OF THIS SOFTWARE.
+
+
+------------------------------------------------------------------------------
+
+
+BSD 3-Clause License
+--------------------
+
+Copyright (c) 1999-2018, The Biopython Contributors
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
