@@ -1,0 +1,626 @@
+{:: encoding="UTF-8" /}
+
+# Programación: Control de flujo
+
+Para poder hacer algo útil los programas deben tener algún mecanismo para administrar cómo y cuándo se ejecutan las instrucciones. De la misma manera que los semáforos controlan el flujo vehicular en una calle, las estructuras de control de flujo indican que parte del código se ejecuta y en qué momento.
+Python tiene solo tres estructuras de control de flujo. Hay un condicional y dos estructuras de iteración. Una estructura condicional (**if**) determina, luego de una expresión de evaluación, si un bloque de código se ejecuta o no. Las estructuras de iteración (**for** y **while**, llamados genéricamente bucles o ciclos) permiten múltiples ejecuciones de la misma porción de código. ¿Cuántas veces se ejecuta el código asociado a una estructura de iteración? Un ciclo **for** ejecuta un bloque de código muchas veces, ya que los elementos están disponibles en un elemento iterable especificado, mientras que el código de un ciclo **while** se ejecuta hasta que una condición dada se vuelve falsa.[^nota4-1]
+
+[^nota4-1]: Esto es equivalente a decir que la condición es ejecutada mientras (**while**) la condición sea verdadera.
+
+## IF-ELSE (o condicional)
+
+La estructura de control más clásica es el condicional, que actúa sobre el resultado de una evaluación. Si conoces algún otro lenguaje informático es probable que estés familiarizado con **if-else**.
+**if** evalúa una expresión. Si la expresión es verdadera, el bloque de código justo después de la expresión **if** se ejecuta. De lo contrario, se ejecuta el bloque del **else**.
+
+Esquema básico de una condición **if-else**,
+
+{line-numbers=off}
+```
+if EXPRESSION:
+  BLOCK1
+else:
+  BLOCK2
+```
+
+La **EXPRESSION** debe ser una expresión que devuelva **True** o **False**. Como todos los operadores de comparación: *x < y* (menor que), *x > y* (mayor que), *x == y* (igual a), *x! = y* (no igual a), *x <= y* (menor o igual a), *x> = y* (mayor o igual a).
+
+Veamos un ejemplo:
+
+**Listado 4.1:** `ifelse1.py`: Ejemplo básico de if-else.
+
+```
+height = float(input('¿Cuál es tu altura? (en metros): '))
+if height > 1.40:
+  print('Podes pasar')
+else:
+  print('Este juego no es para vos')
+```
+
+Salida del programa:
+
+{line-numbers=off,lang=text}
+```
+¿Cuál es tu altura? (en metros): 1.80
+Podes pasar
+```
+
+T> ### Sobre el código en este libro.
+T> No hay que escribir el código del Listado 4.1 (o de cualquier otro de este libro). Está disponible para descargar desde un repositorio en GitHub <https://github.com/ToyokoLabs/Py4Bio>. También se puede usar online en las Notebooks de [Google Colab](https://colab.research.google.com/) o de [MyBinder.org](https://mybinder.org/), siguiendo los enlaces en el archivo *README.md* de ese repositorio. Esta dirección también están disponibles en el sitio web del libro <https://www.py3.us/es>.
+T> Intenta ejecutar el código (localmente o en línea) en lugar de leerlo de este libro.
+
+Otro ejemplo,
+
+**Listado 4.2:** `ifelse2.py`: if-else en acción.
+
+```
+three_letter_code = {'A':'Ala','N':'Asn','D':'Asp','C':'Cys'}
+aa = input('Ingrese una letra: ')
+if aa in three_letter_code:
+  print('El código de 3 letras para {} es {}'.format(aa,
+         three_letter_code[aa]))
+else:
+  print("Lo siento, no lo tengo en mi diccionario")
+```
+
+Salida del programa,
+
+{line-numbers=off}
+```
+Ingrese una letra: A
+El código de 3 letras para A es Ala
+```
+
+Para evaluar más de una condición usamos **elif**:
+
+{line-numbers=off}
+```
+if EXPRESSION1:
+    BLOCK1
+elif EXPRESSION2:
+    BLOCK2
+elif EXPRESSION3:
+    BLOCK3
+else:
+    BLOCK4
+```
+
+Podemos usar tantos **elif** como condiciones que queramos evaluar. Hay que tener en cuenta que si una de las condiciones es evaluada como verdadera las condiciones que la continúan no serán evaluadas.
+El siguiente programa evalúa más de una condición usando **elif**:
+
+**Listado 4.3:** `elif3.py`: Usando elif.
+
+```
+dna = input('Ingrese la secuencia del "primer": ')
+seqsize = len(dna)
+if seqsize < 10:
+  print('El primer debe tener al menos 10 nucleótidos')
+elif seqsize < 25:
+  print('Este tamaño está bien')
+else:
+  print('El "primer" es demasiado largo')
+```
+
+Este programa (`elif3.py`) solicita una cadena con una secuencia de ADN ingresada con el teclado en el tiempo de ejecución. Esta secuencia se llama `dna`. En la línea 2 se calcula su tamaño, ese resultado está vinculado al nombre `seqsize`. En la línea 3 hay una evaluación. Si el `seqsize` es inferior a diez, se imprime el mensaje "The primer must have at least ten nucleotides" (El primer debe tener al menos diez nucleótidos). Los flujos del programa van al final de esta sentencia del **if**, sin evaluar cualquier otra condición en esta sentencia **if**. Pero si no es verdadero (por ejemplo, si la longitud de la secuencia era 15) ejecutaría la siguiente condición y su bloque asociado en caso de que esa condición se evalúe como verdadera. Si la longitud de la secuencia fuera de un valor mayor que 10, el programa saltará la línea 4 (el bloque de código asociado con la primera condición) y evaluaría la expresión en la línea 5. Si se cumple esta condición, se imprimirá "Este tamaño está bien". Si no hay una expresión que se evalúe como verdadera, se ejecuta el bloque **else**.
+
+T> ### ¿Qué es verdad?
+T> Recordemos que la declaración después de la condición *if* se ejecuta solo cuando la expresión se evalúa como *True* (Verdadera). Así que las preguntas "¿Qué es verdad?" (Y "¿Qué es falso?") Son relevantes.
+T>
+T> ¿Qué es *True*?:
+T>
+T> * Estructuras de datos no vacíos (listas, diccionarios, tuplas, cadenas, conjuntos). Las estructuras de datos vacías cuentan como *False* (falso).
+T> * 0 y *None* cuentan como *False* (mientras que otros valores cuentan como *True*).
+T> * La palabra clave *True* es Verdadero y *False* es Falso.
+T>
+T> Si tienen alguna duda sobre si una expresión es *True* o *False*, usen **bool()**:
+T>
+T> {line-numbers=off}
+T> ```
+T> >>> bool(1=='1')
+T> False
+T> ```
+
+Los condicionales pueden ser anidados:
+
+**Listado 4.4:** `elif4.py`: if anidado.
+
+```
+dna = input('Ingrese la secuencia del "primer": ')
+seqsize = len(dna)
+if seqsize < 10:
+  print('El "primer" debe tener al menos 10 nucleótidos')
+  if seqsize == 0:
+    print('¡Debe ingresar algo!')
+elif seqsize < 25:
+  print('Este tamaño está bien')
+else:
+  print('El "primer" es demasiado largo')
+```
+
+En la línea 5 hay una condición dentro de otra.
+Veamos que el signo de doble igual ("= =") en lugar de un igual simple. El doble igual es usado para comparar valores mientras el signo igual es usado para asignar valores:
+
+{line-numbers=off}
+```
+>>> answer=42
+>>> answer
+42
+>>> answer==3
+False
+>>> answer==42
+True
+```
+
+El **if** anidado introducido en el Listado 4.4 puede ser evitado:
+
+**Listado 4.5:** `elif5.py`: if anidado.
+
+```
+dna = input('Ingrese la secuencia del "primer": ')
+seqsize = len(dna)
+if seqsize == 0:
+  print('¡Debe ingresar algo!')
+elif 0 < seqsize < 10:
+  print('El "primer" debe tener al menos 10 nucleótidos')
+elif seqsize < 25:
+  print('Este tamaño está bien')
+else:
+  print('El "primer" es demasiado largo')
+```
+
+Veamos como la expresión es evaluada en la línea 5. Esto nos lleva a pensar en insertar sentencias múltiples en un **if** como en la Listado 4.6:
+
+**Listado 4.6:** `elif6.py`: Parte de sentencias múltiples.
+
+```
+x = 'N/A'
+if x != 'N/A' and 5 < float(x) < 20:
+  print('OK')
+else:
+  print('Not OK')
+```
+
+Esta expresión es evaluada de izquierda a derecha. Si una parte de la expresión es falsa, las partes que siguen no serán evaluadas. Dada x='N/A', el programa va a imprimir 'Not OK' (porque la primera condición es falsa). Veamos qué sucede cuando la misma expresión es escrita en un orden reverso en el siguiente listado.
+
+**Listado 4.7:** `elif7.py`: Parte de sentencias múltiples invertidas.
+
+```
+x = 'N/A'
+if 5 < float(x) < 20 and x != 'N/A':
+  print('OK')
+else:
+  print('Not OK')
+```
+
+retorna:
+
+{line-numbers=off}
+```
+Traceback (most recent call last):
+  File "multiplepart2.py", line 2, in <module>
+    if 5 < float(x) < 20 and x != 'N/A':
+ValueError: could not convert string to float: 'N/A'
+```
+
+El **ValueError** es retornado porque la cadena 'N/A' no puede ser convertida a flotante. En el listado 4.7, *x* es también evaluado como 'N/A', pero no hay **ValueError** porque esta parte de la expresión es salteada antes de la evaluación.
+
+### Sentencia Pass
+
+A veces no hay necesidad de una opción alternativa en una sentencia **if**. En este caso sólo podemos evitar usar **else**:
+
+{line-numbers=off}
+```
+if CONDITION:
+    BLOCK
+# Resto del programa...
+```
+
+Para lograr que el mismo código sea más legible, Python proporciona la sentencia **pass**. Esta sentencia es como un marcador de posición que no tiene otro propósito que el de poner algo cuando una sentencia es requerida sintácticamente. El siguiente código produce la misma salida que el código anterior:
+
+{line-numbers=off}
+```
+if CONDITION:
+    BLOCK
+else:
+    pass
+# Resto del programa...
+```
+
+T> ### Expresiones condicionales.
+T> A veces puede resultar útil: la disponibilidad de una sintaxis especial para escribir una **condición if** en una línea
+T>
+T> ```
+T> EXPRESSION1 if CONDITION else EXPRESSION2
+T> ```
+T>
+T> Esta línea tomará el valor de la *expression1*, si la *condition* es verdadera; de lo contrario, tomará el valor de la *expression2*.
+T> Esta sintaxis nos permite escribir:
+T>
+T> ```
+T> total = 5
+T> items = 2
+T> avg = total/items if items != 0 else 'N/A'
+T> print('Promedio = {}'.format(avg))
+T> ```
+T>
+T> en lugar de,
+T>
+T> ```
+T> total = 5
+T> items = 2
+T> if items != 0:
+T>   avg = total/items
+T> else:
+T>   avg = 'N/A'
+T> print('Promedio = {}'.format(avg))
+T> ```
+
+## BUCLE FOR
+
+Esta estructura de control permite que el código se ejecute repetidamente mientras se mantiene una variable con el valor de un objeto iterable.[^nota4-2] La forma genérica de un bucle **for** es,
+
+[^nota4-2]: Los objetos iterables más comunes son: listas, tuplas cadenas y diccionarios. Los archivos y objetos customizados pueden ser iterables.
+
+{line-numbers=off}
+```
+for VAR in ITERABLE:
+    BLOCK
+```
+
+Por ejemplo:
+
+{line-numbers=off}
+```
+for each_item in some_list:
+  # Hacer algo con each_item
+  print(each_item)
+```
+
+Los dos puntos al final de la primera línea son obligatorios. Como la sangría del bloque de código, los dos puntos son parte del bucle **for**. Esta estructura dá como resultado la repetición de *BLOCK* tantas veces como los elementos están en el objeto iterable. En cada iteración, *VAR* toma el valor del elemento actual en *ITERABLE*. En el siguiente código, **for** recorre una lista (bases) con cuatro elementos. En cada iteración, *x* toma el valor de uno de los elementos en la lista.
+
+{line-numbers=off}
+```
+>>> bases = ['C', 'T', 'G', 'A']
+>>> for x in bases:
+...     print(x)
+...
+C
+T
+G
+A
+```
+
+Para conocer la posición sobre el iterable que estamos iterando usamos el método `enumerate` que retornará el índice del iterable junto al valor.
+
+{line-numbers=off}
+```
+>>> bases = ['C', 'T', 'G', 'A']
+>>> for n, x in enumerate(bases):
+...     print(n, x)
+...
+0 C
+1 T
+2 G
+3 A
+```
+
+En otros lenguajes, el bucle **for** se utiliza para permitir que un bloque de código se ejecute varias veces mientras se cambia una variable del contador. Este comportamiento se puede reproducir en Python iterando sobre una lista de números:
+
+{line-numbers=off}
+```
+>>> for n in [0, 1, 2, 3, 4]:
+...     print(n)
+...
+0
+1
+2
+3
+4
+```
+
+
+Otra alternativa para repetir una lista de números es generarlos con la función[^nota4-3] **range**(*n*). Esta función devuelve un objeto iterable. Cada vez que lo llama, devuelve un número desde 0 hasta el primer parámetro ingresado en la función menos uno (es decir, n-1).
+
+[^nota4-3]: Todas las funciones generadas están explicadas en <https://docs.python.org/3.6/library/functions. html>.
+
+{line-numbers=off}
+```
+>>> for x in range(4):
+...     print(x)
+...
+0
+1
+2
+3
+```
+
+El siguiente código calcula el peso molecular de una proteína basado en sus aminoácidos individuales.[^nota4-4] Dado que el aminoácido se almacena en una cadena, el programa recorrerá cada letra usando **for**.
+
+[^nota4-4]: Los aminoácidos son los bloques de construcción de las proteínas. Cada aminoácido (representado por una sola letra) tiene un peso individual. Dado que cada enlace de aminoácidos libera una molécula de agua (con un peso de 18 ui), el peso de todas las moléculas de agua liberadas se resta del total.
+
+**Listado 4.8:** `protwfor.py`, usando **for** para calcular el peso de una proteína.
+
+```
+prot_seq = input('Ingrese la secuencia de la proteína: ')
+prot_weight = {'A':89, 'V':117, 'L':131, 'I':131, 'P':115,
+               'F':165, 'W':204, 'M':149, 'G':75, 'S':105,
+               'C':121, 'T':119, 'Y':181, 'N':132, 'Q':146,
+               'D':133, 'E':147, 'K':146, 'R':174, 'H':155}
+total_weight = 0
+for aa in prot_seq:
+  total_weight = total_weight + prot_weight.get(aa.upper(), 0)
+total_weight = total_weight - (18 * (len(prot_seq) - 1))
+print('El peso neto es : {}'.format(total_weight))
+```
+
+**Explicación del código:** en la primera línea se solicita al usuario que ingrese una secuencia de proteínas (por ejemplo, `MKTFVLHIFIFALVAF`). La cadena que devuelve el **input** se llama `protseq`. De la línea 2 a la 5 se inicializa un diccionario (*prot_weight*) con los pesos de los aminoácidos. Se utiliza un bucle **for** en la línea 7 para iterar sobre cada elemento en *prot_seq*. En cada iteración, `aa` toma el valor de un elemento de protseq. Este valor se utiliza para buscar en el diccionario *prot_weight*. Después del ciclo, el *total_weight* terminará con la suma del peso de todos los aminoácidos. En la línea 9 hay una corrección debido al hecho de que cada enlace implica la pérdida de una molécula de agua (con un peso molecular de 18), entonces se resta al peso total el valor de multiplicar 18 por la cantidad de amino acidos en *prot_seq*. La última línea imprime el peso neto.
+
+## BUCLE WHILE
+
+**While** es un bucle (o ciclo) muy similar al **for**, ya que también ejecuta una parte del código de forma repetida. En este caso, no hay ninguna iteración sobre un objeto, por lo que este bucle no termina cuando se recorre el objeto de la iteración sino cuando una condición dada deja de ser verdadera.
+Módelo de un bucle **while**:
+
+{line-numbers=off}
+```
+while EXPRESSION:
+    BLOCK
+```
+
+Es muy importante tener en cuenta que debe haber una instrucción dentro del bloque para que la condición **while** sea falsa. De lo contrario, podríamos entrar en un bucle infinito (que no se termina de ejecutar nunca).
+
+{line-numbers=off}
+```
+>>> a = 10
+>>> while a < 40:
+...     print(a)
+...     a += 10
+...
+10
+20
+30
+```
+
+Una forma de salir de un bucle **while** es usando un **break**. En este caso, el bucle se rompe sin evaluar la condición del bucle. El **break** se usa comúnmente junto con una condición que siempre es verdadera:
+
+{line-numbers=off}
+```
+>>> a = 10
+>>> while True:
+...   if a < 40:
+...     print(a)
+...   else:
+...     break
+...   a += 10
+...
+10
+20
+30
+```
+
+Esto se hace para asegurar que el bloque dentro del bucle se ejecute al menos una vez. En otros lenguajes hay un tipo de bucle separado para estos casos (do **while**), pero no está presente en Python.[^nota4-5]
+
+[^nota4-5]: Una propuesta para agregar esto en Python fue rechazada en 2013.
+
+## BREAK: ROMPIENDO EL BUCLE
+
+**break** se utiliza para escapar de un bucle. Acabamos de ver un ejemplo de uso de **break** en un **while**, pero también se puede utilizar en un **for**.
+Al principio no es fácil darse cuenta cuando tiene sentido usar una instrucción **break**.
+Tomemos por ejemplo, el listado 4.9:
+
+**Listado 4.9:** `seachinlist.py`, buscando un valor en una lista de tuplas
+
+```
+color_code = [('red', 1), ('green', 2), ('blue', 3), ('black', 4)]
+name = 'blue'
+for color_pair in color_code:
+  if name == color_pair[0]:
+    code = color_pair[1]
+print(code)
+```
+
+En este código hay un bucle **for** para iterar sobre la lista *color_code*. Para cada elemento de esa lista, es decir, para cada tupla, verifica el primer elemento. Cuando coincide con nuestra consulta (`name`), el programa almacena el código asociado en `code`.
+La salida de este programa es "3".
+El problema con este programa es que se recorre toda la secuencia, incluso si no es necesario. En este caso la condición en la línea 4 se evalúa una vez por cada elemento en *color_code* cuando es claro que una vez que la coincidencia es positiva, no es necesario continuar con las pruebas. Podemos ahorrar algo de tiempo y poder de procesamiento al romper el bucle justo después de la coincidencia positiva:
+
+**Listado 4.10:** `seachinlist2.py`, buscando un valor en una lista de tuplas
+
+```
+color_code = [('red',1), ('green',2), ('blue',3), ('black',4)]
+name = 'blue'
+for color_pair in color_code:
+  if name == color_pair[0]:
+    code = color_pair[1]
+      break
+print(code)
+```
+
+Este código es idéntico al del Listado 4.9 con la excepción de la sentencia break en la línea 6. La salida es la misma que antes pero esta vez no pierde los ciclos de CPU iterando sobre una secuencia una vez que se encuentra el elemento. El tiempo ahorrado en este ejemplo es insignificante, pero si el programa tiene que hacerlo varias veces en una gran lista o archivo (también puede iterar en un archivo), la interrupción puede acelerarlo de manera significativa.
+El uso de **break** se puede evitar pero el código resultante no es legible como en el Listado 4.10:
+
+**Listado 4.11:** `seachinlist3.py`, buscando un valor en una lista de tuplas
+
+```
+color_code = [('red',1), ('green',2), ('blue',3), ('black',4)]
+name = 'blue'
+i = 0
+while name != color_code[i][0]:
+  i += 1
+code = color_code[i][1]
+print(code)
+```
+
+En un caso como este, con una lista que puede entrar fácilmente en memoria, es mejor crear un diccionario y consultarlo.
+
+**Listado 4.12:** `seachindict.py`, buscando un valor en una lista de tuplas usando un diccionario
+
+```
+color_code = [('red',1), ('green',2), ('blue',3), ('black',4)]
+name = 'blue'
+color_code_d = dict(color_code)
+print(color_code_d[name])
+```
+
+## Integrando las instrucciones de control de flujo
+
+Ahora combinaremos **if**, **for**, **while** y el tipo de datos que vimos hasta este momento. Aquí presento algunos pequeños programas hechos con las herramientas que acabamos de aprender:
+
+### Estimar la carga neta de una proteína
+
+A un pH fijo es posible calcular la carga neta de una proteína sumando la carga de sus aminoácidos individuales. Esto es una aproximación ya que no se tiene en cuenta si los aminoácidos están expuestos u ocultos en la estructura de la proteína. Este programa tampoco tiene en cuenta el hecho de que la cisteína agrega carga solo cuando no es parte de un puente disulfuro. Dado que es un valor aproximado, los valores obtenidos deben considerarse como una estimación. Aquí está la primera versión de `protnetcharge.py`:
+
+**Listado 4.13:** `protnetcharge.py`, carga neta de una proteína
+
+```
+prot_seq = input('Secuencia de la proteína: ')
+charge = -0.002
+aa_charge = {'C':-.045, 'D':-.999, 'E':-.998,
+            'H':.091, 'K':1, 'R':1, 'Y':-.001}
+for aa in prot_seq.upper():
+  if aa in aa_charge:
+    charge += aa_charge[aa]
+print(charge)
+```
+
+La sentencia **if** en la línea 6 puede ser evitada con **get()**.
+
+**Listado 4.14:** protnetcharge2.py. Carge net usando **get**.
+
+```
+prot_seq = input('Secuencia de la proteína: ')
+charge = -0.002
+aa_charge = {'C':-.045,'D':-.999,'E':-.998,'H':.091,
+             'K':1,'R':1,'Y':-.001}
+for aa in prot_seq.upper():
+  charge += aa_charge.get(aa, 0)
+print(charge)
+```
+
+### Buscar zonas de baja degeneración
+
+Para encontrar primers de PCR es mejor usar una región de ADN con menos degeneración (o más conservación). Lo cual nos da una mejor oportunidad de encontrar la secuencia target. El objetivo de este programa es buscar esta región. Dado que un primer de PCR tiene aproximadamente 16 nucleótidos, para dar espacio al diseño del primer, el espacio de búsqueda debe tener al menos 45 nucleótidos de longitud. Debemos encontrar una región de 15 aminoácidos en la secuencia de entrada. 15 aminoácidos proporcionan una región de búsqueda de 45 nucleótidos (3 nucleótidos por aminoácido).
+Cada aminoácido está codificado por un número determinado de codones. Por ejemplo, la valina (V) puede ser codificada por cuatro codones diferentes (GTT, GTA, GTC, GTG), mientras que el triptófano (W) está codificado solo por un codón (TGG). Por lo tanto, una región rica en valinas tendrá más variabilidad que una región con mucho triptófano.
+
+Un programa que encuentra una región de baja degeneración:
+
+**Primera versión**
+
+**Listado 4.15:** `lowdeg.py`: Buscar una zona de baja degeneración.
+
+```
+prot_seq = input('Protein sequence: ').upper()
+prot_deg = {'A':4, 'C':2, 'D':2, 'E':2, 'F':2, 'G':4,
+              'H':2, 'I':3, 'K':2, 'L':6, 'M':1, 'N':2,
+              'P':4, 'Q':2, 'R':6, 'S':6, 'T':4, 'V':4,
+              'W':1, 'Y':2}
+segs_values = []
+for aa in range(len(prot_seq)):
+  segment = prot_seq[aa:aa + 15]
+  degen = 0
+  if len(segment)==15:
+    for x in segment:
+      degen += prot_deg.get(x, 3.05)
+    segs_values.append(degen)
+min_value = min(segs_values)
+minpos = segs_values.index(min_value)
+print(prot_seq[minpos:minpos + 15])
+```
+
+**Explicación del código**: Toma una cadena (*prot_seq*) entrada por el usuario. El programa usa un diccionario (*prot_deg*) para almacenar el número de codones que corresponden a cada aminoácido. De la línea 7 a 9 nosotros generamos un deslizamiento de ventanas de una longitud de 15. Por cada segmento de 15 aminoácidos, se evalúa el número de codones y luego seleccionamos el segmento con menos degeneración (línea 14). En la línea 10 hay un chequeo del tamaño de *segment*, ya que cuando la secuencia de *prot_seq* se desliza por el extremo derecho, la cadena *segment* tiene menos de 15 aminoácidos.
+
+**Versión con While**
+
+**Listado 4.16:** `lowdeg2.py`, buscando una zona de baja degeneración, versión con **while**
+
+```
+prot_seq = input('Protein sequence: ').upper()
+prot_deg = {'A':4, 'C':2, 'D':2, 'E':2, 'F':2, 'G':4,
+             'H':2, 'I':3, 'K':2, 'L':6, 'M':1, 'N':2,
+             'P':4, 'Q':2, 'R':6, 'S':6, 'T':4, 'V':4,
+             'W':1, 'Y':2}
+segs_values = []
+segs_seqs = []
+segment = prot_seq[:15]
+a = 0
+while len(segment)==15:
+  degen = 0
+  for x in segment:
+    degen += prot_deg.get(x, 3.05)
+  segs_values.append(degen)
+  segs_seqs.append(segment)
+  a += 1
+  segment = prot_seq[a:a+15]
+print(segs_seqs[segs_values.index(min(segs_values))])
+```
+
+**Explicación del código**: Esta versión no usa un **for** para caminar sobre `prot_seq`; en cambio usa **while**. El código se ejecutará siempre que la ventana deslizante esté dentro de `prot_seq`.
+
+**Versión sin listas de subcadenas**
+
+**Listado 4.17:** `lowdeg3.py`, buscando una zona de baja degeneración, versión sin subcadenas
+
+```
+prot_seq = input('Protein sequence: ').upper()
+prot_deg = {'A':4, 'C':2, 'D':2, 'E':2, 'F':2, 'G':4,
+            'H':2, 'I':3, 'K':2, 'L':6, 'M':1, 'N':2,
+             'P':4, 'Q':2, 'R':6, 'S':6, 'T':4, 'V':4,
+            'W':1, 'Y':2}
+degen_tmp = max(prot_deg.values()) * 15
+for n in range(len(prot_seq) - 15):
+  degen = 0
+  for x in prot_seq[n:n + 15]:
+    degen += prot_deg.get(x, 3.05)
+  if degen <= degen_tmp:
+    degen_tmp = degen
+    seq = prot_seq[n:n + 15]
+print(seq)
+```
+
+**Explicación del código**: En este caso, cada valor de degeneración es comparada con el último (línea 10) si el valor actual es más bajo, se almacena. Tengamos en cuenta que la primera vez que se evalúa un valor de degeneración no hay ningún valor con el cual compararlo. Este problema se soluciona en la línea 6 donde se proporciona un valor teórico máximo.
+
+## RECURSOS ADICIONALES
+
+* [Python tutorial](https://docs.python.org/3.6/tutorial/controlflow.html): More control flow tools
+
+* [Python programming](http://en.wikibooks.org/wiki/Python_Programming/Flow_control): Flow control
+
+* [Python Basics](https://goo.gl/ss6uNh): Understanding The Flow Control Statements.
+
+* [Python in a Nutshell](http://www.devshed.com/c/a/Python/The-Python-Language), Second Edition. By Alex Martelli. Chapter 4.
+
+* [Python break, continue and pass Statements](http://www.tutorialspoint.com/python/python_loop_control.htm)
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Qué es una estructura de control?
+X>
+X> 2- ¿Cuántas estructuras de control tiene Python? Nombrelas.
+X>
+X> 3- ¿Cuándo deberíamos usar **for** y cuándo **while**?
+X>
+X> 4- Algunos lenguajes tienen una estructura de control **do while**. ¿Cómo podemos obtener una estructura similar en Python?
+X>
+X> 5- Explique cuándo se debería usar **pass** y cuando break.
+X>
+X> 6- In la línea 6 del Listing 4.16 la condición debajo del **while** puede ser cambiada de *len*(*ProtSeq*[*i* : *i* + 15]) == 15 por *i* < (*len*(*ProSeq*) - 7). ¿Por qué?
+X>
+X> 7-  Hacer un programa que genere todas las direcciones IP posibles, es decir, desde 0.0.0.0
+a 255.255.255.255.
+X>
+X> 8- Realizar un programa para resolver una ecuación lineal con dos variables. La ecuación debe tener esta forma:
+X>
+X> *a1.x* + *a2.y* = *a3*
+X> *b1.x* + *b2.y* = *b3*
+X>
+X> El programa debe solicitar *a1*, *a2*, *a3*, *b1*, *b2* y *b3* y devolver el valor de *x* e *y*.
+X>
+X> 9- Hacer un programa para verificar si un número dado es un palíndromo (es decir, permanece igual cuando se invierten sus dígitos, como 404).
+X>
+X> 10- Hacer un programa para convertir la temperatura de grados Fahrenheit a grados Celsius y escribir el resultado con un solo valor decimal. Usar esta fórmula para hacer la conversión:
+*Tc* = (5/9) ∗ (*Tf* −32)
+X>
+X> 11- Hacer un programa que convierta todo lo que escriba en Leetspeak, utilizando la siguiente equivalencia: 0 para O, 1 para I (o L), 2 para Z (o R), 3 para E, 4 para A, 5 para S, 6 para G (o B), 7 para T (o L), 8 para B y 9 para P (o G y Q). Tal que "¡Hola mundo!" se represente como "H3770 w02ld!"
+X>
+X> 12-  Dadas dos palabras, el programa debe determinar si riman o no. Para esta pregunta "rima" significa que las últimas tres letras son iguales, como ciudad y solidaridad.
+X>
+X> 13-  Dada una secuencia de proteínas en el código de una letra, calcule el porcentaje de metionina (M) y cisteína (C). Por ejemplo, para 'MFKFASAVILCLVAASSTQA' el resultado será del 10% (1 M y 1 C sobre 20 aminoácidos).
+X>
+X> 14- Crear un programa como el Listing 4.17 pero sin usar un valor máximo predefinido.
