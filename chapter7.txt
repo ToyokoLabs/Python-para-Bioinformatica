@@ -1,0 +1,397 @@
+{:: encoding="UTF-8" /}
+
+# Manejo de errores
+
+A> *Puedes hacerlo a prueba de errores, pero no puedes hacerlo a prueba de tontos.*  - Ley de Naeser
+
+
+## INTRODUCCIÓN AL MANEJO DE ERRORES
+
+Un programa rara vez funciona como se espera en el primer intento.
+Tradicionalmente, un desarrollador elegiría entre una de estas dos estrategias, cuando se enfrentan con errores de programación en el tiempo de ejecución:
+El problema se ignora o cada condición se verifica en caso de que ocurra un error y luego él o ella escribirá el código en consecuencia. La primera opción, que es muy popular, no es recomendable si queremos que nuestro programa sea utilizado por alguien más que nosotros. La segunda opción, también conocida como **LBYL** (por sus siglas en inglés, **L**ook **B**efore **Y**ou **L**eap), consume mucho tiempo y puede hacer que el código sea ilegible. Echemos un vistazo a un ejemplo de cada estrategia.
+
+El siguiente programa lee un archivo (`myfile.csv`) separado por tabs y busca un número que se encuentra en la primera columna de la primera línea. Este valor se multiplica por 0.2 y ese resultado se escribe en otro archivo (`otherfile.csv`).
+Esta versión no comprueba ningún tipo de error y se limita a su funcionalidad principal.
+
+**Listado 7.1:** `wotest.py`: Programa que no chequea errores.
+
+```
+with open('myfile.csv') as fh:
+  line = fh.readline()
+value = line.split('\t')[0]
+with open('other.txt',"w") as fw:
+  fw.write(str(int(value)*.2))
+```
+
+Este programa puede cumplir con su objetivo suponiendo que no hay eventos inesperados. ¿Qué significan los "eventos inesperados" en este contexto? La primera línea es propensa a un error. Por ejemplo, puede estar intentando abrir un archivo que no existe. En este caso, cuando el programa se ejecute se detendrá inmediatamente después de ejecutar la primera línea y el usuario enfrentará a un error:
+
+{line-numbers=off,lang=text}
+```
+Traceback (most recent call last):
+  File "wotest.py", line 1, in <module>
+    with open('myfile.csv') as fh:
+FileNotFoundError: [Errno 2] No such file or directory: 'myfile.csv'
+```
+
+Este es un problema debido a los pasos del programa y no es profesional mostrarle al usuario final un error de sistema.
+Este programa puede fallar en varios lugares. Puede no haber tabs en el archivo, puede haber letras en lugar de números y podemos no tener permiso en el directorio donde intentamos escribir el archivo de salida.
+Esto es lo que sucede cuando el archivo existe pero no hay tabs en su interior:
+
+{line-numbers=off,lang=text}
+```
+Traceback (most recent call last):
+  File "wotest.py", line 6, in <module>
+    fw.write(str(int(value)*.2))
+ValueError: invalid literal for int() with base 10: '12,dsa\n'
+```
+
+El resultado es un error similar al anterior. Esto causa que el programa se pare y el intérprete nos muestre otro mensaje de error. De esta misma manera podemos continuar con todos los bloques de código que son propensos a fallar.
+Veamos la estrategia de chequear cada condición que pueda generar un error con el fin de prevenir su ocurrencia (LBYL):
+
+**Listado 7.2:** `LBYL.py`: Manejador de errores versión LBYL
+
+```
+import os
+iname = input("Enter input filename: ")
+oname = input("Enter output filename: ")
+if os.path.exists(iname):
+  with open(iname) as fh:
+    line = fh.readline()
+    if "\t" in line:
+      value = line.split('\t')[0]
+    if os.access(oname, os.W_OK) == 0:
+      with open(oname, 'w') as fw:
+        if value.isdigit():
+          fw.write(str(int(value)*.2))
+        else:
+          print("Can't be converted to int")
+    else:
+      print("Output file is not writable")
+  else:
+    print("There is no TAB. Check the input file")
+else:
+  print("The file doesn't exist")
+```
+
+Este programa considera casi todos los posibles errores. Si el archivo que ingresa el usuario no existe el programa no tendrá una terminación anormal. En su lugar, mostrará un mensaje de error diseñado por el programador que le permitiría al usuario volver a ingresar el nombre del archivo de entrada.
+La desventaja de esta opción es que el código es difícil de leer, y mantener, porque la comprobación de errores se mezcla con su procesamiento y con el objetivo principal del programa. Por esta razón los nuevos lenguajes de programación han incluido un sistema específico para el control de condiciones excepcionales. Al contrario de LBYL esta estrategia se conoce como EAFP (del inglés, It's **e**asier to **a**sk forgiveness than **p**ermission, es más fácil pedir perdón que permiso). Con Python se usan las instrucciones **try**, **except**, **else** y **finally**.
+
+### Try y Except
+
+**try** delimita el código que queremos ejecutar, mientras que el **except** delimita el código que se ejecutará si hay un error en el código debajo del bloque **try**. Los errores detectados durante la ejecución se llaman excepciones. Veamos el esquema general:
+
+{line-numbers=off}
+```
+try:
+  code block 1
+  # ...codigo que puede fallar...
+except:
+  code block 2
+  # ...hacer algo con el error anterior...
+[else:
+  code block 3
+  # ...para hacer si no hay errores...
+finally:
+  code block 4
+  #...codigo de mantenimiento...]
+```
+
+Este código primero intentará ejecutar el código del bloque 1. Si el código se ejecuta sin problemas, el flujo de ejecución continúa a través del código del bloque 3 y finalmente a través del bloque 4. En caso de que el código del bloque 1 produzca un error (o genera una excepción según la jerga), el código del bloque 2 se ejecutará y luego el código del bloque 4. La idea detrás de este mecanismo es poner el bloque de código que creemos que puede producir un error (bloque 1), dentro del **try**. El código que se activa cuando hay una excepción se coloca en el bloque del **except**. Este código (bloque del código 2) trata con la excepción, o en otras palabras, maneja la excepción. Los mensajes de error son los que el usuario recibe cuando no se manejan las excepciones:
+
+{line-numbers=off,lang=text}
+```
+>>> 0/0
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ZeroDivisionError: division by zero
+```
+
+Una opción posible es agregar la sentencia **else**, que se ejecutará solo si el código dentro del **try** (bloque de código 1) se ejecuta correctamente. Tengamos en cuenta que el código dentro del **else** puede colocarse en el bloque del **try** ya que tendría el mismo efecto (se ejecutaría si no hubiera errores). El bloque dentro de **try** debe contener solo el código que puede provocar una excepción, mientras que tendríamos que dejar dentro del bloque del **else**, de lo contrario las instrucciones que deben ejecutarse cuando las instrucciones dentro del **try** se ejecutaron sin error. Veamos que el código dentro del **finally** siempre se ejecuta.
+Por ejemplo:
+
+{line-numbers=off}
+```
+try:
+  print(0/0)
+except:
+  print("Houston, we have a problem...")
+```
+
+El resultado es:
+
+{line-numbers=off}
+```
+Houston, we have a problem...
+```
+
+Lo primero que tomamos en cuenta es que ni **else** ni **finally** se incluyen, ya que son declaraciones opcionales. En este caso, la declaración de **print(0/0)** genera una excepción. Esta excepción es "atrapada" por el código interno del **except**. De esta manera, nos aseguramos de que, incluso después de un error, el programa continúe de manera predecible.
+En este listado, el manejo de excepciones se aplica al código del listado 7.2:
+
+**Listado 7.3:** `exception.py`: Similar al Listado 7.2 con el manejo de excepciones.
+
+```
+try:
+  iname = input("Enter input filename: ")
+  oname = input("Enter output filename: ")
+  with open(iname) as fh:
+    line = fh.readline()
+  if '\t' in line:
+    value = line.split('\t')[0]
+  with open(oname, 'w') as fw:
+    fw.write(str(int(value)*.2))
+except NameError:
+  print("There is no TAB. Check the input file")
+except FileNotFoundError:
+  print("File not exist")
+except PermissionError:
+  print("Can't write to outfile.")
+except ValueError:
+  print("The value can't be converted to int")
+else:
+  print("Thank you!. Everything went OK.")
+```
+
+A primera vista se nota que este código es más fácil de seguir que la versión anterior (7.2). Al menos la lógica del código está separada del manejo de errores. Desde la línea 10 es donde comienza el manejo de excepciones. Según el tipo de excepción es el código que se ejecutará a continuación. Veremos cómo distinguir entre los diferentes tipos de excepciones más adelante.
+El Listado 7.3 es un ejemplo introductorio de cómo aplicar el manejo de excepciones al Listado 7.1 pero no es una guía definitiva de cómo manejar las excepciones.
+
+**Listado 7.4:** `nested.py`: Código con excepeciones anidadas.
+
+```
+iname = input("Enter input filename: ")
+oname = input("Enter output filename: ")
+try:
+  with open(iname) as fh:
+    line = fh.readline()
+except FileNotFoundError:
+  print("File not exist")
+if '\t' in line:
+  value = line.split('\t')[0]
+try:
+  with open(onama, 'w') as fw:
+    fw.write(str(int(value)*.2))
+except NameError:
+  print("There is no TAB. Check the input file")
+except PermissionError:
+  print("Can't write to outfile.")
+except ValueError:
+  print("The value can't be converted to int")
+else:
+  print("Thank you!. Everything went OK.")
+```
+
+En términos generales vimos cómo funciona la cláusula **try** / **except**, y ahora podemos profundizar un poco más sobre los tipos de excepciones.
+
+### Tipos de excepciones
+
+Las excepciones pueden ser individualizadas. Una variable inexistente y la mezcla de tipos de datos incompatibles no son el mismo tipo de error. La primera excepción es del tipo **NameError** mientras que la segunda es del tipo **TypeError**. Una lista completa de excepciones la podemos encontrar en <https://docs.python.org/3.6/library/exceptions.html>.
+
+**Cómo responder a diferentes excepciones**
+
+Es posible manejar un error de forma genérica usando **except** sin ningún parámetro:
+
+{line-numbers=off}
+```
+d = {"A":"Adenine","C":"Cisteine","T":"Timine","G":"Guanine"}
+try:
+  print d[input("Enter letter: ")]
+except:
+  print("No such nucleotide")
+```
+
+El hecho de que podamos responder genéricamente a todos los errores no significa que sea una buena idea. Esto hace que la depuración de nuestro código sea difícil porque un error imprevisto puede pasar inadvertido. Este código devolverá un `No such nucleotide` para cualquier tipo de error. Si introducimos una señal EOF ("end of file": final del archivo, CONTROL-D en algunos terminales), el programa imprimirá `No such nucleotide`. Es útil para distinguir entre los diferentes tipos de eventos anormales y reaccionar en consecuencia. Por ejemplo, para diferenciar un EOF de una clave de diccionario inexistente:
+
+{line-numbers=off}
+```
+d = {"A":"Adenine", "C":"Cisteine", "T":"Timine", "G":"Guanine"}
+try:
+  print(d[input("Enter letter: ")])
+except EOFError:
+  print("Good bye!")
+except KeyError:
+  print("No such nucleotide")
+```
+
+De esta manera, el programa imprime `No such nucleotide` cuando el usuario ingresa una clave que no existe en el diccionario y `Good bye!` cuando recibe un EOF.
+Para obtener información sobre la excepción que se está manejando actualmente, usamos `sys.exc_info()`:
+
+**Listado 7.5:** `sysexc.py`: Usando sys.exc_info()
+
+```
+import sys
+
+try:
+  0/0
+except:
+  a,b,c = sys.exc_info()
+  print('Error name: {0}'.format(a.__name__))
+  print('Message: {0}'.format(b))
+  print('Error in line: {}'.format(c.tb_lineno))
+```
+
+Este programa imprime:
+
+{line-numbers=off}
+```
+Error name: ZeroDivisionError
+Message: integer division or modulo by zero
+Error in line: 4
+```
+
+**Listado 7.6:** `sysexc2.py`: Otro uso de `sys.exc_info()`
+
+```
+import sys
+
+try:
+  x = open('random_filename')
+except:
+  a, b = sys.exc_info()[:2]
+  print('Error name: {}'.format(a.__name__))
+  print('Error code: {}'.format(b.args[0]))
+  print('Error message: {}'.format(b.args[1]))
+```
+Este programa imprime:
+
+{line-numbers=off}
+```
+Error name: FileNotFoundError
+Error code: 2
+Error message: No such file or directory
+```
+
+### Desencadenando excepciones
+
+Las excepciones se pueden activar manualmente usando **raise**, sin la necesidad de esperar a que ocurran. Quizás te estés preguntando por qué uno querría desencadenar una excepción. Una excepción apropiadamente generada puede ser más útil para el programador o para el usuario que una excepción que se dispara de manera no controlada. Esto es especialmente cierto cuando uno está debugueando programas.
+Para entenderlo mejor veamos un ejemplo. La función `avg`, que podemos ver abajo, calcula el promedio de una secuencia de números:
+
+{line-numbers=off}
+```
+def avg(numbers):
+  return sum(numbers)/len(numbers)
+```
+
+Una función de este tipo tendrá problemas con las listas vacías:
+
+{line-numbers=off}
+```
+>>> avg([])
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 2, in avg
+ZeroDivisionError: division by zero
+```
+
+El problema con este mensaje de error es que no nos dice que fue causado por una lista vacía, sino que dice que fue provocado al tratar de dividir por cero. Al saber cómo funciona la función se puede deducir que una lista vacía causa este error. Sin embargo, sería más interesante si este error se señalará aún sin conocer la estructura interna de la función. Para esto podemos plantear un error nosotros mismos.
+
+{line-numbers=off}
+```
+def avg(numbers):
+  if not numbers:
+    raise ValueError("Please enter at least one element")
+  return sum(numbers)/len(numbers)
+```
+
+En este caso el error se acerca más al problema real.
+
+{line-numbers=off}
+```
+>>> avg([])
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 3, in avg
+ValueError: Please enter at least one element
+```
+
+Podríamos haber evitado el error si imprimimos una cadena sin elevar el error, pero esto sería contra los principios pitónicos ("los errores no deben pasar desapercibidos"). En la práctica, esto puede causar problemas porque si una función devuelve un valor no anticipado los efectos pueden ser impredecibles. Al elevar la excepción, nos aseguramos que el error no pasará inadvertido.
+En algunos textos, o códigos antiguos, encontrará una sintaxis de la forma `raise "This is an error"`. Estos tipos de excepciones (denominadas excepciones encadenadas) no son compatibles con Python 2.6 y versiones posteriores. La forma `raise ValueError, 'A message'` también está en desuso y la forma preferida es raise `ValueError ('A message')`. Desde Python 3.0, está última forma es obligatoria.[^nota7-1]
+
+[^nota7-1]: Ver PEP 3109 (<http://www.python.org/dev/peps/pep-3109>) con respecto a la justificación de esto.
+
+## CREANDO EXCEPCIONES CUSTOMIZADAS
+
+Una ventaja del sistema de excepciones es que no tenemos que limitarnos a los proporcionados por Python. Podemos definir nuevas excepciones para satisfacer nuestras necesidades. Para crear una excepción, necesitamos trabajar con Programación Orientada a Objetos (POO), un tema que aún no hemos cubierto. Como resultado, si estás leyendo este libro desde el principio y no necesitas crear tus propias excepciones, mi recomendación es que te salte el resto de este capítulo y continues directamente con el Capítulo 8. Después de leer el Capítulo 8, volvé a esta sección.
+
+**Todas las excepciones derivan de la clase exception**
+
+Todas las excepciones derivan de la clase `Exception`, podemos hacer nuestra propia excepción sub-clasificando la clase `Exception`. Tomemos, por ejemplo, esta excepción a la que llamé `NotDNAException`. Debe aparecer cuando hay una secuencia de ADN con un carácter que no pertenece a 'a', 'c', 't' o 'g'. Veamos una excepción personalizada definida:
+
+{line-numbers=off}
+```
+class NotDNAException(Exception):
+  """A user-defined exception"""
+  def __init__(self, dna):
+    self.dna = dna def __str__(self):
+      for nt in self.dna:
+        if nt not in 'atcg':
+          return nt
+```
+
+El programador debe crear un código para detectar la excepción:
+
+{line-numbers=off}
+```
+dnaseq = 'agctwtacagt'
+if set(dnaseq) != set('atcg'):
+  raise NotDNAException(dnaseq)
+else:
+  print('OK')
+```
+
+Si `dnaseq` es un objeto iterable con 'a', 'c', 't' o 'g' , el código imprime OK. Pero si `dnaseq` contiene un carácter que no es ADN, se producirá la excepción. Este es el resultado del código anterior pero con una "w" en `dnaseq`:
+
+{line-numbers=off}
+```
+Traceback (most recent call last):
+  File "7_25.py", line 22, in <module>
+    raise NotDNAException(dnaseq)
+__main__.NotDNAException: w
+```
+
+## RECURSOS ADICIONALES
+
+* [PEP 3134](https://www.python.org/dev/peps/pep-3134/) “Exception Chaining and Embedded Tracebacks.”
+
+* [Python documentation](https://docs.python.org/3.6/library/exceptions.html). Built-in exceptions.
+
+* [Python documentation](https://docs.python.org/3.6/library/errno.html). Standard errno system symbols.
+
+* [C H. Swaroop. Python exceptions](https://python.swaroopch.com/exceptions.html)
+
+* [Ian Bicking. Re-raising exceptions](http://www.ianbicking.org/blog/2007/09/re-raising-exceptions.html)
+
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Cuál es el significado de LBYL y EAFP? ¿Cuál es el usado en Python?
+X>
+X> 2- ¿Qué es una excepción (**exception**) ?
+X>
+X> 3- ¿Qué es una excepción no manejable?
+X>
+X> 4- ¿Cuándo usamos **finally** y cuándo **else**?
+X>
+X> 5- Las excepciones son a menudo asociados con el manejo de errores. ¿Por qué?
+X>
+X> 6- ¿Cómo se diferencia un error derivado de una condición de disco lleno al de intentar escribir en un sistema de archivos de solo lectura?
+X>
+X> 7- ¿Por qué no es recomendable el uso de **except**: para atrapar todos los tipos de excepciones en lugar de usar por ejemplo, **except IO Error:**?
+X>
+X> 8- Las excepciones pueden ser planteadas a voluntad. ¿Por qué lo haríamos?
+X>
+X> 9- ¿Cuál es el propósito del `sys.exc_info()`?
+X>
+X> 10- Explicar el propósito de la siguiente función:
+X>
+ {line-numbers=off}
+```
+def formatExceptionInfo():
+  """ Author: Arturo ’Buanzo’ Busleiman """
+  cla, exc = sys.exc_info()[:2]
+  excName = cla.__name__
+  try:
+    excArgs = exc.__dict__["args"]
+  except KeyError:
+    excArgs = str(exc)
+  return (excName, excArgs)
+```
