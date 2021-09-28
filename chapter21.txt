@@ -1,0 +1,167 @@
+{:: encoding="UTF-8" /}
+
+# Web Server para alineamientos múltiples
+
+## DESCRIPCIÓN DEL PROBLEMA
+
+Las secuencias de ADN de diferentes organismos a menudo están relacionadas. Cuanto más cercanas son las especies, más similares son sus genomas. Algunos genes están altamente conservados, mientras que otros tienen una extensa distribución y mutaciones. El alineamiento múltiple de secuencias (MSA) ayuda a mostrar la relación entre secuencias e infiere la historia evolutiva.
+Hay varios programas para realizar MSA. Está fuera del alcance de este libro revisarlos, pero hay sugerencias sobre varios artículos en "Recursos adicionales" para aquellos interesados ​​en el software MSA.
+
+Uno de estos programas es **MUSCLE** (**M**ultiple **S**equence alignment by **l**og- **e**xpectation, alineamiento de secuencias múltiples por expectativa de registro), que se caracteriza por su velocidad y precisión mejoradas con respecto a los programas disponibles actualmente. Como **MUSCLE** no tiene una interfaz gráfica de usuario (GUI), es una aplicación de línea de comandos, vamos a hacer una GUI utilizando un servidor web.
+La ventaja de usar un servidor web no es solo la GUI, sino la capacidad de usarlo desde varias computadoras.
+
+### Interfaz Web: Front-End. Código HTML
+
+El primer paso es hacer la GUI en HTML. Antes de reinventar la rueda busqué un servidor web Muscle y encontré uno [en el sitio web de EBI](http://www.ebi.ac.Uk/Tools/muscle). Inspirado por este sitio, hice el formulario que se muestra en la Figura 21.1. El código HTML para este formulario se muestra en el Listado 21.1.
+
+![**Figura 21.1** Interfaz web de MUSCLE.](images/musclewithcolor.png)
+
+**Listado 21.1:** `index.html`: Interfaz web para el front end Muscle.
+
+```
+<!DOCTYPE html><html lang="en">
+ <head><meta charset="utf-8">
+  <title>Muscle Web Interface</title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+ </head>
+ <body style="background-color:#e7f5f5;">
+  <div class="container"><h1>Muscle Web Interface</h1>
+  <form action='muscle_result' method='post'
+    enctype="multipart/form-data">
+  <div class="row"><div class="col-sm-8"><div class="form-group">
+  <label for="iterations">Maximum iterations:</label>
+   <select name="iterat" id="iterations">
+    <option value="1" selected="selected">1</option>
+    <option value="4">4</option><option value="8">8</option>
+    <option value="10">10</option><option value="12">12</option>
+    <option value="14">14</option><option value="16">16</option>
+   </select>
+   <label for="format"> Output Format:</label>
+   <select name="output" id="format">
+    <option value="fasta" selected="selected">FASTA</option>
+    <option value="clw">ClustalW2</option>
+    <option value="clwstrict">ClustalW2 (Strict)</option>
+    <option value="html">HTML</option>
+    <option value="msf">MSF</option>
+   </select>
+    <label for="order">Output Order:</label>
+    <select name="outorder" id="order">
+     <option value="group" selected="selected">aligned</option>
+     <option value="stable">input</option>
+    </select></div></div></div>
+    <div class="row"><div class="col-sm-6"><div class="form-group">
+     <label for="sq">
+         Enter a set of sequences in FASTA format:
+     </label>
+     <textarea name="seq" rows="5" cols="90" id="sq"></textarea>
+    </div></div></div><div class="row"><div class="form-group">
+    <div class="col-sm-3">
+    <label for="upfile">Or upload a file:</label>
+     <input type="file" name="upfile" id="upfile" />
+     </div><div class="col-sm-3">
+     <button type="submit" class="btn btn-primary">
+     Send to Muscle server</button></div></div></div>
+ </form></div></body></html>
+```
+Plantilla para la página de resultados:
+
+Listado 21.2: `result.tpl`: Plantilla para el resultado del servidor Muscle.
+
+```
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Muscle Web Interface</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+  <div class="container">
+      % if bad_opt:
+      <h1>Bad Request</h1>
+      Use the options provided in the form. Error in {{bad_opt}}
+      % elif not bad_opt:
+      {{!result_output}}
+      % end
+      <p>Go back to the <a href="/">home page</a></p>
+  </div>
+  </body>
+</html>
+```
+
+### Interfaz web: Server-Side Script. Código fuente comentado
+
+Listado 21.3: `muscleserver.py`: Interfaz web para Muscle.
+
+```
+#!/usr/bin/env python
+
+import os
+import subprocess
+from tempfile import mkstemp
+
+from bottle import route, post, run, static_file, request, view
+
+@route('/')
+def index():
+    return static_file('index.html', root='views/')
+
+@post('/muscle_result')
+@view('result')
+def result():
+    iterations = request.forms.get('iterat','1')
+    output_type = request.forms.get('output','FASTA')
+    order = request.forms.get('outorder','group')
+    sequence = request.forms.get('seq','')
+    if not sequence:
+        # If the textarea is empty, check the uploaded file
+        sequence = request.files.get('upfile').file.read()
+    badreq = ''
+    # Verify that the user entered valid information.
+    try:
+        int(iterations)
+    except ValueError:
+        badreq = 'iterations'
+    valid_output = ('html', 'fasta', 'msf', 'clw', 'clwstrict')
+    if output_type not in valid_output:
+        badreq = 'output'
+    if order not in ('group', 'stable'):
+        badreq = 'outorder'
+    result_out = ''
+    # Make a random filename for user entered data
+    fi_name = mkstemp('.txt','userdata_')[1]
+    with open(fi_name,'w') as fi_fh:
+        fi_fh.write(sequence)
+    fo_name = mkstemp('.txt','outfile_')[1]
+    with open('muscle3_error.log','w') as erfh:
+        cmd = [os.getcwd() + '/muscle3.8.31_i86linux64', '-in',
+               fi_name, '-out', fo_name, '-quiet', '-maxiters',
+               iterations, '-{}'.format(output_type),
+               '-{}'.format(order)]
+        p = subprocess.Popen(cmd, stderr=erfh)
+        p.communicate()
+    # Remove the intput file
+    os.remove(fi_name)
+    with open(fo_name) as fout_fh:
+        result_out = fout_fh.read()
+    if output_type != 'html':
+        result_out = '<pre>{}</pre>'.format(result_out)
+    # Remove the output file
+    os.remove(fo_name)
+    return {'bad_opt':badreq, 'result_output':result_out}
+
+@route('/css/<filename>')
+def css_static(filename):
+    return static_file(filename, root='css/')
+
+run(host='localhost', port=8080)
+```
+
+**Explicación del código**: Aunque el código está ampliamente comentado creo que vale la pena explicarlo. Hay dos métodos principales: **index()** y **result()**. Se llama a **index()** cuando el usuario llama al sitio y solo muestra un formulario HTML utilizando el método `static_file`. Cuando el usuario completa el formulario y presiona "Send to Muscle Server", se envía una solicitud POST a la URL `/muscle_result`. La solicitud es manejada por el método **result()**. Este método llama a la línea de comando que hace el alineamiento. Hay una función para generar archivos con nombres aleatorios **(mkstemp()**) y se usa en lugar de tener un nombre fijo para cada archivo. El problema con los archivos fijos es que un programa web puede ser utilizado simultáneamente por varios usuarios y existe un riesgo de anulación de datos. Los archivos temporales son removidos (líneas 48 y 54).
+
+## RECURSOS ADICIONALES
+
+*  [Edgar, Robert C. (2004), MUSCLE: a multiple sequence alignment method with reduced time and space complexity. BMC Bioinformatics 2004, 5:113](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-5-113)
+
+* [Julie D. Thompson, Benjamin Linard, Odile Lecompte, Olivier Poch. A comprehensive benchmark study of multiple sequence alignment methods: current challenges and future perspectives.](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0018093)
+
+* [Notredame, C (2007). Recent evolutions of multiple sequence alignment algorithms. PLOS Computational Biology 8(3):e123](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.0030123)
