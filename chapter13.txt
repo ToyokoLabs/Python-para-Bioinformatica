@@ -1,0 +1,551 @@
+{:: encoding="UTF-8" /}
+
+# Expresiones regulares
+
+## INTRODUCCIÓN A LAS EXPRESIONES REGULARES (REGEX)
+
+Una característica común de los lenguajes de scripting es el soporte a las expresiones regulares (REGEX en la jerga de la programación). ¿Qué son las expresiones regulares? Son expresiones que resumen un patrón de texto. Un caso conocido de expresión regular son las abreviaturas utilizadas en la mayoría de los sistemas operativos, como: `ls` `.py" (o `dir` `* .py`) para enumerar todos los archivos terminados en "**.py**", conocidos como comodines.
+
+Cuando se realiza el procesamiento de texto, a menudo es necesario dar un tratamiento especial a las cadenas que contienen una condición específica. Por ejemplo, extraer todo lo que esté entre `<pre>` y `</pre>` en un archivo HTML, o eliminar de un archivo cualquiera un carácter que no sea A, T, C o G.
+
+Las aplicaciones biológicas de esta característica son simples. Las expresiones regulares se pueden usar para localizar dominios en proteínas, patrones de secuencia en ADN como las islas de CpG, las repeticiones, las enzimas de restricción, los sitios de reconocimiento de nucleasas, etc. Incluso hay bases de datos biológicas dedicadas a dominios de proteínas, como PROSITE[^nota13-1].
+
+Sin embargo, tus necesidades de programación pueden no incluir el uso de expresiones regulares. En este caso, podés omitir este capítulo y leerlo cuando lo necesites. El resto de este libro se puede leer sin entender expresiones regulares.
+
+Cada lenguaje tiene su propia sintaxis REGEX, en Python esta sintaxis es similar a la utilizada en Perl. Si conoces Perl, aprender Python REGEX te será fácil. Si nunca antes has oído hablar de REGEX, no te preocupes, la sintaxis básica de REGEX no es tan difícil de aprender. Algunos REGEX pueden convertirse en expresiones oscuras y complejas en casos específicos. Debido a esta complejidad potencial, existen libros enteros sobre este tema[^nota13-2].
+
+[^nota13-1]: <http://prosite.expasy.org/>
+[^nota13-2]: Para más información sobre libros sobre REGEX ver los Recursos Adicionales al final del capítulo.
+
+### Sintaxis REGEX
+
+Las letras y los caracteres coinciden entre sí, "Python" va a coincidir con "Python" (pero no con "python"). Las excepciones a esta regla son los meta-caracteres, que son caracteres que tienen un significado especial en el contexto del REGEX:
+
+{line-numbers=off}
+```
+** .  ^  $  *  + ?  { []  \  |  ()**
+```
+
+Veamos el significado de los caracteres especiales más utilizados:
+
+**. (punto)**: coincide con cualquier carácter, excepto la nueva línea: “ATT.T” coincidirá con “ATTCT”, “ATTFT” pero no con “ATTTCT”.
+
+**^ (carat)**: coincide con el principio de la cadena: "^ AUG" coincidirá con "AUGAGC" pero no con "AAUGC". Usar dentro de un grupo significa "opuesto".
+
+**$ (peso)**: coincide con el final de la cadena o justo antes de una nueva línea al final de la cadena: "UAA $" coincidirá con "AGCUAA" pero no con "ACUAAG".
+
+*** (asterisco)**: coincide con 0 o más repeticiones del token anterior: “AT *” coincidirá con “AAT”, “A”, pero no con “TT”.
+
+**+ (más)**: el REGEX resultante coincidirá con 1 o más repeticiones del REGEX anterior: “AT +” coincidirá con “ATT”, pero no con “A”.
+
+**? (signo de interrogación)**: El REGEX resultante coincide con 0 o 1 repeticiones del RE anterior. “¿AT?” Coincidirá con “A” o “AT”.
+
+**(...)**: coincide con cualquier expresión regular que se encuentre entre paréntesis, e indica el inicio y el final de un grupo. Para hacer coincidir los literales "(" o ")", usamos \ (o \), o dentro de una clase de caracteres: [(] [)].
+
+**(?: ...)**: Una versión no agrupada de paréntesis regulares. La subcadena que coincide con el grupo no se puede recuperar después de realizar una coincidencia.
+
+**{n}**: exactamente n copias del REGEX anterior coincidiran: “(ATTG) {3}” coincidirá con “ATTGATTGATTG” pero no con “ATTGATTG”.
+
+**{m, n}**: El REGEX resultante coincidirá de m a n repeticiones del REGEX anterior: "(AT) {3,5}" coincidirá con "ATATTATATAT" pero no con "ATATTATAT". Sin m, coincidirá desde 0 repeticiones. Sin n, coincidirá con todas las repeticiones.
+
+**[] (corchetes)**: indica un conjunto de caracteres. "[A-Z]" coincidirá con cualquier letra mayúscula y "[a-z0-9]" coincidirá con cualquier letra minúscula o dígito. Los metacaracteres no están activos dentro de los conjuntos REGEX. "[AT *]" coincidirá con "A", "T" o "*". El símbolo de caret o acento circunflejo (\^) dentro de un conjunto coincidirá con el complemento de un conjunto. "[^ R]" coincidirá con cualquier carácter que no sea "R".
+
+**"\" (barra invertida)**: se utiliza para escapar de los caracteres reservados (para hacer coincidir caracteres como "?", "*"). Como Python también utiliza la barra invertida como el carácter de escape, debes pasar una cadena en bruto??? para expresar el patrón.
+
+**| (barra vertical)**: como en lógica, se lee como "o". Cualquier número de REGEX puede estar separado por "|". “A | T” coincidirá con “A”, “T” o “AT”.
+También hay secuencias especiales con "\" y un personaje. Se enumeran en la Tabla 13.1.
+
+Table 13.1 Secuencias especiales de REGEX
+
+| Nombre  | Descripción |
+| ------  | ----------- |
+| \number | Los contenidos del grupo del mismo número, empezando desde el número 1. |
+| \A  | Solo al inicio de la cadena.  |
+| \b  | La cadena vacía, solo al principio o al final de una palabra. |
+| \B  | La cadena vacía, solo cuando no está al principio o al final de una palabra.  |
+| \d  | Cualquier dígito decimal (como [0-9]) |
+| \D  | Cualquier no-dígito (como [^ 0-9])  |
+| \s  | Cualquier carácter de espaciado (como [\ t \ n \ r \ f \ v])  |
+| \S  | Cualquier carácter que no sea de espaciado (como [^ \ t \ n \ r \ f \ v]) |
+| \w  | Cualquier carácter alfanumérico (como [a-zA-Z0-9_]) |
+| \W  | Cualquier carácter no alfanumérico (como [^ a-zA-Z0-9_] |
+| \Z  | Solo el final de la cadena.  |
+
+## EL MÓDULO RE
+El módulo `re` proporciona métodos como `compile`, `search`, `findall`, `match` y otros. Estas funciones se utilizan para procesar un texto utilizando un patrón creado con la sintaxis REGEX.
+Una búsqueda básica funciona así:
+
+{line-numbers=off}
+```
+>>> import re
+>>> mo = re.search('hello', 'Hello world, hello Python!')
+```
+
+**re.search**
+
+Para `search` del método `re` requiere como primer argumento un patrón y como segundo argumento una cadena donde se buscará el patrón. En este caso, el patrón se puede traducir como "H o h", seguido de "ello". Cuando se encuentra una coincidencia esta función devuelve un "objeto de coincidencia" (**match object**) (llamado `mo` en este caso) con información sobre la primera coincidencia. Si no hay coincidencia devuelve **None**. Un objeto de coincidencia se puede consultar con los siguientes métodos:
+
+{line-numbers=off}
+```
+>>> mo.group()
+'hello'
+>>> mo.span()
+(13, 18)
+```
+
+**group()** devuelve la cadena que coincide con el REGEX, mientras que **span()** devuelve una tupla que contiene las posiciones (inicio, final) de la coincidencia (es decir, (0, 5) retornada por **mo.span()**).
+Este resultado es muy similar a lo que devuelve el método de **index()**:
+
+{line-numbers=off}
+```
+>>> 'Hello world, hello Python!'.index('hello')
+13
+```
+
+La diferencia está en la oportunidad de usar REGEX en lugar de cadenas de texto simples. Por ejemplo podemos machear "Hello" y "hello":
+
+{line-numbers=off}
+```
+>>> import re
+>>> mo = re.search('[Hh]ello', 'Hello world, hello Python!')
+```
+
+La primer coincidencia ahora es:
+
+{line-numbers=off}
+```
+>>> mo.group()
+'Hello'
+```
+
+**re.findall**
+
+Para encontrar todos las coincidencias y no solo los primeros usamos **findall**:
+
+{line-numbers=off}
+```
+>>> re.findall("[Hh]ello","Hello world, hello Python,!")
+['Hello', 'hello']
+```
+
+Como podemos ver **findall** retorna una lista de las coincidencias reales y no solo de los objetos coincidentes.
+
+**re.finditer**
+
+Si queremos tener un objeto de coincidencia por cada coincidencia existe el método **finditer**. Como ventaja adicional no nos devuelve una lista, sino un iterador. Esto significa que cada vez que se invoca a **finditer** devuelve el siguiente elemento sin tener que calcularlos todos a la vez. Como con cualquier iterador, esto optimiza el uso de memoria:
+
+{line-numbers=off}
+```
+>>> re.finditer("[Hh]ello", "Hello world, hello Python,!")
+<callable-iterator object at 0xb6f43d8c>
+```
+
+Recorriendo los resultados:
+
+{line-numbers=off}
+```
+>>> mos = re.finditer("[Hh]ello", "Hello world, hello Python,!")
+>>> for x in mos:
+  print(x.group())
+  print(x.span())
+
+Hello
+(0, 5)
+hello
+(13, 18)
+```
+
+**re.match**
+
+El método **match** funciona como search pero se ve solo al comienzo de una cadena. Cuando no encuentra el patrón retorna **None**:
+
+{line-numbers=off}
+```
+>>> mo = re.match("hello", "Hello world, hello Python!")
+>>> print mo
+None
+```
+
+Como **search**, cuando se encuentra el patrón, retorna un objeto de coincidencia:
+
+{line-numbers=off}
+```
+>>> mo = re.match("Hello", "Hello world, hello Python!")
+>>> mo
+<_sre.SRE_Match object at 0xb7b5eb80>
+```
+
+El objeto de coincidencia puede ser consultado como antes:
+
+{line-numbers=off}
+```
+>>> mo.group()
+'Hello'
+>>> mo.span()
+(0, 5)
+```
+
+### Compilando un patrón
+
+Se puede compilar un patrón (convertirlo en una representación interna) para acelerar la búsqueda. Este paso no es obligatorio pero se recomienda para grandes cantidades de texto. Veamos **findall** con un patrón regular y luego con un patrón "compilado" (**rgx**):
+
+{line-numbers=off}
+```
+>>> re.findall("[Hh]ello","Hello world, hello Python,!")
+['Hello', 'hello']
+>>> rgx = re.compile("[Hh]ello")
+>>> rgx.findall("Hello world, hello Python,!")
+['Hello', 'hello']
+```
+
+Los patrones compilados tienen disponibles todos los métodos en el módulo **re**:
+
+{line-numbers=off}
+```
+>>> rgx = re.compile("[Hh]ello")
+>>> rgx.search("Hello world, hello Python,!")
+<_sre.SRE_Match object at 0xb6f494f0>
+>>> rgx.match("Hello world, hello Python,!")
+<_sre.SRE_Match object at 0xb6f493d8>
+>>> rgx.findall("Hello world, hello Python,!")
+['Hello', 'hello']
+```
+
+El Listado 13.1 muestra cómo compilar un patrón en el contexto de una búsqueda:
+
+**Listado 13.1:** `findTAT.py`: Encontrar el primer "TAT" repetido.
+
+```
+import re
+seq = "ATATAAGATGCGCGCGCTTATGCGCGCA"
+rgx = re.compile("TAT")
+i=1
+  for mo in rgx.finditer(seq):
+    print('Ocurrence {0}: {1}'.format(i, mo.group()))
+    print('Position: From {0} to {1}'.format(mo.start(),
+                                              mo.end()))
+    i+=1
+```
+
+**Explicación del código**: En la línea 3 se compila el patrón (**TAT**). El objeto compilado retornado en la línea 3 (**rgx**) tiene los métodos que se encuentran en el módulo **re**, como el **finditer**. Esta operación retorna un objeto de tipo "coincidencia" (**mo**). A partir de este objeto, en las líneas 6 y 7, se invocan los métodos de **group** y **span**. Tengamos en cuenta que `mo.start()` y `mo.end()` son equivalentes a `mo.span()[0]` y `mo.span()[1]`.
+Este es el resultado de ejecutar el programa:
+
+{line-numbers=off}
+```
+Ocurrence 1: TAT
+Position: From 1 to 4
+Ocurrence 2: TAT
+Position: From 18 to 21
+```
+
+**Groups**
+
+A veces se necesita hacer coincidir más de un patrón lo cual se puede hacer agrupando. Los grupos están marcados con un conjunto de paréntesis (“()”). Los grupos pueden ser "capturado" ("nombrado" o "sin nombre") y "no capturado", la diferencia entre ellos la veremos más adelante.
+Se utiliza un grupo de "captura" cuando se necesita recuperar el contenido de un grupo. Los grupos son capturados con **groups**. No confundas **group** con **groups**. **group** retorna la cadena que coincide con el REGEX.
+
+{line-numbers=off}
+```
+>>> import re
+>>> seq = "ATATAAGATGCGCGCGCTTATGCGCGCA"
+>>> rgx = re.compile("(GC){3,}")
+>>> result = rgx.search(seq)
+>>> result.group()
+'GCGCGCGC'
+```
+
+Los grupos retornan una tupla con todos los subgrupos que presentan coincidencias. En este caso, dado que la búsqueda devuelve una coincidencia y hay un grupo en el patrón, el resultado es una tupla con un grupo:
+
+{line-numbers=off}
+```
+>>> result.groups()
+('GC',)
+```
+
+Hay un grupo "CG", como en el patrón. Si querés que todo el patrón sea devuelto por **groups**, necesitas declarar otro grupo como en este ejemplo:
+
+{line-numbers=off}
+```
+>>> rgx = re.compile("((GC){3,})")
+>>> result = rgx.search(seq)
+>>> result.groups()
+('GCGCGCGC', 'GC')
+```
+
+Ambos grupos presentes en el patrón se recuperan (contando de izquierda a derecha), dado que de forma predeterminada todos los grupos están "capturando". Si no necesitas el subgrupo interno (el grupo "CG") se puede etiquetar como "no captura". Esto se hace agregando "?:" al comienzo del grupo:
+
+{line-numbers=off}
+```
+>>> # Only the inner group is non-capturing
+>>> rgx = re.compile("((?:GC){3,})")
+>>> result = rgx.search(seq)
+>>> result.groups()
+('GCGCGCGC',)
+```
+
+**findall** también se comporta de manera diferente si hay un grupo en el patrón. Sin un grupo, retorna una lista de cadenas coincidentes, como ocurre en el listado 13.2. Si hay un grupo en el patrón, devuelve una lista con el grupo. Si hay más de un grupo devuelve una lista de tuplas:
+
+{line-numbers=off}
+```
+>>> rgx = re.compile("TAT") # No group at all.
+>>> rgx.findall(seq) # This returns a list of matching strings.
+['TAT', 'TAT']
+>>> rgx = re.compile("(GC){3,}") # One group. Return a list
+>>> rgx.findall(seq) # with the group for each match.
+['GC', 'GC']
+>>> rgx = re.compile("((GC){3,})") # Two groups. Return a
+>>> rgx.findall(seq) # list with tuples for each match.
+[('GCGCGCGC', 'GC'), ('GCGCGC', 'GC')]
+>>> rgx = re.compile("((?:GC){3,})") # Using a non-capturing
+>>> rgx.findall(seq) # group to get only the matches.
+['GCGCGCGC', 'GCGCGC']
+```
+
+Los grupos pueden ser etiquetados para luego ser referidos. Para darle nombre a un grupo usamos: **?P<*name*>**. El Listado 13.2 muestra cómo usar esta característica:
+
+**Listado 13.2:** `subgroups.py`: Encontrar múltiples sub-patrones.
+
+```
+import re
+rgx = re.compile("(?P<TBX>TATA..).*(?P<CGislands>(?:GC){3,})")
+seq = "ATATAAGATGCGCGCGCTTATGCGCGCA"
+result = rgx.search(seq)
+print(result.group('CGislands'))
+print(result.group('TBX'))
+```
+
+Este programa retorna:
+
+{line-numbers=off}
+```
+GCGCGC
+TATAGA
+```
+
+### Ejemplos de REGEX
+
+Como ejemplo de REGEX, el Listado 13.3 muestra cuántas líneas en un archivo dado tienen un patrón ingresado desde la línea de comando.[^nota13-3] El programa se ejecuta de la siguiente manera:
+
+`program_name.py` `file_name pattern` Donde `file_name` es el nombre del archivo donde se busca el patrón.
+
+[^nota13-3]: Hay formas más eficientes de lograr esto, como usar el comando grep de Unix, pero se muestra así con un propósito didáctico.
+
+**Listado 13.3:** `regexsys1.py`: Contar lineas con patrón dado por el usuario.
+
+```
+import re, sys
+myregex = re.compile(sys.argv[2])
+counter = 0
+with open(sys.argv[1]) as fh:
+  for line in fh:
+    if myregex.search(line):
+      counter += 1
+print(counter)
+```
+
+**Explicación del código**: Se importa el módulo `re` y la expresión para buscar es "compiled" (líneas 1 y 2). Esta "compilación" es opcional pero recomendada. Acelera la búsqueda al compilar el REGEX en una estructura interna que luego utiliza el intérprete. `sys.argv` es una lista de cadenas. Cada cadena es un argumento tomado de la línea de comando. Si la línea de comando es `program.py word myfile.txt`, el contenido de `sys.argv` es `['program.py', 'word', 'myfile.txt ']` (una lista con 3 cadenas). En la línea 4 el programa abre el archivo ingresado como primer argumento. En la línea 5 analiza el archivo abierto y en 5 y 6 realiza la búsqueda de expresiones regulares "Python" dentro de cada línea. Si se encuentra la expresión, la variable del contador (`counter`) se incrementa en uno (línea 7).
+Esta secuencia de comandos no cuenta la cantidad de veces que aparece una palabra en el archivo. Si una palabra se repite más de una vez en la misma línea, se cuenta como una. El siguiente script cuenta todas las ocurrencias de un patrón dado:
+
+**Listado 13.4:** `countinfile.py`: Contar las ocurrerncias de un patrón en un archivo.
+
+```
+import re, sys
+myregex = re.compile(sys.argv[2])
+3i=0
+with open(sys.argv[1]) as fh:
+  for line in fh:
+    i += len(myregex.findall(line))
+print(i)
+```
+
+T> ### Probando un REGEX con Kodos
+T> Kodos es una buena herramienta de GUI (hecha en Python) que te permite probar y depurar tus expresiones regulares. Tiene una ventana donde ingresas tu patrón REGEX y otra ventana donde ingresas una cadena para probar tu patrón REGEX. Como resultado tendrás la información del grupo correspondiente (si corresponde), la coincidencia del patrón REGEX en relación con la cadena de texto mediante el uso de colores y unas cuantas variaciones del uso del patrón REGEX en una aplicación de Python.
+T> El programa tiene la Licencia Pública GNU (GPL) y está disponible en http://kodos.sourceforge.net. Como está hecho en Python corre en los sistemas operativos principales (Windows, macOS y Linux).
+
+### Patrones de reemplazo
+
+El módulo **re** se puede usar para reemplazar patrones con la función **sub**:
+
+**re.sub**
+
+**sub(rpl,str[,count=0])**: Reemplaza rpl con la parte de la cadena (*str*) que coincide con el REGEX al que se le aplica. El tercer parámetro, que es opcional, indica cuántos reemplazos queremos hacer. Por defecto, el valor es cero y significa que reemplaza todas las ocurrencias. Es muy similar al método de cadena llamado **replace**, solo que en lugar de reemplazar un texto por otro, el texto reemplazado está establecido por un REGEX.
+
+**Listado 13.5:** `deletegc.py`: Borrar GC repetidas (más de 3 GC en una misma fila)
+
+```
+import re
+regex = re.compile("(?:GC){3,}")
+seq = 'ATGATCGTACTGCGCGCTTCATGTGATGCGCGCGCGCAGACTATAAG'
+print('Before: {0}'.format(seq))
+print('After: {0}'.format(regex.sub('', seq)))
+```
+
+El resultado de este programa es:
+
+{line-numbers=off}
+```
+Before: ATGATCGTACTGCGCGCTTCATGTGATGCGCGCGCGCAGACTATAAG
+After: ATGATCGTACTTTCATGTGATAGACTATAAG
+```
+
+**re.subn**
+
+**subn(*rpl*,*str*[,*count=0*])**: tiene la misma función que sub, pero en lugar de retornar la nueva cadena, retorna una tupla con dos elementos: la nueva cadena y el número de reemplazos realizados. Esta función se usa cuando, además de reemplazar un patrón en una cadena, se necesita saber cuántos reemplazos se han realizado.
+Con esto tenemos una visión muy general de las posibilidades que las Expresiones Regulares nos abren. La idea era dar una introducción al tema y las herramientas para comenzar a crear nuestro propio REGEX. A continuación, veremos un ejemplo de uso de lo que se ha aprendido hasta ahora.
+
+## REGEX EN BIOINFORMATICA
+Como mencioné al principio del capítulo, el REGEX se puede usar para buscar patrones del tipo de PROSITE.[^nota13-4] Los patrones son secuencias de caracteres que describen un grupo de secuencias de una forma condensada. Por ejemplo, el siguiente patrón es para el sitio activo de la enzima isocitrato liasa:
+
+[^nota13-4]: Si no está familiarizado con los patrones de proteínas, consulte el manual del usuario de PROSITE, que se encuentra en: <http://prosite.expasy.org/prosuser.html>.
+
+{line-numbers=off}
+```
+K- [KR] -C-G-H- [LMQR]
+```
+
+Este patrón se interpreta de la siguiente manera: una K en la primera posición, una K o R en la segunda, luego la secuencia CGH y, finalmente, uno de los siguientes aminoácidos: L, M, Q o R. Si queremos buscar este patrón en esta secuencia, como primer paso, uno debe convertir el patrón de PROSITE a un REGEX de Python. La conversión en este caso es inmediata:
+
+{line-numbers=off}
+```
+"K [KR] CGH [LMQR]"
+```
+
+Para cambiar un perfil PROSITE a REGEX consiste básicamente en eliminar los guiones (-), reemplazar los números entre paréntesis con números entre llaves y reemplazar la "x" con un punto. Por ejemplo para la proteína 2 asociada a la adenil ciclasa:
+
+Versión PROSITE:
+
+{line-numbers=off}
+```
+[LIVM] (2) -x-R-L- [DE] -x (4) -R-L-E
+```
+
+Versión REGEX:
+
+{line-numbers=off}
+```
+"[LIVM] {2} .RL [DE]. {4} RLE"
+```
+
+Supongamos que queremos encontrar un patrón de este tipo en una secuencia en formato FASTA. Además de encontrar el patrón, es posible que necesitemos recuperarlo en un contexto, es decir, 10 aminoácidos antes y 10 aminoácidos después del patrón. El siguiente es un archivo FASTA de muestra:
+
+{line-numbers=off}
+```
+>Q5R5X8|CAP2_PONPY CAP 2 - Pongo pygmaeus (Orangutan).
+MANMQGLVERLERAVSRLESLSAESHRPPGNCGEVNGVIGGVAPSVEAFDKLMDSMVAEF
+LKNSRILAGDVETHAEMVHSAFQAQRAFLLMASQYQQPHENDVAALLKPISEKIQEIQTF
+RERNRGSNMFNHLSAVSESIPALGWIAVSPKPGPYVKEMNDAATFYTNRVLKDYKHSDLR
+HVDWVKSYLNIWSELQAYIKEHHTTGLTWSKTGPVASTVSAFSVLSSGPGLPPPPPPPPP
+PGPPPLLENEGKKEESSPSRSALFAQLNQGEAITKGLRHVTDDQKTYKNPSLRAQGGQTR
+SPTKSHTPSPTSPKSYPSQKHAPVLELEGKKWRVEYQEDRNDLVISETELKQVAYIFKCE
+KSTLQIKGKVNSIIIDNCKKLGLVFDNVVGIVEVINSQDIQIQVMGRVPTISINKTEGCH
+IYLSEDALDCEIVSAKSSEMNILIPQDGDYREFPIPEQFKTAWDGSKLITEPAEIMA
+```
+
+El programa del Listado 13.6 (searchinfasta.py) lee el archivo FASTA:
+
+**Listado 13.6:** `searchinfasta.py`: Buscar un patrón en un archivo FASTA.
+
+```
+import re
+pattern = "[LIVM]{2}.RL[DE].{4}RLE"
+with open('../../samples/Q5R5X8.fas') as fh:
+  fh.readline() # Discard the first line.
+  seq = ""
+  for line in fh:
+    seq += line.strip()
+rgx = re.compile(pattern)
+result = rgx.search(seq)
+patternfound = result.group()
+span = result.span()
+leftpos = span[0]-10
+if leftpos<0:
+  leftpos = 0
+print(seq[leftpos:span[0]].lower() + patternfound +
+      seq[span[1]:span[1]+10].lower())
+```
+
+El resultado del programa es:
+
+{line-numbers=off}
+```
+manmqgLVERLERAVSRLEslsaeshrpp
+```
+
+**Explicación del código**: Hasta la línea 7, el programa lee el archivo FASTA y almacena la secuencia de la proteína (seq). En la línea 8 se compila el patrón definido en la línea 2. La búsqueda se realiza en la línea 9. A partir de la línea 10, el programa funciona para mostrar el resultado. Según lo solicitado, el patrón resultante se muestra en un contexto de 10 aminoácidos a cada lado de dicho patrón.
+
+### Limpiando una secuencia
+
+Es más que común encontrar un archivo con secuencias en un formato no estándar, como la siguiente secuencia:
+
+{line-numbers=off}
+```
+1	ATGACCATGA TTACGCCAAG CTCTAATACG ACTCACTATA GGGAAAGCTT GCATGCCTGC
+
+61	AGGTCGACTC TAGAGGATCT ACTAGTCATA TGGATATCGG ATCCCCGGGT ACCGAGCTCG
+
+121	AATTCACTGG CCGTCGTTTT
+```
+
+El siguiente código lee un archivo de texto con la secuencia en este formato y devuelve solo la secuencia, sin ningún carácter extraño (número o espacio en blanco):
+
+**Listado 13.7:** `cleanseq.py`: Limpiar una secuencia de ADN.
+
+```
+import re
+regex = re.compile(' |\d|\n|\t')
+seq = ''
+for line in open('../../samples/pMOSBlue.txt'):
+  seq += regex.sub('', line)
+print(seq)
+```
+
+El programa imprime:
+
+{line-numbers=off}
+```
+ATGACCATGATTACGCCAAGCTCTAATACGACTCACTATAGGGAAAGCTTGCATGCCTGCAGGTC <=
+GACTCTAGAGGATCTACTAGTCATATGGATATCGGATCCCCGGGTACCGAGCTCGAATTCACTGG <=
+CCGTCGTTTT
+```
+
+**Explicación del código**: La línea 2 define los caracteres que vamos a buscar para la eliminación. En este caso, los caracteres son: espacios en blanco, números, retorno de carro y pestañas. En las líneas 4 y 5, el programa analiza todas las líneas del archivo (`pMOSBlue.txt`) y remueve el patrón cada vez que lo encuentra.
+
+## RECURSOS ADICIONALES
+
+* [Jeffrey EF Friedl, Mastering Regular Expressions, Third Edition, 2006, O'Reilly Media.](http://shop.oreilly.com/product/9780596528126.do)
+
+* [Tony Stubblebine, Regular Expression Pocket Reference, Second Edition, 2007. O'Reilly Media.](http://www.oreilly.com/catalog/9780596514273/)
+
+* [The premier web site about regular expressions.](http://www.regular-expressions.info)
+
+* [Regular expressions in Java. Test your regular expressions online.](http://www.javaregex.com/test.html)
+
+* [Python regular expression builder. Pyreb is a wxPython GUI to the re python module; it will speed up the development of Python regular expression](http://savannah.nongnu.org/projects/pyreb)
+
+* [Python's hidden regular expression gems, by Armin Ronacher.](http://lucumr.pocoo.org/2015/11/18/pythons-hidden-re-gems/)
+
+* [Harry J Mangalam. tacg: a grep for DNA. BMC Bioinformatics 2002, 3:8.](http://www.biomedcentral.com/1471-2105/3/8)
+
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Qué es un REGEX?
+X>
+X> 2- ¿Cuál es la diferencia entre un grupo de "captura" y un grupo de "no captura"?
+X>
+X> 3- ¿Cómo se puede aplicar la búsqueda de patrones de texto a la biología?
+X>
+X> 4- La línea 13 del listado 13.6 (página 295) se verifica si el valor `leftpos` es menor que 0. ¿Por qué?
+X>
+X> 5- En la Lista 13.7, el patrón utilizado fue "| \ d | \ n | \ t". ¿Qué otra alternativa podría haber sido empleada?
+X>
+X> 6- Hacer un programa que recupere todos los números de teléfono encontrados en un archivo. Los números deben estar en el formato `nnn-nnn-nnnn`, donde **n** es un número.
+X>
+X> 7- Hacer un programa para recuperar cada correo electrónico que termina en **.com** presente en cada archivo en un directorio determinado.
+X>
+X> 8- Haga un programa para clasificar si una secuencia está hecha de ADN o aminoácidos. Sugerencia: las secuencias de ADN sólo pueden tener estos caracteres: "ATCGN".
+X>
+X> 9- Escribe un patrón REGEX para detectar un sitio de restricción HindII. Esta enzima reconoce la secuencia de ADN `GTYRAC` (donde "Y" significa "C" o "T" y "R" significa "G" o "A").
+X>
+X> 10- ¿Cuál es el significado del siguiente REGEX? Escribir una cadena que coincida con ella.
+X>
+X> `"[0-9] {1,4} / [0-9] {1,2} / [0-9] {1,2}"`
