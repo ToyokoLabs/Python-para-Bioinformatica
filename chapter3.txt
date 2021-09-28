@@ -1,0 +1,1267 @@
+{:: encoding="UTF-8" /}
+
+# Programación básica: Tipos de datos
+
+Como mencionamos en el capítulo anterior, algunas estructuras de datos se comparten entre diferentes lenguajes de programación, pero otras son particulares de cada lenguaje. Es por eso que los tipos de datos de alguna manera definen un lenguaje de computación. Python tiene sus tipos de datos característicos.
+Una de esas estructuras de datos fundamental es la secuencia. Dentro de una secuencia, los elementos tienen un orden secuencial. Por ejemplo, la cadena (**string**), que es una secuencia ordenada de caracteres. Otras secuencias son listas (**lists**) y tuplas (**tuples**)[^nota3-1]. Aunque existen diferencias fundamentales entre estos tipos de secuencias, comparten propiedades comunes. Los elementos de la secuencia tienen un orden, se pueden indexar, se pueden cortar en pedazos (slice) y se pueden recorrer sus elementos (iterar). No te preocupes si no entendés algunos de estos términos. Solo seguí leyendo, veremos todos estos puntos durante este capítulo.
+
+Además de las secuencias, también hay tipos de datos desordenados: diccionarios (*dictionaries*) y conjuntos (*sets*). Un diccionario[^nota3-2] almacena las relaciones entre una clave y un valor, mientras que un conjunto es simplemente una colección de valores desordenada. Las siguientes páginas se enfocan en tipos de datos ordenados (cadena, lista y tupla) y tipos no ordenados (diccionario y conjunto).
+
+[^nota3-1]: Hay más tipos de secuencias no abordados en este libro. Para más información sobre otros tipos de secuencias ver los Recursos Adicionales al final de este capítulo
+
+[^nota3-2]: También clasificado como un tipo de datos mapeado
+
+
+## CADENAS (Strings)
+
+Una cadena es una secuencia de símbolos delimitada por comillas simples ('), dobles ("),  triples simples (''') o triples dobles ("""). Las siguientes cadenas son equivalentes:
+
+{line-numbers=off}
+```
+"Esta es una cadena en Python"
+
+'Esta es una cadena en Python'
+
+'''Esta es una cadena en Python'''
+
+"""Esta es una cadena en Python"""
+
+```
+
+Puede parecer un poco redundante tener tantas formas de delimitar una cadena.
+
+La ventaja de tener dobles y simples comillas como delimitadores es que podemos insertar una comilla simple en una cadena delimitada por una comilla doble y viceversa:
+
+{line-numbers=off}
+```
+"Una comilla simple (') dentro comillas dobles"
+
+'Acá tenemos "dobles comillas" dentro de comillas simples'
+
+```
+
+Lo importante para recordar es que si nosotros empezamos la cadena con un tipo de comillas debemos terminar con el mismo tipo de comillas. La siguiente cadena no es válida:
+
+{line-numbers=off}
+```
+>>> "Mixing quote types leads to the dark side'
+  File "<stdin>", line 1
+    "Mixing quote types leads to the dark side'
+                                         ^
+SyntaxError: EOL while scanning single-quoted string
+```
+
+Nota: EOL (end-of-line) significa fin de línea.
+
+Respecto al delimitado de cadenas usando comillas triples podemos usarlo para indicar cadenas multilínea:
+
+{line-numbers=off}
+```
+"""Hi! I'm a
+multiline
+          string"""
+```
+
+El carácter '\n' representa un carácter de fin de línea (EOL). Por lo tanto el código de arriba podría ser escrito en una línea de la siguiente manera:
+
+{line-numbers=off}
+```
+"Hi! I'm a\nmultiline\n          string"
+```
+
+Podés usar comillas triples para crear y formatear una cadena como te gustaría que se vea en la pantalla. Hay otros usos para las triples comillas, como por ejemplo para la documentación.
+
+### Las cadenas son secuencias de caracteres Unicode
+
+Desde Python 3 todas las secuencias de cadenas son caracteres Unicode por defecto. Por ejemplo la siguiente es una cadena válida:
+
+{line-numbers=off}
+    >>> "En Python 3, los strings son Unicode: こんにちは 世界"
+    "En Python 3, los strings son Unicode: こんにちは 世界"
+
+
+Si te estás preguntando que es Unicode, es un estándar industrial que "provee las bases para el procesado, almacenado e intercambio de información en forma de texto en cualquiera de los lenguajes modernos de programación."[^nota3-3] Python 3 tiene soporte incorporado para Unicode, lo usas si la necesidad de hacer declaraciones explícitas o conversiones. Sin embargo, podés necesitar tomar algunas precauciones cuando lees o escribis información desde o asia fuentes externas.
+
+[^nota3-3]: Tomado de los FAQ de Unicode en <http://www.unicode.org/faq/basic_q.html>
+
+### Manipulación de cadenas
+
+Las cadenas son inmutables. Una vez que una cadena es creada no puede ser modificada. Si necesitas cambiar una cadena, lo que podes hacer es generar una cadena derivada y luego guardarla con el nombre anterior, reemplazando la original. En el siguiente ejemplo hay una cadena que representa una secuencia aminoacídica, llamada 'signal_peptide'.
+
+{line-numbers=off}
+    >>> signal_peptide = 'MASKATLLLAFTLLFATCIA'
+
+
+Para tener una versión en minúsculas de la cadena, se usa el método **lower()**:
+
+{line-numbers=off}
+    >>> signal_peptide.lower()
+    'maskatlllaftllfatcia'
+
+A pesar de haber obtenido la cadena en minúsculas, la cadena original no ha sido modificada, si llamamos a 'signal_peptide' vemos que tiene el mismo valor que antes:
+
+{line-numbers=off}
+    >>> signal_peptide
+    'MASKATLLLAFTLLFATCIA'
+
+Esto es porque el método **lower()** devuelve una nueva cadena. Si queremos que la nueva cadena en minúscula tenga el mismo nombre a la cadena previa se lo debemos asignar:
+
+{line-numbers=off}
+    >>> signal_peptide = signal_peptide.lower()
+    >>> signal_peptide
+    'maskatlllaftllfatcia'
+
+El efecto neto es como si hubiesemos modificado la cadena original. Es el momento de ver algunos métodos asociados con las cadenas.
+
+### Métodos asociados con cadenas
+
+**replace(old,new[,count])**: Nos permite reemplazar una porción de una cadena (*old*) por otra (*new*). Si se usa el argumento opcional **count**, serán reemplazadas solo en las primeras apariciones de *old*:
+
+{line-numbers=off}
+    >>> dna_seq = 'GCTAGTAATGTG'
+    >>> m_rna_seq = dna_seq.replace('T','U')
+    >>> m_rna_seq
+    'GCUAGUAAUGUG'
+
+**count(sub[,start[,end]])**: Cuenta cuántas veces aparece la subcadena sub entre las posiciones de inicio (start) y final (end) (si está disponible). Veamos cómo se puede usar para calcular el contenido CG[^nota3-CG] de una secuencia:
+
+[^nota3-CG]: El contenido CG es la cantidad de citosina y guanina en una secuencia de ADN. El contenido CG está relacionado con la temperatura de fusión del ADN y con otras propiedades físicas
+
+{line-numbers=off}
+```
+>>> dna_seq
+'GCTAGTAATGTG'
+>>> c = dna_seq.count("C")
+>>> g = dna_seq.count("G")
+>>> (c+g)/len(dna_seq)*100
+41.66666666666667
+```
+
+**find(sub[,start[,end]])**: Devuelve la posición de la subcadena sub entre la posición del comienzo (start) y el final (end) (si está disponible). Si la subcadena no se encuentra en la cadena, este método devuelve el valor -1:
+
+{line-numbers=off}
+```
+>>> m_rna_seq
+'GCUAGUAAUGUG'
+>>> m_rna_seq.find('AUG')
+7
+>>> m_rna_seq.find('GGG')
+-1
+```
+
+**index(sub[,start[,end]])**: Funciona como **find()**. La diferencia está en que **index()** dará una excepción **ValueError** cuando no se encuentre la subcadena. Este método es recomendado sobre **find()** porque el valor -1 podría ser interpretado como un valor válido, mientras un ValueError retornado por index() no puede ser tomado como un valor válido.
+
+**split([sep[,maxsplit]])**: Separa las "palabras" de una cadena y las retorna en una lista. Si el separador (sep) no está especificado, el separador por defecto será un espacio en blanco:
+
+{line-numbers=off}
+```
+>>> 'This string has words separated by spaces'.split()
+['This', 'string', 'has', 'words', 'separated', 'by', 'spaces']
+```
+
+Si un espacio en blanco no es el separador de la información, tenemos que especificar el separador específico. En el siguiente ejemplo el separador de los datos es la coma (,), pero si usamos **split()** sin argumentos, nos separa por el espacio en blanco:
+
+{line-numbers=off}
+```
+>>> "Alex Doe,5555-2333,nobody@example.com".split()
+['Alex', 'Doe,5555-2333,nobody@example.com']
+```
+
+No es una separación útil, ya que necesitamos separar por comas, por este motivo hay que usar **split(",")**:
+
+{line-numbers=off}
+```
+>>> "Alex Doe,5555-2333,nobody@example.com".split(",")
+['Alex Doe', '5555-2333', 'nobody@example.com']
+```
+
+
+T> ### Aplicación bioinformática: Parsear archivos de BLAST.
+T>
+T> Uno de los programas más usados en bioinformática es el NCBI-BLAST (este programa será visto en detalle mas adelante).
+T>
+T> El ejecutable independiente del BLAST puede generar un archivo de salida separado por tabs.
+T> (usando como argumento `-m 8`). Este archivo de salida puede ser parseado usando `split('\t')`.
+
+
+La función inversa de **split()** es **join()**:
+
+**join(seq)**: Une la secuencia usando una cadena a modo de un carácter pegajoso (glue character). En el siguiente ejemplo unimos tres cadenas en una usando el caracter punto y coma (;) a modo de carácter pegajoso:
+
+{line-numbers=off}
+    ';'.join(['Alex Doe', '5555-2333', 'nobody@example.com'])
+    'Alex Doe;5555-2333;nobody@example.com'
+
+Para unir una secuencia sin ningún caracter pegajoso usamos comillas vacías (""):
+
+{line-numbers=off}
+    >>> ''.join(['A','C','A','T'])
+    'ACAT'
+
+
+Para una descripción completa de los método de cadena, ver **help(str)** en la consola de Python.
+
+## LISTAS
+
+Las listas son uno de los tipos de objetos más versátiles en Python. Una lista es una colección de objetos. Está representada por elementos separados por comas y encerrados entre corchetes.
+Ya vimos una lista como un resultado de la aplicación de la función **split()**.
+
+{line-numbers=off}
+    >>> 'Alex Doe,5555-2333,hi@example.com'.split(',')
+    ['Alex Doe', '5555-2333', 'hi@example.com']
+
+Esta es una lista de tres elementos, 'Alex Doe', '5555-2333' y 'hi@example.com', todas cadenas.
+El siguiente código muestra cómo definir y llamar a una lista:
+
+{line-numbers=off}
+    >>> first_list = [1, 2, 3, 4, 5]
+
+Esta es una lista con cinco elementos. En este caso todos los elementos son del mismo tipo (entero). Una lista puede soportar diferentes tipos de elementos:
+
+{line-numbers=off}
+    >>> other_list = [1, 'two', 3, 4, 'last']
+
+Una lista puede incluso contener otra lista:
+
+{line-numbers=off}
+    >>> nested_list = [1, 'two', first_list, 4, 'last']
+    >>> nested_list
+    [1, 'two', [1, 2, 3, 4, 5], 4, 'last']
+
+Una lista vacía está definida usando corchetes vacíos:
+
+{line-numbers=off}
+    >>> empty_list = []
+    >>> empty_list
+    []
+
+Una lista vacía puede servir para agregar elementos más tarde.
+
+### Acceder a una lista de elementos
+
+Como otros tipos de datos, podés obtener los elementos de la lista desde un índice comenzando en cero.
+
+{line-numbers=off}
+    >>> first_list = [1, 2, 3, 4, 5]
+    >>> first_list[0]
+    1
+    >>> first_list[1]
+    2
+
+Se pueden usar números negativos para acceder a las listas desde la derecha. Notá que en este caso el primer elemento (contando desde la derecha) es -1:
+
+{line-numbers=off}
+    >>> first_list = [1, 2, 3, 4, 5]
+    >>> first_list[-1]
+    5
+    >>> first_list[-4]
+    2
+
+Otra forma de obtener las listas es convertir un objeto, que no sea una lista, en una lista mediante la función incorporada **list()**. En este caso obtenemos una lista a partir de una cadena:
+
+{line-numbers=off}
+    >>> aseq = "atggctaggc"
+    >>> list(aseq)
+    ['a', 't', 'g', 'g', 'c', 't', 'a', 'g', 'g', 'c']
+
+### Una lista con múltiples items repetidos.
+
+Si queres inicializar una lista con el mismo ítem repetido múltiples veces podes usar el operador `*` como vemos en el siguiente ejemplo:
+
+{line-numbers=off}
+    >>> samples = [None] * 5
+    >>> samples
+    [None, None, None, None, None]
+
+
+### Listas por comprensión
+
+Hay otra forma de definir una lista. Se puede crear una lista a partir de otra lista. Al igual que en la matemática donde se puede definir un conjunto enumerando todos sus elementos (enumeración) o describiendo las propiedades compartidas por sus miembros (comprensión), en Python se puede crear una lista con ambos métodos.
+Un conjunto definido por enumeración,
+
+{line-numbers=off}
+    A = {0,1,2,3,4,5}
+
+Una lista definida por enumeración en Python:
+
+{line-numbers=off}
+    >>> a = [0, 1, 2, 3, 4, 5]
+
+Un conjunto definido por comprensión,
+
+{line-numbers=off}
+    B = {3 ∗ x/x ∈ A}
+
+Esto es equivalente a,
+
+{line-numbers=off}
+    B = {0,3,6,9,12,15}
+
+Una lista definida por comprensión en Python:
+
+{line-numbers=off}
+    >>> [3*x for x in a]
+    [0, 3, 6, 9, 12, 15]
+
+Cualquier función o método de Python se puede usar para definir una lista por comprensión. Por ejemplo, a partir de una lista de cadenas, hagamos una lista con los mismos elementos pero sin espacios en blanco ni al final ni al principio:
+
+{line-numbers=off}
+    >>> animals = ['  King Kong', '  Godzilla ', 'Gamera  ']
+    >>> [x.strip() for x in animals]
+    ['King Kong', 'Godzilla', 'Gamera']
+
+Podemos agregar una declaración condicional (**if**) para reducir el conjunto resultado:
+
+{line-numbers=off}
+    >>> animals = ['  King Kong', '  Godzilla ', 'Gamera  ']
+    >>> [x.strip() for x in animals if 'i' in x]
+    ['King kong', 'Godzilla']
+
+### Modificando listas
+
+A diferencia de las cadenas, las listas pueden ser modificadas[^nota3-4] agregando, removiendo o cambiando elementos:
+
+[^nota3-4]: Las listas son llamadas "mutables" en la jerga de Python
+
+**Agregar**
+
+Hay 3 formas de agregar elementos en una lista: append, insert y extend.
+
+**append(element)**: Agrega un elemento al final de la lista.
+
+{line-numbers=off}
+    >>> first_list
+    [1, 2, 3, 4, 5]
+    >>> first_list.append(99)
+    >>> first_list
+    [1, 2, 3, 4, 5, 99]
+
+**insert(position, element)**: Inserta el elemento *element* en la posición *position*.
+
+{line-numbers=off}
+    >>> first_list.insert(2,50)
+    >>> first_list
+    [1, 2, 50, 3, 4, 5, 99]
+
+**extend(list)**: Extiende la lista agregando una lista al final  de la lista original.
+
+{line-numbers=off}
+    >>> first_list.extend([6,7,8])
+    >>> first_list
+    [1, 2, 50, 3, 4, 5, 99, 6, 7, 8]
+
+Es igual que usar el símbolo + :
+
+{line-numbers=off}
+    >>> [1,2,3]+[4,5]
+    [1, 2, 3, 4, 5]
+
+**Remover**
+
+Hay tres maneras de remover elementos de una lista.
+
+**pop([index])**: Remueve el elemento en la posición del índice y lo retorna al punto donde fue llamado. Sin parámetros retorna el último elemento.
+
+{line-numbers=off}
+    >>> first_list
+    [1, 2, 50, 3, 4, 5, 99, 6, 7, 8]
+    >>> first_list.pop()
+    8
+    >>> first_list.pop(2)
+    50
+    >>> first_list
+    [1, 2, 3, 4, 5, 99, 6, 7]
+
+
+**remove(element)**: Remueve el elemento especificado en el parámetro. En los casos donde hay más de una copia del mismo objeto en la lista, se remueve el primer objeto contando desde la izquierda. A diferencia de pop(), esta función no retorna nada.
+
+{line-numbers=off}
+    >>> first_list.remove(99)
+    >>> first_list
+    [1, 2, 3, 4, 5, 6, 7]
+
+Tratar de remover un objeto inexistente dará un error[^nota3-5]:
+
+[^nota3-5]: En el capítulo 7 hay una descripción más detallada de las excepciones.
+
+{line-numbers=off}
+    >>> first_list
+    [1, 2, 3, 4, 5, 6, 7]
+    >>> first_list.remove(10)
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in ?
+    ValueError: list.remove(x): x not in list
+
+Otra forma de remover un elemento de una lista es usando el comando **del**, como:
+
+{line-numbers=off}
+    >>> del first_list[0]
+
+Esto tiene un efecto similar a:
+
+{line-numbers=off}
+    >>> first_list.pop(0)
+
+Con la diferencia que **pop()** retorna el elemento extraído a donde fue llamado, mientras **del** solo lo borra[^nota3-6].
+
+
+[^nota3-6]: El objeto no es borrado. Lo que realmente sucede es que la referencia entre el objeto y su dirección se pierde. Para el programador, esta acción tiene el mismo efecto que si fuera borrado (no es posible obtener acceso al objeto). Eventualmente, el "Python garbage collector" se encargará de eliminarlo de una forma transparente y automática.
+
+La siguiente tabla resume las propiedades de las listas.
+
+|Método     |Descripción                                  |
+|-----------|---------------------------------------------|
+|l.append(x)|Agrega el elemento *x* a la lista *l*        |
+|l.count(x) |Cuenta cuantas veces *x* está en la lista *l*|
+|l.index(x) |Devuelve la posición de *x* en la lista *l*  |
+|l.remove(x)|Remueve el elemento *x* de la lista *l*      |
+|l.reverse()|Invierte la lista *l*                        |
+|l.sort()   |Ordena la lista *l*                          |
+
+### Copiar una lista
+
+Copiar una lista puede ser dificultoso. En el siguiente código copiaremos una lista *a* en *b* y cuando modificamos *b* para remover un elemento, este elemento también se removerá de *a*:
+
+{line-numbers=off}
+    >>> a = [1, 2, 3]
+    >>> b = a
+    >>> b.pop()
+    3
+    >>> b
+    [1, 2]
+    >>> a
+    [1, 2]
+
+Como vimos "=" no copia los valores sino que copia una referencia al objeto original. Para copiar una lista debes usar el método **copy** en el módulo **copy**:
+
+{line-numbers=off}
+    >>> import copy
+    >>> a = [1, 2, 3]
+    >>> b = copy.copy(a)
+    >>> b.pop()
+    3
+    >>> b
+    [1, 2]
+    >>> a
+    [1, 2, 3]
+
+Hay una manera de obtener lo mismo sin usar el módulo **copy**:
+
+{line-numbers=off}
+    >>> a = [1, 2, 3]
+    >>> b = a[:]
+    >>> b.pop()
+    3
+    >>> b
+    [1, 2]
+    >>> a
+    [1, 2, 3]
+
+## TUPLAS
+
+### Las tuplas son listas inmutables
+
+Una tupla es una colección de objetos ordenados con la característica que una vez creados no pueden ser modificados. Es por eso que se las conoce como "listas inmutables". Los objetos de Python se pueden dividir en mutables e inmutables. Como su nombre lo indica, los objetos inmutables no se pueden modificar después de su creación. Podes distinguir fácilmente una tupla de una lista dado que los elementos de la tupla están encerrados entre paréntesis en lugar de corchetes:
+
+{line-numbers=off}
+    >>> point = (23, 56, 11)
+
+`point` es una tupla con tres elementos (23, 56 y 11).
+Cuando la tupla tiene solo un elemento deberías usar una coma final:
+
+{line-numbers=off}
+    >>> lone_element_tuple = (5,)
+
+Esto se hace para evitar la ambigüedad de tener (5) que significa 5 (número cinco), ya que los paréntesis alrededor de una expresión son ignorados. Con la coma y los paréntesis finales el intérprete de Python puede decir que es una tupla y no una expresión.
+No esta permitido agregar o eliminar elementos de una tupla, esto es lo que ocurre cuando lo intentamos:
+
+{line-numbers=off}
+    >>> point.append(3)
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in ?
+    AttributeError: 'tuple' object has no attribute 'append'
+    >>> point.pop()
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in ?
+    AttributeError: 'tuple' object has no attribute 'pop'
+
+En cierta forma, una tupla es como una lista limitada (limitada en el sentido de que no podemos modificarla). Entonces, ¿para qué sirven las tuplas? ¿por qué no usar una lista en lugar de una tupla?
+Existe una diferencia conceptual entre los tipos de datos almacenados como una tupla y los datos almacenados como una lista. Las listas deben contener una cantidad variable de objetos del mismo tipo de datos. Una lista puede almacenar una lista que contiene los nombres de archivo de todos los archivos en un directorio. Todos los elementos son del mismo tipo (cadena) y la cantidad de elementos en la lista cambia según cada directorio. El orden de los elementos dentro de esta lista no es relevante.
+Por otro lado, un ejemplo típico de una tupla es un sistema de coordenadas. En un sistema de coordenadas tridimensional, cada punto se refiere a una tupla de tres elementos (x, y, z). El número de elementos para cada tupla no cambia (ya que siempre hay tres coordenadas), y cada posición es importante ya que cada punto corresponde a un eje específico.
+Podemos decir lo mismo con respecto a los elementos que se devuelven desde una función o una clave de diccionario[^nota3-devuelven]. Otra ventaja de la tupla es que se puede usar para crear un código más seguro: la información que no queremos cambiar permanece "protegida contra escritura", en una tupla inmutable.
+Las tuplas ocupan menos memoria que las listas y cuando se trabaja con grandes volúmenes de datos esto puede ser significativo. La velocidad de las operaciones que involucran tuplas son más rápida que la de las listas. Si bien esto último puede ser cierto, en casos específicos,  este hecho por sí solo no debe ser una consideración importante a la hora de elegir entre una lista o una tupla.
+
+[^nota3-devuelven]: Esto tendrá más sentido cuando veamos más adelante funciones y diccionarios.
+
+## PROPIEDADES COMUNES DE LAS SECUENCIAS
+
+Dado que las secuencias comparten propiedades comunes las veremos juntas. Podemos aplicar estas propiedades a las listas, las tuplas y a las cadenas.
+
+**Indexar**
+
+La indexación la discutimos cuando se trataron las listas, pero para ser más completa exhaustivos también la trataremos acá. Dado que los elementos en las secuencias están ordenados, podemos obtener acceso a cualquier elemento a través de un índice que comienza en cero:
+
+{line-numbers=off}
+    >>> point = (23, 56, 11)
+    >>> point[0]
+    23
+    >>> point[1]
+    56
+    >>> sequence = 'MRVLLVALALLALAASATS'
+    >>> sequence[0]
+    'M'
+    >>> sequence[5]
+    'V'
+    >>> parameters = ['UniGene', 'dna', 'Mm.248907', 5]
+    >>> parameters[2]
+    'Mm.248907'
+
+Podemos también acceder a los elementos de una secuencia desde la derecha usando números negativos:
+
+{line-numbers=off}
+    >>> point[-1]
+    11
+    >>> point[-2]
+    56
+    >>> my_sequence[-2]
+    'T'
+    >>> my_sequence[-4]
+    'S'
+    >>> my_sequence[-1]
+    5
+
+Para acceder a un elemento que está en el interior de una secuencia, el cual está también en otra secuencia, necesitamos usar otro índice:
+
+{line-numbers=off}
+    >>> seqdata = ('MRVLLVALALLA', 12, '5FE9EEE8EE2DC2C7')
+    >>> seqdata[0][5]
+    'V'
+
+El primer índice (0) indica que estamos accediendo al primer elemento de `seqdata`. El segundo índice (5) se refiere al sexto elemento ('V') del primer elemento (`'MRVLLVALALLA'`)
+
+**Rebanar (slicing)**
+
+Pódes seleccionar una porción de una secuencia usando *slice notation*. Rebanar consiste en usar dos índices separados por dos puntos (:). Estos índices representan una posición entre los espacios de los elementos. La cadena "Python" puede ser representado como,
+
+{line-numbers=off}
+```
++---+---+---+---+---+---+
+| P | y | t | h | o | n |
++---+---+---+---+---+---+
+0   1   2   3   4   5   6
+```
+
+Cuando omitimos el primer subíndice, el valor por defecto es la primera posición (0):
+
+{line-numbers=off}
+    >>> my_sequence[:2]
+    'Py'
+
+Por otro lado cuando omitimos el segundo subíndice, el valor por defecto es la última posición (`-1`):
+
+{line-numbers=off}
+    >>> my_sequence = "Python"
+    >>> my_sequence[4:6]
+    'on'
+    >>> my_sequence[4:]
+    'on'
+
+Hay un tercer índice opcional para omitir posiciones (argumento de salto):
+
+{line-numbers=off}
+    >>> my_sequence[1:5]
+    'ytho'
+    >>> my_sequence[1:5:2]
+    'yh'
+
+Un salto con un número negativo se usa para contar hacia atrás. Entonces `-1` (en la tercera posición) se puede usar para invertir una secuencia:
+
+{line-numbers=off}
+    >>> my_sequence[::-1]
+    'nohtyP'
+
+Tené en cuenta que rebanar siempre retorna otra secuencia.
+
+**Prueba de pertenencia**
+
+Puede verificar si un elemento pertenece a una secuencia, usando la palabra clave **in**:
+
+{line-numbers=off}
+    >>> point = (23, 56, 11)
+    >>> 11 in point
+    True
+    >>> my_sequence = 'MRVLLVALALLALAASATS'
+    >>> 'X' in my_sequence
+    False
+
+**Concatenar**
+
+Podes concatenar dos o más secuencias de la misma clase usando el signo "+":
+
+{line-numbers=off}
+    >>> point = (23, 56, 11)
+    >>> point2 = (2, 6, 7)
+    >>> point + point2
+    (23, 56, 11, 2, 6, 7)
+    >>> dna_seq = 'ATGCTAGACGTCCTCAGATAGCCG'
+    >>> tata_box = 'TATAAA'
+    >>> tata_box + dna_seq
+    'TATAAAATGCTAGACGTCCTCAGATAGCCG'
+
+No se puede concatenar secuencias de distinto tipos:
+
+{line-numbers=off}
+    >>> point + tata_box
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    TypeError: can only concatenate tuple (not "str") to tuple
+
+**len, max y min**
+
+**len()** devuelve la longitud (el número de ítems) de una secuencia:
+
+{line-numbers=off}
+    >>> point = (23, 56, 11)
+    >>> len(point)
+    3
+    >>> my_sequence = 'MRVLLVALALLALAASATS'
+    >>> len(my_sequence)
+    19
+
+**max()** y **min()** aplicados sobre una secuencia de números devuelven, como es esperable, el valor máximo y el valor mínimo:
+
+{line-numbers=off}
+    >>> point
+    (23, 56, 11)
+    >>> max(point)
+    56
+    >>> min(point)
+    11
+
+**max()** y **min()** aplicados a las cadenas devuelven un carácter de acuerdo con el valor máximo o con el valor mínimo de su código ASCII:
+
+{line-numbers=off}
+    >>> my_sequence = 'MRVLLVALALLALAASATS'
+    >>> max(my_sequence)
+    'V'
+    >>> min(my_sequence)
+    'A'
+
+**Convertir una secuencia en una lista**
+
+Para convertir una secuencia (como una tupla o una cadena) en una lista usamos el método **list()**:
+
+{line-numbers=off}
+    >>> tata_box = 'TATAAA'
+    >>> list(tata_box)
+    ['T', 'A', 'T', 'A', 'A', 'A']
+
+El uso de una lista nos proporciona métodos para modificar indirectamente una cadena. Como las listas, a diferencia de las cadenas, son mutables, podemos convertir una cadena en una lista, modificar esta lista y luego convertirla nuevamente en una cadena usando **join()** . Este proceso no es eficiente, por lo que sugiero que siempre que sea posible, se usen propiedades de cadena para obtener otra cadena.
+
+## DICCIONARIOS
+
+### Mapear: Llamar a cada valor por un nombre
+
+Los diccionarios son un tipo de datos especial que no está presente en todos los lenguajes de programación. La característica principal de un diccionario es que almacena tipos de datos desordenados e indexados de manera arbitraria.
+Este ejemplo nos muestra por qué este tipo de datos se llama diccionario:
+
+{line-numbers=off}
+    >>> iupac = {'A':'Ala', 'C':'Cys', 'E':'Glu'}
+    >>> 'C representa al aminoacido {}'.format(iupac['C'])
+    C representa al aminoacido Cys
+
+En este caso, `iupac` es el nombre de un diccionario con tres elementos. Se define por pares de valores, *clave:valor*, entre llaves ({}).
+Este diccionario funciona como una tabla de traducción que permite traducir entre el código de aminoácidos de una letra al código de tres letras. Cada elemento consiste de una par *clave:valor*. La clave es el índice usado para recuperar el valor.
+
+{line-numbers=off}
+    >>> iupac['E']
+    'Glu'
+
+No todos los objetos se pueden usar como una clave de diccionario. Solo los objetos inmutables como: cadenas, tuplas y números pueden ser usados como claves. Si la tupla contiene cualquier objeto mutable, no se puede usar como clave.
+También se puede crear un diccionario a partir de una secuencia con *dict*:
+
+{line-numbers=off}
+    >>> rgb = [('red','ff0000'), ('green','00ff00'), ('blue','0000ff')]
+    >>> colors_d = dict(rgb)
+    >>> colors_d
+    {'red': 'ff0000', 'blue': '0000ff', 'green': '00ff00'}
+
+**dict** también acepta pares del tipo nombre = valor en la lista de argumentos de palabra clave:
+
+{line-numbers=off}
+    >>> rgb = dict(red='ff0000', green='00ff00', blue='0000ff')
+    >>> rgb
+    {'blue': '0000ff', 'green': '00ff00', 'red': 'ff0000'}
+
+Otra forma de inicializar un diccionario es crear un diccionario vacío y agregar los elementos cuando sea necesario:
+
+{line-numbers=off}
+    >>> rgb = {}
+    >>> rgb['red'] = 'ff0000'
+    >>> rgb['green'] = '00ff00'
+    >>> rgb
+    {'green': '00ff00', 'red': 'ff0000'}
+
+**len()** retorna el número de elementos de un diccionario:
+
+{line-numbers=off}
+    >>> len(iupac)
+    3
+
+Para agregar valores a un diccionario,
+
+{line-numbers=off}
+    >>> iupac['S'] = 'Ser'
+    >>> len(iupac)
+    4
+
+Los diccionarios no están ordenados porque no hacen un seguimiento del orden de sus elementos. Cuando solicitamos ver los contenidos del diccionario podemos obtener los elementos en un orden diferente al que fueron ingresados:
+
+{line-numbers=off}
+```
+>>> iupac = {'A':'Ala','C':'Cys','E':'Glu'}
+>>> iupac
+{'E': 'Glu', 'C': 'Cys', 'A': 'Ala'}
+```
+
+Cuando se ingresa un nuevo elemento, este no es insertado en un lugar en particular (por ejemplo al final del diccionario), ya que no existe un orden, o al menos, no está garantizado:
+
+{line-numbers=off}
+```
+>>> iupac['X'] = 'Xaa'
+>>> iupac
+{'E': 'Glu', 'X': 'Xaa', 'C': 'Cys', 'A': 'Ala'}
+```
+
+No debemos confiar en un diccionario para hacer un seguimiento del orden de los elementos. Si necesitamos un diccionario ordenado, tenemos que usar **OrderedDict** [^nota-dict]:
+
+[^nota-dict]: En Python 3.7 los diccionarios si mantienen el order, pero si uno no está seguro en que versión de Python se va a ejecutar nuestro programa, lo mas seguro es asumir que no hay orden en los diccionarios y usar el método **OrderedDict** si deseamos mantener el orden.
+
+{line-numbers=off}
+```
+>>> from collections import OrderedDict
+>>> d = OrderedDict()
+>>> d['a'] = 'A'
+>>> d['b'] = 'B'
+>>> d['c'] = 'C'
+>>> d
+OrderedDict([('a', 'A'), ('b', 'B'), ('c', 'C')])
+```
+
+Para más información sobre OrderedDict ver PEP-372 en https://www.python.org/dev/peps/pep-0372.
+Los tipos de datos integrados que se encuentran en este capítulo son suficientes para la mayoría de los usuarios, pero para usos más avanzados hay un módulo de terceros para tratar con el contenido ordenado: **SortedContainers**.[^nota-order] Hay que chequearlo cuando necesitemos una solución rápida y optimizada de memoria para el uso de contenedores clasificados de grandes cantidades de datos.
+
+[^nota-order]: http://www.grantjenks.com/docs/sortedcontainers/
+
+### Operaciones con diccionarios
+
+Como las listas, los diccionarios tienen sus métodos propios.
+
+**Los diccionarios están compuestos de claves y valores**
+
+Para obtener las claves o los valores de un diccionario existen los métodos: **keys()** y **values()**:
+
+{line-numbers=off}
+```
+>>> iupac
+{'E': 'Glu', 'X': 'Xaa', 'C': 'Cys', 'A': 'Ala'}
+>>> iupac.keys()
+dict_keys(['E', 'X', 'C', 'A'])
+>>> iupac.values()
+dict_values(['Glu', 'Xaa', 'Cys', 'Ala'])
+```
+
+Observá que estos métodos no retornan una lista (que era lo que sucedía antes de Python 3) sino que retornan un objeto especial llamado **dictionary views**. Este objeto muestra las claves o los valores actuales. Si hay cambios en el diccionarios estos se verán reflejados en el **dictionary views**:
+
+{line-numbers=off}
+```
+>>> iupac.values()
+dict_values(['Glu', 'Xaa', 'Cys', 'Ala'])
+>>> iupac.keys()
+dict_keys(['E', 'X', 'C', 'A'])
+>>> iupac_keys = iupac.keys()
+>>> iupac_vals = iupac.values()
+>>> iupac.pop('X')
+'Xaa'
+>>> iupac_keys
+dict_keys(['E', 'A', 'C'])
+>>> iupac_vals
+dict_values(['Glu', 'Cys', 'Ala'])
+```
+
+Esto puede ser útil cada vez que necesitamos las claves o los valores en múltiples partes de un programa, sin la necesidad de recalcular las claves o los valores cada vez que son usados.
+Otra forma de acceder a los elementos de un diccionario es usando **items()**.
+**items()** retorna un dictionary view con una tupla para cada par clave/valor:
+
+{line-numbers=off}
+```
+>>> iupac = {'E': 'Glu', 'X': 'Xaa', 'C': 'Cys', 'A': 'Ala'}
+>>> iupac.items()
+dict_items([('E', 'Glu'), ('A', 'Ala'), ('C', 'Cys'), ('X', 'Xaa')])
+```
+
+**Consultar los valores de un diccionario**
+
+Para consultar un valor de un diccionario sin el riesgo de invocar una excepción se usa **get(*k*,*x*)**. *k* es la clave del elemento a extraer, mientras que *x* es el elemento que se devolverá en caso de que *k* no se encuentre como una clave del diccionario:
+
+{line-numbers=off}
+```
+>>> iupac = {'E': 'Glu', 'X': 'Xaa', 'C': 'Cys', 'A': 'Ala'}
+>>> iupac.get('A','No translation available')
+'Ala'
+>>> iupac.get('Z','No translation available')
+'No translation available'
+```
+
+
+Si omitimos *x* (el segundo parámetro) y no hay ninguna *k* clave en el diccionario, el método retorna **None**
+
+{line-numbers=off}
+```
+>>> iupac.get('Z')
+None
+```
+
+**Borrando elementos**
+
+Para borrar los elementos de un diccionario usamos la instrucción **del**:
+
+{line-numbers=off}
+```
+>>> iupac = {'E': 'Glu', 'X': 'Xaa', 'C': 'Cys', 'A': 'Ala'}
+>>> del iupac['A']
+>>> iupac
+{'C': 'Cys', 'X': 'Xaa', 'E': 'Glu'}
+```
+
+TABLA 3.2 Métodos asociados con diccionarios
+
+| Propiedades   | Descripción    |
+| --------- |----------------|
+| len(d)   | Número de elementos de *d*   |
+| d[k]   | El elemento de *d* que tiene una clave *k*   |
+| d[k] = v   |  Establecer d[k] a *v*   |
+| del d[k]   | Eliminar d[k] de *d*   |
+| d.clear()  | Eliminar todos los elementos de *d*  |
+| d.copy()   | Copiar *d*   |
+| k in d   | Verdadero si *d* tiene una clave *k*, si no Falso   |
+| k not in d   | Equivalente a no *k* en *d*   |
+| d.has_key(k)   | Equivalente a *k* en *d*, usar esa forma en el nuevo código   |
+| d.items()   | Una copia de la lista de pares de (clave, valor) de *d*.   |
+| d.keys()   | Una copia de la lista de claves de *d*   |
+| d.update([b])   | Actualiza (y sobrescribe) pares de clave / valor de *b*   |
+| d.fromkeys(seq[, valor])   | Crea diccionario con claves de *seq* y valores de *value*   |
+| d.values()   | Una copia de la lista de valores de *d*   |
+| d.get(k[, x])   | d[k], si *k* en *d*, sino *x*   |
+| d.setdefault(k[, x])   | d[k], si *k* en *d*, sino *x* (también configurándolo)   |
+| d.pop(k[, x])   | d[k] si *k* en *d*, sino *x* (y eliminar *k*)   |
+| d.popitem()   | Eliminar y devolver un par arbitrario (clave, valor)   |
+
+
+## CONJUNTOS
+
+### Colección desordenada de objetos
+
+Este tipo de datos tampoco se encuentra comúnmente en otros lenguajes de programación. Un conjunto es una estructura que vemos con frecuencia en la matemática. Los conjuntos son similares a las listas, con dos diferencias destacadas: sus elementos no conservan un orden implícito y cada elemento es único.
+Los usos más comunes de los conjuntos son las pruebas de membresía, la eliminación de duplicados y la aplicación de operaciones matemáticas: intersecciones, uniones, diferencias y diferencias simétricas.
+
+**Creando un conjunto**
+
+Los conjuntos son creados con la instrucción **set()**:
+
+{line-numbers=off}
+```
+>>> first_set = {'CP0140.1','XJ8113.5','EF3616.3'}
+```
+
+Es también posible crear un conjunto vacío y luego agregar tantos elementos como hagan falta:
+
+{line-numbers=off}
+```
+>>> first_set = set()
+>>> first_set.add('CP0140.1')
+>>> first_set.add('XJ8113.5')
+>>> first_set.add('EF3616.3')
+>>> first_set
+{'CP0140.1','XJ8113.5','EF3616.3'}
+```
+
+Podemos definir un conjunto por comprensión como lo hicimos en una lista:
+
+{line-numbers=off}
+```
+>>> {2*x for x in [1,2,3]}
+{2, 4, 6}
+```
+
+Dado que un conjunto **(set)** no acepta elementos repetidos no hay efecto cuando tratas de agregar un elemento que ya está en el conjunto:
+
+{line-numbers=off}
+```
+>>> first_set
+{'CP0140.1', 'XJ8113.5', 'EF3616.3'}
+>>> first_set.add('CP0140.1')
+>>> first_set
+{'CP0140.1', 'XJ8113.5', 'EF3616.3'}
+```
+
+Esta propiedad puede ser usada para remover elementos duplicados de una lista:
+
+{line-numbers=off}
+```
+>>> uniques = {2, 2, 3, 4, 5, 3}
+>>> uniques
+{2, 3, 4, 5}
+```
+
+
+### Operaciones de conjuntos
+
+**Intersección**
+
+Para obtener los elementos en común de dos conjuntos (como se ve en la figura 3.1) se usa el operador **intersection()**:
+
+{line-numbers=off}
+```
+>>> first_set = {'CP0140.1', 'XJ8113.5', 'EF3616.3'}
+>>> other_set = {'EF3616.3'}
+>>> common = first_set.intersection(other_set)
+>>> common
+{'EF3616.3'}
+```
+
+Es equivalente a &:
+
+{line-numbers=off}
+```
+>>> common = first_set & other_set
+>>> common
+{'EF3616.3'}
+```
+
+{width=50%}
+![**Figura 3.1** Intersección.](images/intersection.png)
+
+**Unión**
+
+La unión de dos (o más) conjuntos es el operador **union** (como se ve en la figura 3.2) y se abrevia de la forma | :
+
+{line-numbers=off}
+```
+>>> first_set = {'CP0140.1', 'XJ8113.5', 'EF3616.3'}
+>>> other_set = {'AB7416.2'}
+>>> first_set.union(other_set)
+{'CP0140.1', 'XJ8113.5', 'EF3616.3', 'AB7416.2'}
+>>> first_set | other_set
+{'CP0140.1', 'XJ8113.5', 'EF3616.3', 'AB7416.2'}
+```
+
+{width=50%}
+![**Figura 3.2** Unión.](images/unionNEW.png)
+
+
+**Diferencia**
+
+Una diferencia es el conjunto resultante de los elementos pertenecientes a un conjunto pero no al otro conjunto (Ver la figura 3.3).  Su abreviación es `-`:
+
+{line-numbers=off}
+```
+>>> first_set.difference(other_set)
+{'CP0140.1', 'XJ8113.5', 'EF3616.3'}
+>>> first_set - other_set
+{'CP0140.1', 'XJ8113.5', 'EF3616.3'}
+>>> other_set - first_set
+{'AB7416.2'}
+```
+
+{width=50%}
+![**Figura 3.3** Diferencia.](images/difference.png)
+
+
+**Diferencia simétrica**
+
+La diferencia simétrica se refiere a esos elementos que no forman parte de la intersección (Ver la figura 3.4), su operador es symmetric_difference y su abreviación es `ˆ`:
+
+{line-numbers=off}
+```
+>>> first_set.symmetric_difference(other_set)
+{'CP0140.1', 'XJ8113.5', 'EF3616.3', 'AB7416.2'}
+>>> first_set ^ other_set
+set(['EF3616.2', 'CP0140.1', 'CP0140.2', 'EF3616.1'])
+```
+
+{width=50%}
+![**Figura 3.4** Diferencia simétrica.](images/symmetricdifference.png)
+
+
+### Operaciones compartidas con otros tipos de datos
+
+**Máximo, mínimo y longitud**
+
+Los conjuntos comparten las mismas propiedades con las secuencias tales como: **max**, **min**, **len**, **in**, etc. Como es esperable estas propiedades se comportan de la misma manera en los conjuntos.
+
+**Convertir un conjunto en una lista**
+
+Como ocurre con las cadenas, los conjuntos pueden transformarse en listas con la función **list()**:
+
+{line-numbers=off}
+```
+>>> first_set
+{'CP0140.1', 'XJ8113.5', 'EF3616.3'}
+>>> list(first_set)
+['CP0140.1', 'XJ8113.5', 'EF3616.3']
+```
+
+Tipea `help(set())` en la consola de Python para ver todos los métodos asociados a los conjuntos.
+
+### Conjunto inmutable: frozenset
+
+**frozenset** es la versión inmutable de un conjunto. Su contenido no puede ser modificado por lo tanto los métodos como **add()** y **remove()** no están disponibles. Esto es generado con el objeto **frozenset** que toma como entrada un iterable:
+
+{line-numbers=off}
+```
+>>> fs = frozenset(['a','b'])
+>>> fs
+frozenset({'a', 'b'})
+>>> fs.remove('a')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'frozenset' object has no attribute 'remove'
+>>> fs.add('c')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'frozenset' object has no attribute 'add'
+```
+
+Como los frozensets son inmutables pueden ser usados como clave de un diccionario.
+
+## NOMBRANDO OBJETOS
+
+Los nombres válidos contienen letras, números y guiones bajos ( _ ), pero ellos no pueden comenzar con números. Los nombres no pueden ser "palabras reservadas del lenguaje" tales como:
+
+
+| `False` | `class` | `finally` | `is` | `return` |
+| `None` | `continue` | `for` | `lambda` | `try` |
+| `True` | `def` | `from` | `nonlocal` | `while` |
+| `and`	| `del` | `global` | `not` | `with` |
+| `as` | `elif` |	`if` | `or` | `yield` |
+| `assert` | `else` |	`import` | `pass` |
+| `break` | `except` | `in` | `raise` |
+
+
+Acá un ejemplo de nombres inválidos con la explicación en los comentarios:
+
+{line-numbers=off}
+```
+>>> 23crm = "1" # comienza con un número
+>>> 23 = "1" # comienza con un número
+>>> Var? = "value" # tiene un caracter inválido (?)
+>>> $five = 5 # tiene un caracter inválido ($)
+>>> for = 123 # usa una palabra reservada (for)
+>>> if = "data" # usa una palabra reservada (if)
+```
+
+Hemos visto muchos nombres asignados hasta este momento:
+
+{line-numbers=off}
+```
+>>> my_sequence = 'MRVLLVALALLALAASATS'
+>>> first_list = [1,2,3,4,5]
+>>> d = {1:'a',2:'b',3:'c'}
+>>> k = d.keys()
+>>> point = (23,56,11)
+>>> first_set = {'CP0140.1','XJ8113.5','EF3616.3'}
+>>> fs = frozenset(['a','b'])
+```
+
+Todos ellos son nombres válidos. También hay convenciones para los nombres que deben seguirse para mejorar la legibilidad del código. Estas convenciones forman parte de la Guía de estilo de Python.[^nota3-7] Según esta guía, los nombres deben escribirse en minúscula, con palabras separadas por guiones bajos según sea necesario para mejorar la legibilidad.
+
+[^nota3-7]: Disponible en https://www.python.org/dev/peps/pep-0008/
+
+## ASIGNANDO UN VALOR A UNA VARIABLE VERSUS UNIR UN NOMBRE A UN OBJETO
+
+Las siguientes declaraciones se pueden considerar como una asignación de variable:
+
+{line-numbers=off}
+```
+>>> a = 3
+>>> b = [1, 2, a]
+```
+
+Esta también:
+
+{line-numbers=off}
+```
+>>> b = [1, 2, a]
+```
+
+Traducido al español esto significa: “Que la variable `a` tenga un valor de 3 y que la variable `b` tenga una lista con tres elementos: 1, 2 y a (que tiene el valor3). La impresión `b` parece confirmar ambas afirmaciones:
+
+{line-numbers=off}
+```
+>>> b
+[1, 2, 3]
+```
+
+Cambiando el valor de `a`, el valor de `b` ¿Debería cambiar? Veamos que ocurre:
+
+{line-numbers=off}
+```
+>>> a = 5
+>>> b
+[1, 2, 3]
+```
+
+¿Qué sucedió aquí? Si conoces otro lenguaje de programación podes pensar que "Python está almacenando el valor en lugar de la referencia al valor". Ese no es exactamente el caso, así que te pido que continúes leyendo.
+Las siguientes afirmaciones parecen funcionar de una manera diferente:
+
+{line-numbers=off}
+```
+>>> c = [1, 2, 3]
+>>> d = [5, 6, c]
+```
+
+{width=80%}
+![**Figura 3.5** Caso 1.](images/case1finalNEW.png)
+
+Traducido al español esto significa: “Que la variable `c` sea una lista con tres elementos 1, 2 y 3" y "Que la variable `d` sea una lista con tres elementos: 5, 6 y c (que es a su vez una lista con tres elementos: 1, 2 y 3)."
+Esto puede ser confirmado con la impresión de ambas variables:
+
+{line-numbers=off}
+```
+>>> c
+[1, 2, 3]
+>>> d
+[5, 6, [1, 2, 3]]
+```
+
+Cambiemos el valor de `c`, removiendo un elemento, para ver qué pasa con `d`:
+
+{line-numbers=off}
+```
+>>> c.pop()
+3
+>>> c
+[1, 2]
+>>> d
+[5, 6, [1, 2]]
+```
+
+En este caso cambiando una variable cambia la otra variable. Esto parece un comportamiento inconsistente. Ahora si pensamos en todas estas asignaciones de variables como nombres vinculados con objetos, lo que parece inconsistente comienza a tener sentido. Intenta seguir la siguiente explicación usando la Figura 3.5.
+
+{line-numbers=off}
+```
+>>> a = 3
+>>> b = [1, 2, a]
+```
+
+{width=80%}
+![**Figura 3.6** Caso 2](images/case2.png)
+
+
+Traducido al español esto significa: “Que el objeto 3 se llama `a`" y "que la lista con tres elementos (1, 2 y a) se llame `b`."
+
+La impresión de `b` parece confirmar ambas afirmaciones:
+
+{line-numbers=off}
+```
+>>> b
+[1, 2, 3]
+```
+
+Luego creamos un nuevo objeto (5) y lo llamamos `a`. Entonces la referencia anterior (a = 3) se destruye (esto se representa con una cruz en la flecha de *a* a 3). El nombre a ya no está más ligado a 3, ahora a está vinculado a 5. ¿Qué pasa con `b`?
+
+{line-numbers=off}
+```
+>>> a = 5
+>>> b
+[1, 2, 3]
+```
+
+Como la tercera posición en la lista llamada `b` no se alteró, b permanece sin modificarse. Solo cambiamos el enlace entre a y 3.
+El siguiente caso de ejemplo también se puede explicar teniendo en cuenta que no hay asignaciones de variables en Python, sino nombres que vinculan objetos. En este caso debes seguir la Figura 3.6.
+
+
+{line-numbers=off}
+```
+>>> c = [1, 2, 3]
+>>> d = [5, 6, c]
+```
+
+Traducido al español esto significa: “Llama a la lista con tres elementos: 1, 2 y 3 como c" y "Llama a la lista con tres elementos: 5, 6 y c  (que es el nombre de una lista con tres elementos: 1, 2 y 3) como d." Esto se puede confirmarse solicitando el contenido o ambos nombres:
+
+{line-numbers=off}
+```
+>>> c
+[1, 2, 3]
+>>> d
+[5, 6, [1, 2, 3]]
+```
+
+En el próximo paso modifica la lista llamada `c` removiendo el último elemento y ve que sucede con `d`:
+
+{line-numbers=off}
+```
+>>> c.pop()
+3
+>>> print c
+[1, 2]
+>>> print d
+[5, 6, [1, 2]]
+```
+
+Esta vez `c` fue modificado (y no solo una relación). El valor real de `c` se modificó, esto se refleja cada vez que se lo llama. Ver la Figura 3.6 en caso de tener alguna duda.
+Incluso si los nombres están vinculados a objetos y no hay asignación de variables en Python, la mayoría de los textos (incluso este libro) usan los términos variables y nombres de manera intercambiable.
+
+
+## RECURSOS ADICIONALES
+
+* [Aprender a programar usando Python: variables e identidades.](http://www.developer.com/lang/other/article.php/626321)
+
+* [Python 101 - Introducción a Python.](http://ascii-world.wikidot.com/python-101)
+
+* [Principios de Python para bioinformática.](http://www.onlamp.com/pub/a/python/2002/10/17/biopython.html)
+
+* [Servicios de procesado de textos](https://docs.python.org/3/library/text.html).
+
+* [Python 3 Unicode HOWTO](https://docs.python.org/3/howto/unicode.html)
+
+* [Agregando un tipo de objeto set incorporado](http://www.python.org/dev/peps/pep-0218/)
+
+* [Tipos incorporados en Python](https://docs.python.org/3/library/stdtypes.html)
+
+* [Renovando dict.keys(), .values(), and .items()](http://www.python.org/dev/peps/pep-3106/)
+
+* [Diccionarios de Python con acceso a notación dot recursiva](https://github.com/cdgriffith/Box)
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Cuáles son los principales tipos de datos en Python?
+X>
+X> 2- ¿Cuál es la diferencia entre una lista y una tupla? ¿Cuándo usarías cada uno?
+X>
+X> 3- ¿Qué es un conjunto y cuándo lo usuarias?
+X>
+X> 4- ¿Cómo verificas si un elemento elemento está dentro de una lista?
+X>
+X> 5- ¿Qué es un diccionario?
+X>
+X> 6- ¿Qué tipo de datos pueden ser usados como una clave en un diccionario?
+X>
+X> 7- ¿Qué es una "vista de diccionario"?
+X>
+X> 8- ¿Podes iterar sobre una secuencia no ordenada?
+X>
+X> 9- Ordenar los tipos de datos enumerados abajo de acuerdo a los siguientes características:
+  * Mutable-immutable
+  * Ordenada-desordenada
+  * Secuencia-mapeo
+  * Tipos de datos: Listas, tuplas, diccionarios, conjuntos y cadenas.
+X>
+X> 10. ¿Cuál es la diferencia entre un conjunto y un frozenset?
+X>
+X> 11. ¿Cómo convertis un tipo de dato iterable en una lista?
+X>
+X> 12. ¿Cómo creas un diccionario desde una lista?
+X>
+X> 13. ¿Cómo creas una lista desde un diccionario?
