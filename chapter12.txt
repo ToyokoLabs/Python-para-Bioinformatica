@@ -1,0 +1,974 @@
+{:: encoding="UTF-8" /}
+
+# Python y bases de datos
+
+## INTRODUCCIÓN A LAS BASES DE DATOS
+
+La cantidad de datos que se manejan en un proyecto típico de bioinformática nos obliga a usar algo más versátil que las estructuras de datos de Python. Las listas, las tuplas y los diccionarios son muy flexibles pero no son adecuados para modelar toda la complejidad asociada con los datos del mundo real. A veces es necesario tener un repositorio de datos permanente (en términos informáticos, a esto se lo llama **persistencia de datos**) dado que las estructuras de datos están disponibles solo mientras el programa se está ejecutando. Si bien es posible guardar los datos en un archivo usando **pickle** esto no es tan eficiente como usar un motor de base de datos diseñado para ese propósito.
+
+**¿Que es una base de datos?**
+
+Una base de datos es una colección ordenada de datos relacionados. En general, se construyen para modelar situaciones reales: la colección de videos de una persona, los estudiantes de una universidad, el inventario de una empresa, etc. La base de datos almacena datos relevantes para los usuarios de nuestro programa. Al modelar a los estudiantes de una universidad debemos tener en cuenta los nombres y apellidos, el año de ingreso y los temas estudiados; no nos importará el color del cabello ni la altura del alumno. Diseñar una base de datos es como modelar un proceso natural. El primer paso es determinar cuáles son las variables relevantes.
+
+Una ventaja de las bases de datos es que, además del almacenamiento de datos, proporcionan herramientas de búsqueda. Algunas de estas búsquedas tienen respuestas inmediatas del tipo,  "¿cuántos estudiantes hay?" Otras son más complicadas, ya que combinan diferentes fuentes de información para permitir una respuesta, como por ejemplo: "¿Cuántas materias diferentes, en promedio, tomó cada estudiante de primer año de la clase 2021? " En una base de datos biológica, una pregunta típica, podría ser: ¿Cuáles son las proteínas con un peso de menos de 134 kDa que se han cristalizado? Es interesante observar que no es necesario anticipar todas las preguntas que se pueden hacer; pero tener una idea de las preguntas más comunes ayudará al proceso de diseño.
+
+En cualquier caso, la ventaja de tener una base de datos es que podemos hacer estas preguntas y recibir estas respuestas sin tener que programar el mecanismo de búsqueda. Ese es el trabajo del **motor de la base de datos** que está optimizado para manejar rápidamente grandes cantidades de datos. Usando Python nos comunicamos con el motor de la base de datos y procesamos sus respuestas, sin tener que preocuparnos por los procesos internos. Esto no significa que tengamos que desvincularnos totalmente del funcionamiento de la base de datos, ya que cuanto más entendemos los aspectos internos, mejores resultados podemos lograr.
+
+**Tipos de base de datos**
+
+No todas las bases de datos son iguales. Existen diferentes modelos teóricos para describir tanto la estructura de la base de datos como las interrelaciones de los datos. Algunos de los modelos más populares son: jerárquico, red, relacional, relación de entidad y basado en documentos (o NoSQL). Elegir entre los diferentes modelos es más un trabajo para los profesionales de IT que para los investigadores en bioinformática. En este capítulo pasaremos la mayor parte de nuestro tiempo con el modelo relacional debido a la flexibilidad que ofrece, a la cantidad de implementaciones disponibles y (¿por qué no?) por su popularidad. También hay una visión general sobre las bases de datos NoSQL.
+
+Una base de datos relacional es una base de datos que agrupa datos utilizando atributos comunes. Los conjuntos resultantes de datos organizados se pueden manejar de una manera lógica.
+Por ejemplo, un conjunto de datos que contiene todas las transacciones de bienes raíces en una ciudad puede agruparse por el año en que ocurrió la transacción; o se puede agrupar por el precio de venta de la transacción; o se puede agrupar por el apellido del comprador; y así sucesivamente.
+
+Tal agrupación utiliza el modelo relacional por lo tanto, una base de datos de este tipo se denomina "base de datos relacional". Para administrar una base de datos relacional se debe usar un lenguaje informático específico denominado SQL (lenguaje de consulta estructurado). El SQL permite al programador crear, consultar, actualizar y eliminar datos de una base de datos. Aunque SQL es un estándar ANSI, existen varias implementaciones no compatibles. Incluso si son diferentes, ya que todas las versiones se basan en el mismo estándar publicado, no es difícil transferir su conocimiento de un dialecto SQL a otro.
+
+Entre las diferentes implementaciones de bases de datos relacionales y lenguajes de consulta, este libro se centra en dos de ellos: MySQL y SQLite. MySQL (se pronuncia "My Ess Cue Ell") es la base de datos más popular utilizada en aplicaciones web, con más de 10 millones de instalaciones. La gran mayoría de los sitios web pequeños y medianos usan MySQL. Si bien muchos administradores de sistemas no considerarían usar MySQL para aplicaciones muy exigentes, hay muchos sitios de alto tráfico que lo utilizan con éxito. Un ejemplo de esto es YouTube.com, otros sitios populares basados ​​en MySQL son: Wikipedia, Flickr, Facebook y Slashdot.org.[^nota12-1] El objetivo de SQLite está mucho más definido, está hecho para pequeños sistemas integrados, tanto de hardware como de software. El navegador Firefox usa SQLite internamente, al igual que macOS y otros. Esta versatilidad se debe a su pequeño tamaño (aproximadamente 250 KB), a su falta de dependencias externas y al almacenamiento de una base de datos en un solo archivo. Estas ventajas de tamaño pequeño y simplicidad se deban a la falta de características, pero dado su uso en nichos exclusivos dicha falta no es un problema.
+
+En ambos casos, los fundamentos son similares y los conceptos explicados en este capítulo son aplicables a todas las bases de datos relacionales. Cuando una característica es exclusiva de una base de datos en particular, será señalada.
+
+[^nota12-1]: Por supuesto, no son instalaciones predeterminadas que se ejecutan en hardware básico, sino instalaciones altamente optimizadas que se ejecutan en hardware de marca.
+
+### Gestión de la base de datos: RDBMS
+
+RDBMS significa Sistema de Gestión de Base de Datos Relacional. Es un software diseñado para actuar como una interfaz entre el motor de base de datos, el usuario y las aplicaciones. Los recién mencionados MySQL y SQLite son ejemplos de RDBMS.[^nota12-2]
+En el caso de MySQL, el RDBMS se divide en dos componentes: un servidor y un cliente. El servidor es el programa que realiza el arduo trabajo asociado con el motor de base de datos; puede funcionar en nuestra propia computadora o en un servidor de acceso remoto. El cliente es el programa que nos da una interfaz al servidor.
+
+MySQL proporciona su propio cliente (mysql), que es un programa de línea de comandos, pero hay algunas alternativas. Un cliente popular es PhpMyAdmin[^nota12-3], que requiere un servidor web para ejecutarse, pero proporciona al usuario final un buen front-end basado en web para el servidor MySQL (consulte la Figura 12.1). También hay clientes de escritorio con la misma función, como MySQL Workbench[^nota12-4] (la versión oficial gratuita y multiplataforma de Oracle), SQLyog[^nota12-5] y Navicat[^nota12-6], entre otros.
+
+[^nota12-2]: Otros RDBMS bien conocidos son Oracle, DB2 y PostgreSQL.
+[^nota12-3]: <http://www.phpmyadmin.net>
+[^nota12-4]: <https://dev.mysql.com/downloads/workbench/[http://webyog.com/en/>
+[^nota12-5]: <http://webyog.com/en/>
+[^nota12-6]: <http://www.navicat.com>
+
+![**Figura 12.1** Captura de pantalla de PhpMyAdmin: front-end HTML fácil de usar para administrar una base de datos MySQL.](images/phpmyadmin.png)
+
+SQLite, por otro lado, está disponible como una biblioteca para incluir en nuestros programas o como un ejecutable independiente. Python tiene un módulo incorporado (**sqlite3**) para interactuar con SQLite y funciona "de inmediato" si Python se compiló con el módulo de SQLite presente (la opción más probable). También se puede vincular a un archivo ejecutable externo con el módulo **pysqlite3.dbapi2**.
+
+### Componentes de una base de datos relacional
+
+El primer concepto de bases de datos que debemos entender es el de las **entidades**. Formalmente, una entidad se define como cada elemento significativo que debe almacenarse. Debemos distinguir entre un **tipo de entidad** y la **ocurrencia** de una entidad. En una base de datos de administración, los `estudiantes` son un tipo de entidad, mientras que cada estudiante en particular es una ocurrencia de esta entidad.
+
+Cada entidad tiene sus propios **atributos**. Los **atributos** son los datos asociados a una entidad. Volvamos a la base de datos de administración de la universidad que acabamos de esquematizar: *nombre*, *apellido*, *DateJoined* y *OutstandingBalance* son atributos de la entidad `Estudiantes`.
+
+A su vez, cada entidad tiene sus propios atributos. Los atributos son los datos asociados con una entidad. Vamos a crear una base de datos de administración de la universidad, donde *Nombre, Apellido, DateJoined* y *OutstandingBalance* son atributos de los *estudiantes* de la entidad.
+
+Los datos en una base de datos relacional no están aislados, pero como su nombre lo indica, están representados por **relaciones**. Una relación asigna una clave, o una agrupación de claves, con una agrupación de filas. Cada clave corresponde a una ocurrencia de una entidad, que se relaciona con el grupo de atributos asociados con esa ocurrencia. Estas relaciones se muestran como tablas, independientemente de cómo se almacenan físicamente. Una base de datos puede tener varias tablas. Continuando con el ejemplo de la base de datos de administración de la universidad, podríamos tener una tabla con información sobre los estudiantes y otra sobre los profesores, ya que cada entidad tiene sus propios atributos.
+
+En la tabla 12.1 podemos ver un ejemplo de la relación de los `estudiantes`.
+
+Tabla 12.1 Los estudiantes en la Universidad de Python
+
+| Nombre  | Apellido  | DateJoined  | OutstandingBalance  |
+| ------  | --------  | ----------  | ------------------  |
+| Julia | Wilkinson | 2006-02-10  | No  |
+| Jonathan  | Hunt  | 2004-02-16  | No  |
+| Jorge | Hughes  | 2005-03-20  | No  |
+| Katia | Allen | 2001-03-15  | Si  |
+| Virginia  | Gonzalez  | 2003-04-02  | No  |
+
+**Un concepto clave: La clave primaria**
+
+Cada tabla debe tener un medio para identificar una fila de datos; debe tener un atributo, o grupo de atributos, que sirva como un identificador único. Este atributo se llama una clave primaria. En el caso de que no se pueda utilizar un único atributo como **clave primaria**, se pueden tomar varios simultáneamente para crear una **clave compuesta**. Volviendo a la Tabla 12.1, podemos ver que el Nombre de atributo no se puede usar como una clave primaria, ya que hay más de una ocurrencia de una entidad con el mismo atributo (Joe Campbell y Joe Doe comparten el mismo nombre). Una solución a este problema sería usar Nombre y Apellido como clave compuesta; pero esta no sería la mejor solución, porque aún es posible tener más de una aparición de una entidad que comparte esta clave compuesta en particular, como otra Joe Doe. Por este motivo, normalmente agregamos a la tabla un campo de ID, un identificador único, en lugar de depender de los datos para tener una clave principal. En la mayoría de las bases de datos hay mecanismos para generar automáticamente una clave primaria de este tipo cuando insertamos datos. Veamos una versión de la Tabla 12.1 con un nuevo atributo que se puede usar como clave primaria:
+
+Tabla 12.2 Tabla con la clave primaria
+
+
+| ID  | Nombre  | Apellido  | DateJoined  | OutstandingBalance  |
+| --  | ------  | --------  | ----------  | ------------------  |
+| 1 | Julia | Wilkinson | 2006-02-10  | No  |
+| 2 | Jonathan  | Hunt  | 2004-02-16  | No  |
+| 3 | Jorge | Hughes  | 2005-03-20  | No  |
+| 4 | Katia | Allen | 2001-03-15  | Si  |
+| 5 | Virginia  | Gonzalez  | 2003-04-02  | No  |
+
+### Tipos de datos de la base de datos
+
+Al igual que en los lenguajes de programación, las bases de datos tienen sus propios tipos de datos. Por ejemplo, en Python tenemos *int*, *float* y *string* (entre otros); las bases de datos tienen sus propios tipos de datos como *tinyint*, *smallint*, *mediumint*, *int*, *bigint*, *float*, *char*, *varchar*, *text* y otros. Quizás se esté preguntando por qué hay tantos tipos de datos (como cinco tipos de datos diferentes para enteros). La razón principal es que con tantas opciones es posible hacer el mejor uso de los recursos disponibles. Si necesitamos un campo donde deseamos almacenar la edad de los alumnos, podemos lograrlo con un campo de tipo *tinyint*, ya que admite un rango de valores entre −128 y 127 (que se puede almacenar en un byte). Por supuesto, también podemos almacenarlo en un campo de tipo *int*, que admite un rango entre −2147483648 y 2147483647 (es decir, 4 bytes); pero eso sería un desperdicio de memoria, ya que el sistema debe reservar espacio innecesariamente. Debido a la diferencia en el número de bytes, un número almacenado como int ocupa 4 veces más RAM y espacio en disco que uno almacenado como tinyint. La diferencia entre uno y cuatro bytes puede parecer insignificante y no vale la pena mencionarla, pero si luego la multiplicamos por el número de entradas de datos que tiene; cuando el conjunto de datos es lo suficientemente grande, el espacio en disco y el tiempo de acceso podrían ser un problema. Es por eso que se deben tener en cuenta los requisitos de almacenamiento del tipo de datos[^nota12-7].
+
+La tabla 12.3 resume las características de los principales tipos de datos en MySQL. Tenga en cuenta que algunas de las características secundarias pueden variar según la versión de MySQL utilizada, por lo que es recomendable consultar la documentación de cada versión en particular[^nota12-8]. En el caso de SQLite, solo hay 5 tipos de datos: INTEGER, REAL, TEXTO, BLOB, y NULL. Sin embargo, uno debe darse cuenta de que SQLite no tiene tipo, y que cualquier dato puede insertarse en cualquier columna. Por esta razón, SQLite tiene la idea de "afinidad de tipo", trata los tipos de datos como una recomendación, no como un requisito[^nota12-afinidadtipo].
+
+[^nota12-7]: Estimar qué tipos de datos son adecuados para la situación no es un problema menor. En el juego en línea para múltiples jugadores World of Warcraft, algunos jugadores encontraron que no podían recibir más oro cuando habían alcanzado el límite de la variable en la que se almacenaba el dinero, un entero de 32 bits firmado. Mucho más serio fue el caso del software en el cohete Ariane 5 cuando un real de 64 bits se convirtió en un entero con signo de 16 bits. Esto llevó a una cascada de problemas que culminaron con la destrucción de todo el vuelo, con un costo de US $ 370 millones.
+[^nota12-8]: MySQL tiene un completo manual de referencia online. La documentación del tipo de datos para MySQL 5.7 está disponible en <https://dev.mysql.com/doc/refman/5.7/en/data-types.html>.
+[^nota12-afinidadtipo]: Para obtener más información sobre la idea de "afinidad de tipo", recomiendo la sección "Tipos de datos en SQLite versión 3" (<http://www.sqlite.org/datatype3.html>) de la documentación en línea de SQLite.
+
+TABLA 12.3 Tipos de datos MySQL más utilizados
+
+| Tipos de datos  | Comentarios |
+| --------------  | ----------- |
+| TINYINT | ±127 (0-255 UNSIG.) |
+| SMALLINT  | ±32767 (0-65535 UNSIG.) |
+| MEDIUMINT | ±8388607 (0-16777215 UNSIG.)  |
+| INT | ±2147483647 (0-4294967295 UNSIG.) |
+| BIGINT  | ±9223372036854775807 (0-18446744073709551615 UNSIG.)  |
+| FLOAT | Un pequeño número con un punto decimal flotante.  |
+| DOUBLE  | Un gran número con un punto decimal flotante. |
+| DATETIME  | De '1000-01-01 00:00:00' a '9999-12-31 23:59:59'  |
+| DATE  | De '1000-01-01' a '9999-12-31'  |
+| CHAR(n) | Una sección fija con n caracteres de longitud (hasta 255).  |
+| VARCHAR(n)  | Una sección variable con n caracteres de longitud (hasta 255).  |
+| TEXT  | Una cadena con una longitud máxima de 65535 caracteres. |
+| BLOB  | Una versión de cadena binaria de texto. |
+| MEDIUMTEXT  | Una cadena con una longitud máxima de 16777215 caracteres.  |
+| MEDIUMBLOB  | Cadena binaria equivalente a MEDIUMTEXT.  |
+| LONGTEXT  | Una cadena con una longitud máxima de 4294967295 caracteres.  |
+| LONGBLOB  | Cadena binaria equivalente a LONGTEXT.  |
+| ENUM  | Valor de cadena tomado de una lista de valores permitidos.  |
+
+## CONEXIÓN A UNA BASE DE DATOS
+
+Para conectarse al servidor de la base de datos MySQL necesitamos un usuario válido y para configurar un usuario necesitamos conectarnos a la base de datos. Este catch-22 se resuelve accediendo al servidor con las credenciales predeterminadas (usuario: "root", y sin contraseña). Desde la línea de comandos, si el servidor está en la misma computadora, es posible acceder con este comando:
+
+{line-numbers=off}
+```
+$ mysql -u root -p
+Enter password:
+Welcome to the MySQL monitor. Commands end with ; or \g.
+Your MySQL connection id is 234787469
+Server version: 5.5.51-38.2 Percona Server (GPL), Release 38.2
+
+Copyright (c) 2000, 2016, Oracle. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current inp<=
+ut statement.
+mysql>
+```
+
+De ahora en adelante, se mostrará la interacción con el servidor MySQL usando el php-MyAdmin front-end.
+
+## CREANDO UNA BASE DE DATOS MYSQL
+
+Antes de trabajar con una base de datos debemos crear una. Podemos omitir este paso si planeamos acceder a una base de datos creada anteriormente. Pero es probable que tarde o temprano tengamos que crear nuestra propia base de datos. Crear una base de datos es una tarea simple y nos ayudará a comprender los datos que se van a manejar y a crear consultas más efectivas.
+
+Dado que la creación de la base de datos es algo que se realiza solo una vez para cada base de datos, no es necesario automatizar esta tarea con un programa. Este paso se suele hacer manualmente. Mi recomendación es usar una herramienta gráfica para diseñar la base de datos. phpMyAdmin o Navicat harán el trabajo.
+
+Para crear una base de datos desde la consola MySQL:
+
+{line-numbers=off}
+```
+mysql> CREATE DATABASE PythonU;
+Query OK, 1 row affected (0.01 sec)
+```
+
+Esto creará la base de datos MySQL de *PythonU*. Para crear una base de datos desde phpMyAdmin, presionar "New" en el panel izquierdo y completar el  campo de formulario con el nombre de la base de datos en "Create database".
+
+![**Figura 12.2** HACER SCREENSHOT Creando una nueva base de datos usando phpMyAdmin.](images/phpmyadmincreatedb.png)
+
+### Creación de tablas
+
+Una vez que tenemos una base de datos recién creada, el siguiente paso es crear las tablas donde se almacenarán los datos. Crear las tablas con este tipo de software no parece ser un problema que merezca la pena mencionar en este libro, por lo que nos centraremos más en la estructura de la tabla que en la manera de utilizar la herramienta GUI.
+
+Debemos tener en cuenta que una tabla representa una relación entre los datos; no tiene sentido crear una tabla para una entidad y luego rellenarla con datos de otra entidad. Continuando con el ejemplo de nuestra "Universidad de Python", podemos pensar qué información relacionada con los estudiantes necesitamos almacenar en la tabla de `Estudiantes`.
+
+Como vimos anteriormente, en la tabla de `Estudiantes` asignamos los siguientes campos: `ID`, `Nombre`, `Apellido`, `DateJoined` y `OutstandingBalance`.
+
+Existen “buenas prácticas” para el diseño de bases de datos. Ciertamente, no es fácil transmitir los conocimientos necesarios para lograr un diseño eficiente para cada situación en este espacio, de todos modos un buen diseño de base de datos es algo que uno aprende con la práctica.
+
+Veamos cómo definimos cada campo en este caso:
+
+**ID**: es una identificación única para cada solicitante de registro. Dado que se espera que la Universidad de Python tenga varios estudiantes, se utiliza un tipo de datos INT sin signo (hasta 4294967295). No es necesario utilizar números negativos en una ID, por lo que este campo debe configurarse como sin signo.
+
+**Nombre:** Dado que el tamaño de un nombre es variable con menos de 255 caracteres, se usa VAR-CHAR. El tamaño máximo para los nombres en caracteres, según mis criterios arbitrarios, es de 150.
+
+**Apellido:** este campo se configuró con los mismos criterios que el campo anterior. La única diferencia está en el tamaño máximo para un apellido; que se establece en 200 caracteres.
+
+**DateJoined:** No hay muchas opciones aquí. Un campo DATE simple lo hara mejor.
+
+**OutstandingBalance:** Este campo representa si el estudiante ha pagado la matrícula en su totalidad o no. Como solo hay dos valores posibles (pagados o no pagados), se elige un tipo de datos BOOL. Este tipo de datos almacena un 0 o un 1. Es responsabilidad del programador asignar un significado a este valor, pero en notación matemática, 0 significa FALSO y 1 para VERDADERO, por lo que generalmente se usa esta convención.
+
+La última opción es el tipo de tabla (**InnoDB** o **MyISAM**). En este caso, está bien dejar la opción predeterminada (MyISAM), que será apropiada para la mayoría de los usos. Consultá la sugerencia avanzada: MyISAM vs InnoDB para una breve discusión sobre ambos tipos de tablas.
+Si deseas crear manualmente la tabla, primero debes seleccionar la base de datos que vas a usar:
+
+{line-numbers=off}
+```
+mysql> use PythonU;
+Database changed
+```
+
+Y después de seleccionar la base de datos escribí estos comandos en el prompt de MySQL (también disponible en el repositorio GitHub del libro como db/studentstbl.sql):
+
+{line-numbers=off,lang=text}
+```
+CREATE TABLE ‘Students‘ (
+  ‘ID‘ INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  ‘Name‘ VARCHAR(150) NOT NULL,
+  ‘LastName‘ VARCHAR(200) NOT NULL,
+  ‘DateJoined‘ DATE NOT NULL,
+  ‘OutstandingBalance‘ BOOLEAN NOT NULL,
+  PRIMARY KEY (‘ID‘) ) ENGINE = MyISAM;
+```
+
+¡No me sorprende que haya recomendado el uso de una GUI para diseñar la tabla!
+
+![**Figura 12.3** Creando una nueva tabla usando phpMyAdmin.](images/createtable2.png)
+
+T> ### Crear una base de datos utilizando otra base de datos como plantilla.
+T> En lugar de definir manualmente cada campo en cada tabla, puede importar un "dump de MySQL" de otra base de datos y crear una base de datos en un solo paso. Hay dos tipos diferentes de archivos de dump: "estructura sola" y "estructura y datos". Ambos archivos se importan de la misma manera en una base de datos:
+T>
+T> {line-numbers=off}
+```
+$ mysql -p database_name < dbname.sql
+```
+T>
+T> ¿De dónde obtenemos el archivo dump? Puede obtenerse un archivo dump de la copia de seguridad de otra base de datos o de los archivos de instalación de un programa que requiere una base de datos.
+
+### Cargar una tabla
+
+Una vez que tengamos la tabla creada, es hora de cargar los datos en ella. Esta operación se puede realizar desde cualquier front-end de MySQL, ya sea fila por fila o por lotes. Dado que hay varios datos para cargar al principio y la carga manual de datos es intuitiva, veamos cómo cargar datos en modo batch.
+La forma más común de cargar datos es mediante el uso de archivos csv. Este tipo de archivo está revisado en la Sección 5.3. Para cargar los datos que se ven en la Tabla 12.2 podemos preparar un archivo csv (`dbdata.csv`) con el siguiente formato:
+
+{line-numbers=off,lang=text}
+```
+1,Harry,Wilkinson,2016-02-10,0
+2,Jonathan,Hunt,2014-02-16,0
+3,Harry,Hughes,2015-03-20,0
+4,Kayla,Allen,2016-03-15,1
+5,Virginia,Gonzalez,2003-04-02,0
+```
+
+Para cargar el archivo csv en la base de datos MySQL, use el comando **LOAD DATA INFILE**[^nota12-9] en el prompt de MySQL:
+
+[^nota12-9]: Para una referencia completa de este comando consulte el manual en línea de MySQL en <https://dev.mysql.com/doc/refman/5.7/en/load-data.html>.
+
+{line-numbers=off}
+```
+mysql> LOAD DATA LOCAL INFILE 'dbdata.csv' INTO TABLE Students
+  FIELDS TERMINATED BY ',';
+```
+
+Si queremos evitar hacerlo nosotros mismos podemos usar un servicio web que convierte un archivo csv en una tabla MySQL en <https://sqlizer.io>. Es gratis convertir un archivo a SQL de hasta 5000 filas de datos y para uso personal. Mi consejo es tratar de hacerlo por uno mismo, no es tan difícil.
+Una forma alternativa es utilizando las instrucciones **INSERT**:
+
+{line-numbers=off}
+```
+INSERT INTO ‘Students‘ (‘ID‘, ‘Name‘, ‘LastName‘, ‘DateJoined‘,
+  ‘OutstandingBalance‘) VALUES
+(1, 'Harry', 'Wilkinson', '2016-02-10', 0),
+(2, 'Jonathan', 'Hunt', '2014-02-16', 0),
+(3, 'Harry', 'Hughes', '2015-03-20', 0),
+(4, 'Kayla', 'Allen', '2016-03-15', 1),
+(5, 'Virginia', 'Gonzalez', '2017-04-02', 0);
+```
+
+Una vez que los datos se cargan en la base de datos, la tabla se parece a la de la Figura 12.4.
+
+T> ### SUGERENCIA AVANZADA: MyISAM versus InnoDB
+T>
+T> Hay varios formatos para las estructuras de datos internas en las tablas de MySQL. Los formatos más utilizados son InnoDB y MyISAM. MyISAM se utiliza de forma predeterminada y se caracteriza por su mayor velocidad de lectura (mediante las operaciones SELECT) y utiliza menos espacio en el disco. Es más lento que InnoDB en la escritura, ya que cuando se graban los datos, la tabla se bloquea momentáneamente hasta que finaliza, por lo que todas las demás operaciones deben esperar para completarse. Esta limitación no existe en una tabla InnoDB. La principal ventaja de este formato es que permite transacciones seguras y tiene una mejor recuperación de fallos. Por lo tanto, InnoDB se recomienda para tablas actualizadas intensivamente y para almacenar información confidencial.
+En resumen, dado que podemos usar diferentes tipos de tablas en la misma base de datos, elijamos el tipo de tabla apropiado de acuerdo con la operación que más se use en cada tabla.
+
+{width=70%}
+![**Figura 12.4** Vista de la tabla de alumnos.](images/studentstable.png)
+
+## PLANIFICACIÓN ADELANTADA
+
+Hacer una base de datos requiere algo de planificación. Esto es especialmente cierto cuando hay una gran cantidad de datos y queremos optimizar el tiempo que lleva responder nuestras consultas. Un mal diseño puede inutilizar una base de datos. En esta sección presento una base de datos como ejemplo para mostrar la base del diseño de la base de datos. Para tener una mejor idea del diseño de bases de datos relacionales, se puede leer sobre la *normalización de la base de datos* en "Recursos adicionales" o en esta misma sección donde se dará una breve descripción.
+
+### PythonU: Base de datos de ejemplo
+
+Mantengamos el ejemplo de una base de datos de estudiantes de la ficticia Universidad de Python (cuya base de datos se llama PythonU), para almacenar los datos de los estudiantes y los temas tomados. Para almacenar datos de alumnos ya tenemos la tabla Estudiantes. Tenemos que hacer una tabla para almacenar las calificaciones asociadas con cada materia (una tabla de "Calificaciones"). Como en muchos otros aspectos de la programación, hay más de una forma de lograr esto. Comenzaremos mostrando algunas formas no óptimas, para comprender mejor por qué hay una forma recomendada.
+
+**Tabla de calificaciones**
+
+En la tabla Calificaciones queremos almacenar para cada alumno: asignaturas cursadas, calificación y fecha en que se tomó cada curso.
+En la Figura 12.5 se muestra una tabla de calificaciones propuesta para dos cursos.
+Este diseño (esquema) tiene varios defectos. El primer error de diseño en la tabla es su falta de flexibilidad. Si queremos agregar un nuevo curso tenemos que modificar la tabla. Esto no se considera una buena práctica de programación; un cambio en la estructura de una tabla ya poblada es una operación costosa que debe evitarse siempre que sea posible. El otro problema que surge de este diseño, como se ve en el diagrama, es que no hay lugar para almacenar la calificación de un estudiante que ha tomado un curso más de una vez. ¿Cómo resolvemos esto? Con un diseño más inteligente. Una solución casi óptima se puede ver en la Figura 12.6.
+
+![**Figura 12.5** Una tabla de "Grados" intencionalmente defectuosa.](images/faultygradetable.png)
+
+{width=50%}
+![**Figura 12.6** Una tabla de “Grados” mejor diseñada.](images/bettergradestable.png)
+
+El primer problema, la necesidad de rediseñar la tabla para ingresar nuevos temas, lo resolvemos ingresando el nombre del curso como un nuevo campo: Curso. Este campo puede ser de tipo TEXTO o VARCHAR. Y el problema de poder realizar un seguimiento de cuándo un estudiante tomó un curso más de una vez, lo resolvimos con el campo de Término. Si bien este es un diseño decididamente mejor que el anterior, está lejos de ser óptimo. Es evidente que almacenar el nombre de cada materia para cada estudiante es un gasto innecesario de recursos. Una forma de guardar este espacio es utilizar el tipo de datos ENUM en el campo Curso; De esta manera podemos ahorrar una cantidad sustancial de espacio, porque MySQL usa internamente uno o dos bytes para cada entrada de este tipo. La tabla sigue siendo la misma que se vio anteriormente (Figura 12.6), y solo cambia la forma en que se define el campo Curso, ahorrando espacio en disco como se mencionó.
+Es esta la mejor manera? El problema con el uso de ENUM con el campo Curso es que cuando deseamos agregar una nueva materia, todavía tenemos que modificar la estructura de la tabla. Esta modificación, para agregar una nueva opción al ENUM, no es tan costosa como agregar una nueva columna, pero conceptualmente no es una buena idea modificar la definición de una nueva tabla para acomodar un nuevo tipo de datos. En casos como estos, nosotros recurrimos a "tablas de búsqueda".
+
+{width=35%}
+![**Figura 12.7** Tabla de cursos: Una tabla de búsqueda.](images/coursestable.png)
+
+**Tabla de cursos**
+
+Una tabla de búsqueda es una tabla de referencia que se utiliza para almacenar valores que se utilizan como contenido de una columna ubicada en otra tabla. Continuando con el ejemplo de la Universidad de Python, podemos hacer una tabla de búsqueda para los cursos (ver Figura 12.7).
+Esta tabla de cursos contiene un campo para almacenar el ID del curso (*CourseID*) y otro para el nombre del curso (*Course_Name*). Para que este esquema funcione, debemos cambiar el campo *course* de la tabla *grades*; en lugar de un campo ENUM, ahora usamos un campo INT (ver Figura 12.8).
+
+{width=50%}
+![**Figura 12.8** Tabla de “calificaciones” modificada.](images/coursestablelookup.png)
+
+Los datos en CourseID ahora corresponden a los del campo Curso en la tabla Calificaciones. Usando una sola búsqueda, podemos vincular la identificación con el nombre del curso correspondiente. De esta manera, ahorramos la misma cantidad de espacio en la tabla de Estudiantes que cuando usamos un ENUM para el campo del Curso, con la ventaja adicional de que podemos expandir la lista de temas simplemente agregando un elemento a la tabla de Cursos.
+
+T> ### Tipo de campo ENUM versus tabla de búsqueda
+T>
+T> Hemos visto lo conveniente que es usar una tabla de búsqueda en lugar de un campo ENUM. Probablemente se estén preguntando cómo decidir cuándo usar una estrategia u otra al diseñar su base de datos. ENUM es mejor que TEXTO o VARCHAR en los casos en que el número de posibilidades es limitado y no se espera que varíe: por ejemplo, una lista de colores, los meses del año y otras opciones que, por su propia naturaleza, tienen un rango establecido. Una desventaja que debe tenerse en cuenta con respecto a ENUM, es que es un tipo de datos específico de MySQL, que puede no estar disponible en otros motores de bases de datos; esto limita la portabilidad potencial de la base de datos.
+
+Ahora tenemos la base de datos de PythonU con 3 tablas: estudiantes, calificaciones y cursos. Es hora de aprender a construir consultas.
+
+## SELECT: CONSULTANDO UNA BASE DE DATOS
+
+La operación más útil en una base de datos, una vez creada y rellenada, es consultar su contenido. Podemos extraer información de una tabla o de muchas tablas simultáneamente. Por ejemplo, para tener una lista de estudiantes, se debe consultar la tabla Estudiantes. Por otro lado, si queremos saber las calificaciones promedio de un estudiante, necesitamos consultar las tablas de Estudiantes y Calificaciones. Además, hay casos en los que se deben consultar 3 tablas simultáneamente, como al averiguar la calificación de un estudiante en una materia en particular.
+Veamos cada caso:
+
+**Consulta simple**
+
+Para obtener una lista de estudiantes (nombre y apellidos) de la tabla de Estudiantes, usamos el siguiente comando en el prompt de MySQL:
+
+{line-numbers=off,lang=text}
+```
+mysql> SELECT Name, LastName FROM Students;
++----------+------------+
+| Name     |   LastName |
++----------+------------+
+| Harry    | Wilkinson  |
+| Jonathan | Hunt       |
+| Harry    | Hughes     |
+| Kayla    | Allen      |
+| Virginia | Gonzalez   |
+ +----------+-----------+
+ 5 rows in set (0.00 sec)
+```
+
+**Combinando dos consultas**
+
+Para obtener la calificación promedio de un estudiante dado, necesitamos extraer todas las calificaciones correspondientes a ese estudiante. Como las calificaciones están en la tabla de calificaciones y los nombres en la tabla de Estudiantes, necesitamos consultar ambas tablas para recibir una respuesta a nuestra pregunta. Primero necesitamos consultar a los estudiantes para la identificación del estudiante; luego con este ID debemos buscar todos los registros correspondientes.
+Por ejemplo, para obtener el promedio de calificaciones de Harry Wilkinson:
+
+{line-numbers=off,lang=text}
+```
+SELECT AVG(Grade) FROM Grades
+WHERE StudentID = (SELECT ID FROM Students
+WHERE Name='Harry' AND LastName='Wilkinson');
+```
+
+También podemos lograrlo con una sola consulta, sin utilizar el SELECT anidado:
+
+{line-numbers=off}
+```
+SELECT AVG(Grade) FROM Grades, Students
+WHERE Grades.StudentID=Students.ID
+AND Students.Name='Harry' AND Students.LastName='Wilkinson';
+```
+
+Hay dos cosas nuevas que entender en este ejemplo: cuando usamos campos de más de una tabla, debemos anteponer el nombre de la tabla para evitar ambigüedades en los nombres de los campos. Por lo tanto, StudentID se convierte en Calificaciones.StudentID. La siguiente declaración es equivalente a la anterior:
+
+{line-numbers=off}
+```
+SELECT AVG(Grade) FROM Grades, Students
+WHERE StudentID=ID AND Name='Harry' AND LastName='Wilkinson';
+```
+
+Si el nombre del campo está presente solo en una tabla, no es necesario agregar el nombre de la tabla, pero hace que la consulta sea más fácil de analizar para el programador.
+La otra característica que vale la pena señalar en este ejemplo es que, en lugar de mirar solo el ID del estudiante, existe una condición que coincide con los ID de ambas tablas (Calificaciones.StudentID = Students.ID).
+En cualquier caso, el resultado es 7.5.
+
+**Consultando varias tablas**
+
+Para recuperar el promedio de calificaciones de un estudiante (Harry Hughes) en un curso en particular (Python 101), es necesario crear una consulta utilizando más de una tabla:
+
+{line-numbers=off}
+```
+SELECT Grades.Grade FROM Grades, Courses, Students
+WHERE Courses.CourseID = Grades.Course
+AND Courses.Course_Name = 'Python 101'
+AND Students.ID = Grades.StudentID
+AND Students.Name = 'Harry' AND Students.LastName = 'Hughes';
+```
+
+### Construyendo una consulta
+
+La sintaxis general de las sentencias SELECT es
+
+{line-numbers=off}
+```
+SELECT field(s)_to_retrieve FROM table(s)_where_to_look_for
+WHERE condition(s)_to_met] [ORDER BY ordering_criteria]
+[LIMIT limit_the_records_returned];
+```
+
+Para usar funciones de agrupación las incluimos al final de la consulta:
+
+{line-numbers=off}
+```
+GROUP BY variable_to_be_grouped HAVING condition(s)_to_met
+```
+
+Las funciones de agregación son **AVG()**, **COUNT()**, **MAX()**, **MIN()** y **SUM()**.
+Tengamos en cuenta que HAVING funciona como WHERE. La diferencia es que HAVING se utiliza solo con GROUP BY, ya que restringe los registros después de que se hayan agrupado.
+Estas construcciones se pueden entender mejor con ejemplos reales. Los siguientes casos muestran cómo ejecutar las consultas desde la línea de comandos de MySQL.
+Para obtener todos los elementos de una tabla, usamos comodines:
+
+{line-numbers=off}
+```
+mysql> select * from Students;
+Connection id:    234793415
+Current database: PythonU
+FALTA TABLA
+5 rows in set (0.08 sec)
+```
+
+Para obtener un conteo de todos los elementos en una tabla:
+
+{line-numbers=off}
+```
+mysql> select COUNT(*) from Students;
++----------+
+| COUNT(*) |
++----------+
+|5|
++----------+
+1 row in set (0.00 sec)
+```
+
+Para ver el promedio de calificaciones de todos los estudiantes:
+
+{line-numbers=off}
+```
+mysql> select avg(Grade) from Grades GROUP BY StudentID;
++------------+
+| avg(Grade) |
++------------+
+| 7.5000     |
+| 7.5000     |
+| 6.0000     |
+| 8.5000     |
++------------+
+4 rows in set (0.17 sec)
+```
+
+Para recuperar la mejor calificación de un estudiante en particular (Harry Wilkinson):
+
+{line-numbers=off}
+```
+mysql> select max(Grades.Grade) from Grades,Students
+WHERE studentID=ID AND Students.Name='Harry'
+AND Students.Lastname='Wilkinson';
++-------------------+
+| max(Grades.Grade) |
++-------------------+
+|8                  |
++-------------------+
+1 row in set (0.00 sec)
+```
+
+¿Qué cursos tienen la cadena "101" en sus nombres?
+
+{line-numbers=off}
+```
+mysql> SELECT Course_Name FROM Courses
+WHERE Course_Name LIKE '%101%';
++-------------+
+| Course_Name |
++-------------+
+| Python 101 |
++-------------+
+1 row in set (0.00 sec)
+```
+
+Tenga en cuenta que% se utiliza como carácter comodín cuando se trabaja con cadenas.
+
+¿Cuántos estudiantes han suspendido una clase? Suponiendo que la nota aprobatoria sea
+7, esta consulta es equivalente a preguntar cuántos calificaciones están por debajo de 7.
+
+{line-numbers=off}
+```
+mysql> SELECT Name,LastName,Grade FROM Students,Grades
+WHERE Grades.Grade<7 and Grades.StudentID=Students.id;
++----------+----------+-------+
+| Name | LastName | Grade |
++----------+----------+-------+
+| Jonathan | Hunt     |     6 |
+| Harry | Hughes | 5 |
++----------+----------+-------+
+2 rows in set (0.00 sec)
+```
+
+Lo anterior fue simplemente un ejemplo de las posibilidades del comando SELECT. Para consultas más complejas, recomiendo los recursos indicados en "Recursos adicionales".
+
+### Actualización de una base de datos
+
+Si bien los valores se pueden cambiar utilizando cualquiera de las herramientas de la GUI mencionadas anteriormente, es bueno conocer la sintaxis para actualizar los datos, para permitir la implementación desde Python cuando sea necesario.
+La sintaxis general es: [^nota12-10]
+
+[^nota12-10]: Para obtener más información sobre este comando, consulte el manual de MySQL en <https://dev.mysql.com/doc/refman/5.7/en/update.html>.
+
+{line-numbers=off}
+```
+UPDATE table_name(s) SET variable1=expr1 [,variable2=expr2 ...]
+[WHERE condition(s)];
+```
+
+Supongamos que queremos que la base de datos muestre que Joe Campbell no pagó su matrícula. Para esto debemos asegurarnos de que el campo OutstandingBalance en la tabla Estudiantes esté establecido en Y. Aquí está el comando SQL con la respuesta del servidor:
+
+{line-numbers=off}
+```
+mysql> UPDATE Students SET OutstandingBalance='Y'
+WHERE Name='Harry' and LastName='Wilkinson';
+Query OK, 1 row affected (0.67 sec)
+Rows matched: 1 Changed: 1 Warnings: 0
+```
+
+También es posible, en lugar de cambiar un valor específico, aplicar una función[^nota12-11] a todos los valores en una columna. Por ejemplo, para restar un punto a todas los calificaciones:
+
+[^nota12-11]: Se puede usar cualquier función MySQL válida. Para ver una lista con las funciones disponibles, consulte el manual de MySQL en <https://dev.mysql.com/doc/refman/5.7/en/functions.html>.
+
+{line-numbers=off}
+```
+mysql> UPDATE Grades SET Grade = Grade-1;
+Query OK, 8 rows affected (0.00 sec)
+Rows matched: 8 Changed: 8 Warnings: 0
+```
+
+### Eliminación de un registro en una base de datos
+
+Para borrar un registro usa el comando *DELETE*:
+
+{line-numbers=off}
+```
+mysql> DELETE from Students WHERE ID = "5";
+Query OK, 1 row affected (0.02 sec)
+```
+
+Al igual que en **SELECT**, la cláusula **WHERE** especifica las condiciones que identifican qué filas eliminar. Sin la cláusula WHERE se eliminan todas las filas. Pero esta no es la mejor manera de eliminar una tabla completa. En lugar de eliminar todos los registros fila por fila, podemos usar el comando **TRUNCATE**, que elimina y vuelve a crear la tabla. Esto es más rápido para tablas grandes.
+
+## ACCESO A UNA BASE DE DATOS DE PYTHON
+
+Ahora que sabemos cómo acceder a nuestros datos utilizando SQL podemos aprovechar las herramientas de Python para interactuar con la bases de datos.
+
+### Módulo PyMySQL
+
+Este módulo permite acceder a las bases de datos MySQL desde Python[^nota12-12]. No está instalado por defecto; en un entorno de alojamiento web compartido, es posible que tenga que solicitar la instalación del módulo PyMySQL. Para saber si el módulo está instalado intentemos importarlo. Si recibimos un error de importación, no está instalado:
+
+[^nota12-12]: Hay otro módulo para acceder a la base de datos MySQL llamado MySQLdb. Este módulo se presentó en una edición anterior de este libro, pero ya no se usa en esta edición porque en este momento no es compatible con Python 3.
+
+{line-numbers=off}
+```
+>>> import pymysql
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ImportError: No module named 'pymysql'
+>>>
+```
+
+Para instalarlo, usamos pip o conda:
+
+{line-numbers=off}
+```
+(py4bio) $ pip install PyMySQL
+Collecting PyMySQL
+  Downloading PyMySQL-0.7.10-py2.py3-none-any.whl (78kB)
+    100% |********************************| 81kB 934kB/s
+Installing collected packages: PyMySQL
+Successfully installed PyMySQL-0.7.10
+```
+
+### Estableciendo la conexión
+
+Existe el método **connect()** en el módulo MySQLdb. Este método retorna un objeto de conexión sobre el que tendremos que actuar más adelante, por lo que deberíamos darle un nombre (de la misma manera que le daríamos un nombre al objeto resultante de abrir un archivo):
+
+{line-numbers=off}
+```
+>>> import pymysql
+>>> db = pymysql.connect(host="localhost", user="root",
+... passwd="mypassword", db="PythonU")
+```
+
+### Ejecutando la consulta desde Python
+
+Una vez establecida la conexión a la base de datos, tenemos que crear un **cursor**. Un cursor es una estructura que se usa para recorrer los registros del conjunto de resultados.
+El método utilizado para crear el cursor tiene un nombre inteligente, **cursor()**:
+
+{line-numbers=off}
+```
+>>> cursor = db.cursor()
+```
+
+Se establece la conexión y se ha creado el cursor. Es hora de ejecutar algunos comandos SQL:
+
+{line-numbers=off}
+```
+>>> cursor.execute("SELECT * FROM Students")
+5
+```
+
+El método de ejecución se utiliza para ejecutar comandos SQL. Tengamos en cuenta que no es necesario agregar un punto y coma (;) al final del comando. Ahora la pregunta es cómo recuperar datos del objeto del cursor. Para obtener un elemento usamos **fetchone()**:
+
+{line-numbers=off}
+```
+>>> cursor.fetchone()
+(1, 'Harry', 'Wilkinson', datetime.date(2016, 2, 10), 0)
+```
+
+fetchone() devuelve una fila con los elementos del primer registro de la tabla. Los registros restantes se pueden extraer uno por uno de la misma manera:
+
+{line-numbers=off}
+```
+>>> cursor.fetchone()
+(2, 'Jonathan', 'Hunt', datetime.date(2014, 2, 16), 0)
+>>> cursor.fetchone()
+(3, 'Harry', 'Hughes', datetime.date(2015, 3, 20), 0)
+
+```
+
+En contraste, fetchall() extrae todos los elementos a la vez:
+
+{line-numbers=off}
+```
+>>> cursor.fetchall()
+((1, 'Harry', 'Wilkinson', datetime.date(2016, 2, 10), 0), (2, 'Jonathan', 'Hunt', datetime.date(2014, 2, 16), 0),
+(3, 'Harry', 'Hughes', datetime.date(2015, 3, 20), 0),
+(4, 'Kayla', 'Allen', datetime.date(2016, 3, 15), 1),
+(5, 'Virginia', 'Gonzalez', datetime.date(2017, 4, 2), 0))
+```
+
+El método a utilizar depende de la cantidad de datos devueltos, la memoria disponible y sobre todo, lo que intentamos lograr. Cuando se trabaja con conjuntos de datos limitados no hay ningún problema de usar fetchall(); pero si el resultado es demasiado grande para caber en la memoria, uno debe implementar una estrategia como la que se encuentra en el Listado 12.1.
+
+**Listado 12.1:** `pymysql1.py`: Leyendo los resultados de a uno.
+
+```
+import pymysql
+db = pymysql.connect(host='localhost',
+  user='root', passwd='secret', db='PythonU')
+cursor = db.cursor()
+recs = cursor.execute('SELECT * FROM Students')
+for x in range(recs):
+  print(cursor.fetchone())
+```
+
+Si bien el código en el Listado 12.1 funciona perfectamente, se mostró como un ejemplo del uso de *fetchone()*. Es posible iterar directamente sobre el objeto del cursor:
+
+**Listado 12.2:** `pymysql2.py`: Iterando directamente sobre el cursor de la base de datos (DB).
+
+```
+import pymysql
+db = pymysql.connect(host='localhost',
+  user='root', passwd='secret', db='PythonU')
+cursor = db.cursor()
+cursor.execute('SELECT * FROM Students')
+for row in cursor:
+  print(row)
+```
+
+## SQLITE
+
+En **SQLite** se crea una nueva base de datos al pasar un nombre de archivo en la línea de comando, como en:
+
+{line-numbers=off}
+```
+$ sqlite3 PythonU.db
+SQLite version 3.3.5
+Enter ".help" for instructions
+sqlite>
+```
+
+Sintaxis básica para crear una tabla en **SQLite**:
+
+{line-numbers=off}
+```
+CREATE TABLE table_name(
+  column1 datatype PRIMARY KEY(one or more columns),
+  column2 datatype,
+  .....
+  columnN datatype);
+```
+
+Por ejemplo, aquí está el comando para crear la tabla de Estudiantes:
+
+{line-numbers=off,lang=text}
+```
+sqlite> create table Students(
+ID int,
+Name text,
+LastName char,
+DateJoined datetext,
+OutstandingBalance Boolean);
+```
+
+Para importar los datos de un archivo csv, configuramos el separador y hacemos la importación:
+
+{line-numbers=off,lang=text}
+```
+sqlite> .separator ,
+sqlite> .import dbdata.csv Students
+
+```
+
+![**Figura 12.9** Captura de pantalla del administrador de SQLite: una GUI de SQLite como complemento de Firefox.](images/sqlitemanager.png)
+
+El siguiente ejemplo muestra que, prácticamente hablando, no hay diferencia en el uso desde Python con un tipo de base de datos u otro:
+
+**Listado 12.3:** `sqlite1.py`: El mismo script del Listado 12.1 pero con SQLite.
+
+```
+import sqlite3
+db = sqlite3.connect('../../samples/PythonU.db')
+cursor = db.cursor()
+cursor.execute('Select * from Students')
+for row in cursor:
+  print(row)
+```
+
+Lo único que cambió en el Listado 12.3 con respecto al Listado 12.2 fueron las primeras dos líneas. En la línea 1 se importó el módulo sqlite3 en lugar de MySQLdb. Mientras tanto, en la línea 2 el código de conexión es mucho más simple, ya que no requiere una contraseña o un nombre de usuario para conectarse a una base de datos SQLite.[^nota12-13]
+
+[^nota12-13]: Los permisos de acceso se pueden aplicar utilizando los permisos de acceso a archivos normales del sistema operativo subyacente.
+
+Esta es la salida de sqlite1.py (Listado 12.3):
+
+{line-numbers=off,lang=text}
+```
+(1, 'Harry', 'Wilkinson', '2016-02-10', 0)
+(2, 'Jonathan', 'Hunt', '2014-02-16', 0)
+(3, 'Harry', 'Hughes', '2015-03-20', 0)
+(4, 'Kayla', 'Allen', '2016-03-15', 1)
+(5, 'Virginia', 'Gonzalez', '2003-04-02', 0)
+```
+
+Al igual que con MySQL, hay algunas GUI para SQLite. SQLite Administrator[^nota12-14] es una aplicación de Windows[^nota12-15] que permite al usuario crear nuevas bases de datos o modificar las existentes. SQLite Manager[^nota12-16] tiene capacidades similares, pero está disponible tanto para Windows como para macOS. Un frontend de SQLite multiplataforma es el complemento SQLite Manager Firefox[^nota12-17], funciona en cualquier plataforma en la que se ejecute el navegador Firefox. En la Figura 12.9 hay una captura de pantalla de SQLite Manager.
+
+[^nota12-14]: Disponible en http://sqliteadmin.orbmu2k.de.
+[^nota12-15]: También funciona en Linux con Wine.
+[^nota12-16]: Disponible en http://www.sqlabs.net/sqlitemanager.php.
+[^nota12-17]: Disponible en https://addons.mozilla.org/en-US/firefox/addon/sqlite-manager-webext/.
+
+## BASES DE DATOS NOSQL: MONGODB
+
+Hay varios tipos de bases de datos NoSQL, como Cassandra, CouchDB y MongoDB. Este libro cubre este último porque es un buen producto, es de código abierto y tiene un amplio soporte de Python.
+¿Por qué usaría una base de datos no relacional? Este tipo de base de datos tienen varias ventajas sobre las bases de datos clásicas de SQL: no tiene esquema (schemaless como se lo conoce en inglés) por lo que es mejor para datos semi-estructurados, complejos o anidados. Esto también significa que las nuevas propiedades se pueden agregar "sobre la marcha" sin la necesidad de reestructurar una tabla y cambiar los datos almacenados actualmente. Las ganancias de rendimiento se obtienen porque generalmente hay menos solicitudes y búsquedas de tablas para obtener los mismos datos que en SQL. Además, al reducir la consistencia, puede obtener más rendimiento (esto se usa principalmente en escenarios de gran demanda y para datos que no son críticos). Otra ventaja es la escalabilidad, en lugar de actualizar el servidor como en las bases de datos SQL, en la mayoría de los casos puede actualizarse la capacidad de la base de datos comprando más servidores.
+Si no planeamos estar en un escenario como el descripto, es posible que no necesites una base de datos NoSQL. Este tipo de base de datos no se recomienda para todas las situaciones, pero vale la pena conocerlo para utilizarla y estar listos cuando llegue el momento.
+
+### Usando MongoDB con PyMongo
+
+Para seguir el resto de este capítulo, necesita instalar MongoDB o tener acceso a una instalación de MongoDB. Una instalación local es bastante fácil de lograr. Descargá la última versión desde el centro de descargas de MongoDB[^nota12-18]. Si elegimos usar un servicio que proporciona MongoDB en la nube (como Mlab[^nota12-19]), no necesitamos instalar un servidor local. En cualquier caso, necesitaremos instalar PyMongo:
+
+[^nota12-18]: <https://www.mongodb.com/download-center>
+[^nota12-19]: <https://mlab.com>
+
+{line-numbers=off,lang=text}
+```
+(py4bio) $ pip install pymongo
+Collecting pymongo
+  Downloading pymongo-3.4.0-cp35-cp35m-manylinux1_x86_64.whl (359kB)
+    100% |********************************| 368kB 3.0MB/s
+Installing collected packages: pymongo
+Successfully installed pymongo-3.4.0
+```
+
+Su uso es similar al de PyMySQL. Primero hay que importar el cliente de Mongo:
+
+{line-numbers=off}
+```
+>>> from pymongo import MongoClient
+```
+
+La sintaxis general para instanciar el cliente Mongo es:
+
+{line-numbers=off}
+```
+MongoClient(CONNECTION_STRING)
+```
+
+donde la cadena de conexión toma esta forma:
+
+{line-numbers=off}
+```
+'mongodb://USER:PASSWORD@DOMAIN:PORT/DB'
+```
+
+Si el servidor MongoDB está en la máquina local:
+
+{line-numbers=off}
+```
+>>> from pymongo import MongoClient
+>>> client = MongoClient('localhost:27017')
+```
+
+Para ver las bases de datos disponibles en este servidor MongoDB:
+
+{line-numbers=off}
+```
+>>> client.database_names()
+['Employee', 'admin', 'local']
+```
+
+El comando para crear una base de datos es el mismo que para conectarse a uno existente:
+
+{line-numbers=off}
+```
+>>> db = client.PythonU
+```
+
+Verificá que ya está creado:
+
+{line-numbers=off}
+```
+>>> client.database_names()
+['Employee', 'PythonU', 'admin', 'local']
+```
+
+Se puede eliminar una base de datos con el método **drop_database**:
+
+{line-numbers=off}
+```
+>>> client.drop_database('Employee')
+```
+
+Para crear una colección (el equivalente de una tabla SQL) dentro de una base de datos, usamos el mismo método utilizado al crear un DB:
+
+{line-numbers=off}
+```
+>>> students = db.Students
+```
+
+Esta colección de "estudiantes" está lista para aceptar documentos. Un documento es el equivalente a un registro en SQL. A diferencia de los registros de SQL, se almacenan como documentos JSON y pueden tener cualquier estructura (es por eso que también se llama sin esquemas). Con **pymongo** podemos insertar diccionarios de Python en lugar de documentos JSON. Aquí hay algunos diccionarios de Python con toda la información relacionada con cada estudiante (aquí se muestran solo los dos primeros registros):
+
+{line-numbers=off,lang=JSON}
+```
+{
+  'Name': 'Harry',
+  'LastName': 'Wilkinson',
+  'DateJoined': '2016-02-10', 'OutstandingBalance': False,
+  'Courses': [('Python 101', 7, '2016/1'),
+    ('Mathematics for CS', 8, '2016/1')]
+}
+
+{
+  'Name': 'Jonathan',
+  'LastName': 'Hunt',
+  'DateJoined': '2014-02-16', 'OutstandingBalance': False,
+  'Courses': [('Python 101', 6, '2016/1'),
+    ('Mathematics for CS', 9, '2015/2')]
+}
+```
+
+Esta es una diferencia con las bases de datos SQL. En lugar de tener esta información distribuida en 3 tablas y tener que recurrir a relaciones, todo está en un documento.
+Para insertar estos diccionarios en la colección:
+
+{line-numbers=off}
+```
+>>> student_1 = {'Name':'Harry', 'LastName':'Wilkinson',
+'DateJoined':'2016-02-10', 'OutstandingBalance':False,
+'Courses':[('Python 101', 7, '2016/1'), ('Mathematics for CS',
+8, '2016/1')]}
+>>> student_2 = {'Name':'Jonathan', 'LastName':'Hunt',
+'DateJoined':'2014-02-16', 'OutstandingBalance':False,
+'Courses':[('Python 101', 6, '2016/1'), ('Mathematics for CS',
+9, '2015/2')]}
+>>> students.count()
+0
+>>> students.insert(student_1)
+ObjectId('58b64f201d41c8066755035e')
+>>> students.insert(student_2)
+ObjectId('58b64f251d41c8066755035f')
+>>> students.count()
+2
+```
+
+![**Figura 12.10** Documentos en una colección, de MLab, un proveedor en la nube de MongoDB.](images/mlab.png)
+
+Después de cada inserción, el método **insert()** devuelve el **ObjectId**, que es una clave para cada documento. Esta identificación es un número de 12 bytes que contiene la fecha en que se ingresó el documento y un número único para la colección. Podemos usar este ID para recuperar un registro, usando el método **find_one()**:
+
+{line-numbers=off}
+```
+>>> from bson.objectid import ObjectId
+>>> search_id = {'_id':ObjectId('58b64f251d41c8066755035f')}
+>>> my_student = students.find_one(search_id)
+>>> my_student['LastName']
+'Hunt'
+```
+
+Podés obtener la fecha de inserción con la propiedad **generation_time**:
+
+{line-numbers=off}
+```
+>>> my_student['_id'].generation_time
+datetime.datetime(2017, 3, 1, 4, 33, 41, tzinfo=<bson.tz_util<=
+.FixedOffset object at 0x7f3eb8c3fd68>)
+```
+
+Con **find()** obtenés un objeto generador sobre el que se puede iterar:
+
+{line-numbers=off}
+```
+>>> for student in students.find():
+... print(student['Name'], student['LastName'])
+...
+Harry Wilkinson
+Jonathan Hunt
+```
+
+Para ver la lista completa, usá el método incorporado **list()**:
+
+{line-numbers=off}
+```
+>>> list(students.find())
+[{'_id': ObjectId('58b64f201d41c8066755035e'), 'DateJoined': <=
+'2016-02-10', 'Courses': [['Python 101', 7, '2016/1'], ['Math<=
+ematics for CS', 8, '2016/1']], 'OutstandingBalance': False, <=
+'LastName': 'Wilkinson', 'Name': 'Harry'}, {'_id': ObjectId('<=
+ 58b64f251d41c8066755035f'),'DateJoined': '2014-02-16', 'Cour<=
+ ses': [['Python 101', 6, '2016/1'], ['Mathematics for CS',9,<=
+ '2015/2']], 'OutstandingBalance': False, 'LastName': 'Hunt',<=
+'Name': 'Jonathan'}]
+```
+
+## RECURSOS ADICIONALES
+
+* [Database interfaces in Python.](https://wiki.python.org/moin/DatabaseInterfaces)
+
+* [MySQL queries examples.](http://www.pantz.org/software/mysql/mysqlcommands.html)
+
+* [Richard Hipp. SQLite lecture.](https://youtu.be/gpxnbly9bz4)
+
+* [SQLite FAQ.](https://sqlite.org/faq.html)
+
+* [The Unofficial MySQL 8.0 Optimizer Guide.](http://www.unofficialmysqlguide.com)
+
+* [Why schemaless?](https://www.mongodb.com/blog/post/why-schemaless)
+
+* [Installing PyMongo: The Python MongoDb Connector.](http://codehandbook.org/pymongo-tutorial-crud-operation-mongodb)
+
+* [NOSQL data modeling techniques.](https://goo.gl/iZcFOy)
+
+* [Database normalization basics. Normalizing your database.](https://goo.gl/x7tbX4)
+
+* Software:
+
+  - [MySQL homepage.](https://www.mysql.com)
+  - [SQuirreL SQL Client - JDBC SQL GUI Client](http://www.squirrelsql.org/)
+  - [SQLite homepage](https://www.sqlite.org/index.html)
+  - [SQLite Administrator](http://sqliteadmin.orbmu2k.de/)
+  - [PostgreSQL home page](https://www.postgresql.org/)
+
+* Soluciones alternativas:
+
+  - [Choosing a non-relational database; why we migrated from MySQL to MongoDB.](https://goo.gl/8f7KeB)
+  - [The CouchDB Project](https://couchdb.apache.org/)
+  - [HyperTable: Performance and scalability.](https://www.hypertable.org/)
+  - [Apache Libcloud: An unified interface to the cloud in Python.](http://libcloud.apache.org/)
+
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Qué es una base de datos?
+X>
+X> 2- Dar algunos ejemplos de bases de datos.
+X>
+X> 3- ¿Qué es una base de datos relacional?
+X>
+X> 4- Definir los siguientes términos: entidad, atributos y relaciones.
+X>
+X> 5- ¿Qué es una base de datos no relacional?
+X>
+X> 6- ¿Qué es una consulta?
+X>
+X> 7- Traducir esta consulta al inglés:
+X>  `SELECT LastName, Grade FROM Student, Grades WHERE Grades.Grade>3;`
+X>
+X> 8- ¿Cuál es la diferencia entre MySQL y SQLite?
+X>
+X> 9- ¿Cuándo es apropiado usar SQLite?
+X>
+X> 10- ¿Cuáles son las limitaciones de SQLite con respecto a MySQL?
+X>
+X> 11- Nombrar las ventajas y desventajas de las bases de datos NoSQL sobre SQL.
