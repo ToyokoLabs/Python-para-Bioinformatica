@@ -1,0 +1,626 @@
+{:: encoding="UTF-8" /}
+
+# Introducción a la programación orientada a objetos (POO)
+
+## PARADIGMA DE OBJETOS Y PYTHON
+
+Como se mencionó en la introducción del libro, Python es un lenguaje orientado a objetos. A diferencia de otros lenguajes que manejan objetos, Python nos permite programar de una manera procedural clásica sin considerar el paradigma de los objetos. A veces a esto se lo denomina un "lenguaje de paradigma múltiple".
+
+Ya hemos usado objetos, incluso sin indicarlo de forma explícita. Los tipos de datos incluidos en Python son objetos. Cadenas, diccionarios y listas son implementaciones de objetos. Cada uno de ellos tiene sus funciones asociadas (*métodos*, en la jerga) y sus atributos (datos asociados). Hemos visto que **lower()** devuelve una cadena en minúsculas. Esto se debe a que todos los objetos de la clase **string** tienen asociado el método **lower()**.
+
+Representar parte del mundo real suele ser uno de los objetivos de la programación. Desde una transacción bancaria hasta la reconstrucción de una secuencia de ADN, todo puede expresarse en un lenguaje de programación. Aunque los tipos de datos incluidos en Python son muchos y variados, su capacidad para incluir todas nuestras necesidades de modelado de información es limitada. Se puede usar una clase para definir un nuevo tipo de datos, por ejemplo, un diccionario puede representar una tabla de traducción entre nucleótidos y aminoácidos, una cadena puede representar una secuencia de ADN y una tupla puede representar las coordenadas espaciales de un átomo en una proteína. Pero, ¿qué tipo de datos utilizamos para representar el estado metabólico de una célula? ¿Los diferentes dominios en una proteína? ¿El resultado de una corrida de BLAST? ¿Qué pasa con un ecosistema?
+
+Existe la necesidad de definir nuestros propios tipos de datos, para poder modelar cualquier sistema, ya sea biológico o de cualquier otro tipo. Aunque las funciones son útiles para modularizar el código, no están diseñadas para cumplir esta función. Las funciones no pueden almacenar estados, ya que los valores de las variables sólo tienen vida mientras se ejecuta la función. Otros idiomas tienen sus tipos de datos personalizados, como "estructuras" en C o "registro" en Pascal, pero no tienen la misma flexibilidad que los objetos de lenguajes basados ​​en POO (como Java, C ++ o Python). Los objetos tienen suficiente ductilidad para poder modelar cualquier tipo de sistema y sus posibles relaciones con otros sistemas.
+
+## EXPLORANDO LA JERGA
+
+El mundo de la POO tiene su propio vocabulario. En esta sección intentaré aclarar algunas de las tantas palabras nuevas como clase, método, instancia, atributos, polimorfismo, herencia, etc. Las definiciones no serán exhaustivas, algunas de ellas ni siquiera serán exactas, pero la prioridad será la comprensión del tema en lugar de la formalidad. Recordemos que el objetivo de este libro es proporcionar herramientas de programación para resolver problemas biológicos. Teniendo esto en cuenta, se han escrito las siguientes definiciones y sus respectivos ejemplos:
+
+**Clases: Generadores de objetos**
+
+Una clase es una plantilla que se utiliza para generar objetos. Los objetos pueden contener datos y tener funciones asociadas. Una clase puede ser un tipo de datos como un `string` o un `set`, pero también algo más complejo como el genoma, las personas, las secuencias, etc. Cualquier objeto capaz de ser abstraído puede ser una clase.
+
+**Instancia: Implementación particular de la clase**
+
+Una instancia es la implementación de una clase. Por ejemplo, si tenemos una clase 'Orca', una instancia puede ser `Willy`. Se pueden crear varias instancias de la misma clase (por ejemplo, `Shamu`) y todas son independientes entre sí.
+
+**Atributos o variables de instancia: características de los objetos**
+
+Cada objeto tendrá sus propias características (o atributos), por ejemplo, el peso. `Willy` puede tener un peso diferente de `Shamu`, pero a pesar de tener variaciones en sus atributos, ambas instancias pertenecen a la misma clase, `Orca`. Ellos comparten al menos el "tipo de atributos". Podríamos crear una clase `perro`, con instancias como `Lassie`, `Laika` y `Rin-tin-tin`. Esta clase puede tener el atributo `hair_color` (color de pelo), que no será compartido por las instancias de la clase `Orca`.
+
+**Métodos: Comportamiento de los objetos**
+
+Un método es una función asociada con un objeto. Los métodos definen cómo se “comportan” los objetos. Por ejemplo, la clase de `DNA` puede tener un `plasmid` de instancia con un `method translate` que permite traducir una secuencia de aminoácidos en una proteína. La notación en Python para esto es: `plasmid.translate()`. Este método es una función asociada con una clase. Podría requerir como parámetros una cadena con la secuencia de ADN y un diccionario con una tabla de traducción. Siguiendo con la clase de `Orca` esta podría tener un método `eat` (comer).
+
+**Atributos de clase: Características de las clases**
+
+Los atributos son variables asociadas con todos los objetos de una clase. Cuando se crea un objeto a partir de una clase, este objeto hereda la variable de la clase. En la clase `Orca`, `peso` puede ser un atributo de la clase.
+
+**Herencia: las propiedades se transmiten entre las clases relacionadas**
+
+Las clases pueden estar relacionadas entre sí y no ser entidades aisladas. Es posible tener una clase `Mammal` (mamífero) con propiedades comunes con la clase `Orca` y la clase `Perro`. Por ejemplo, la reproducción del método se puede definir para la clase `Mammal`. Cuando creamos las clases Perro y Orca, y las definimos como "hijos" de `Mammal`, no será necesario crear para ellos el método de reproduction. Este método será heredado de la clase padre. Las clases de los hijos pueden tener sus propios métodos únicos, como `swin` (nadar) y `run` (correr).
+
+**Polimorfismo**
+
+El polimorfismo es la capacidad de diferentes tipos de objetos para responder al mismo método con un comportamiento diferente. El mismo método, por ejemplo, `feed`, es muy diferente en la clase Orca y la clase Perro. Ambos se llamarán de la misma manera pero el resultado puede ser diferente. Por ejemplo, se puede iterar sobre una lista, un diccionario, un archivo y más, de la misma manera, pero la forma en que Python maneja la iteración cambia para cada tipo de objeto.
+
+**Encapsulación**
+
+La encapsulación es la capacidad de ocultar la operación interna de un objeto y dejar el acceso a los programadores solo a través de sus métodos públicos. El término **encapsulación** no está asociado con Python porque este lenguaje no tiene una verdadera **encapsulación**. Es posible dificultar el acceso a ciertos métodos, pero no impedirlo. No está en la filosofía de Python ser un obstáculo para el programador. Lo que se puede hacer en Python es dejar en claro qué métodos y propiedades son propiedad únicamente de una clase y cuáles están concebidos para ser compartidos. Este comportamiento también se conoce como pseudo-encapsulación o encapsulación translúcida. Es responsabilidad del programador hacer un uso racional de esta opción. Esto se llama en Python, "protección por convención", no por legislación. Consultá la sección ["Haciendo nuestro código privado"](#codigoprivado) para usar esta propiedad.
+
+## CREANDO CLASES
+
+Las clases son la plantilla de los objetos. La sintaxis para crear clases en Python es muy simple:
+
+{line-numbers=off}
+```
+class Name:
+  [cuerpo de la clase]
+```
+
+Veamos una clase de muestra:
+
+{line-numbers=off}
+```
+class Square:
+  def __init__(self):
+    self.side = 1
+```
+
+Esta clase (`Square`) tiene un método llamado `__init__`. Es un método especial que no devuelve ningún valor. Se ejecuta cada vez que se crea (o se crea una instancia) una instancia de `Square`. Se utiliza para personalizar un estado inicial específico. En este caso se establece el valor del atributo `side`. Otra peculiaridad a considerar es la palabra `self`, que se repite como parámetro del método y como parte del nombre del atributo. `Self` es una variable que se utiliza para representar la instancia de `Square`. Es posible usar otro nombre en lugar de `self`, pero `self` es usado por convención. Es recomendable seguir la convención porque hace que nuestro programa sea más fácil de entender para otros programadores.[^nota8-1]
+Para instanciar una clase se necesita usar la notación de funciones. Esto es como una función sin parámetros que retorna una nueva instancia de la clase.
+Veamos un ejemplo, el uso de la clase `Square`, con la creación de la instancia `Bob`:
+
+[^nota8-1]: También hay analizadores del código que dependen de esta convención para funcionar.
+
+{line-numbers=off}
+```
+>>> Bob = Square() # Bob es una instancia de Square.
+>>> Bob.side # Veamos el valor de side
+1
+```
+
+Es posible cambiar el valor del atributo side de la instancia `Bob`:
+
+{line-numbers=off}
+```
+>>> Bob.side = 5 # Asignando un nuevo valor a side
+>>> Bob.side # Veamos el valor de side
+5
+```
+
+Este cambio es específico para la instancia de `Bob`. Cuando se crean nuevas instancias, el método `__init__` se ejecuta nuevamente para asignar el valor `side` a la nueva instancia:
+
+{line-numbers=off}
+```
+>>> Krusty = Square()
+>>> Krusty.side
+1
+```
+
+Si la variable `side` es una variable que debe ser accesible desde todas las instancias de la clase, es recomendable utilizar una variable de clase. Estas variables son compartidas por todos los objetos de la misma clase.
+
+{line-numbers=off}
+```
+class Square:
+  side = 1
+```
+
+De esta manera el valor de side se definirá incluso antes de crear una instancia de `Square`:
+
+{line-numbers=off}
+```
+>>> Square.side
+1
+```
+
+Por supuesto que si creamos instancias de `Square` también tendrán este valor de `side`:
+
+{line-numbers=off}
+```
+>>> Crab = Square()
+>>> Crab.side
+1
+```
+
+Las variables de clase pueden tener información sobre las instancias. Por ejemplo, es posible usarlas para controlar cuántas instancias de una clase se han creado.
+
+{line-numbers=off}
+```
+class Square:
+  count = 0
+  def __init__(self):
+    Square.count += 1
+      print("Object created successfully")
+```
+
+Esta versión de Square puede contar el número de instancias que han sido creadas. Tengan en cuenta que a la variable `count` se la accede dentro de la clase como `Square.count`, para distinguirse de una variable de instancia que se anota con el prefijo `self.`. Veamos cómo se usa este objeto:
+
+{line-numbers=off}
+```
+>>> Bob = Square()
+Object created successfully
+>>> Patrick = Square()
+Object created successfully
+>>> Square.count
+2
+```
+
+Veamos otra clase:
+
+{line-numbers=off}
+```
+class Sequence:
+  transcription_table = {'A':'U', 'T':'A', 'C':'G' , 'G':'C'}
+  def __init__(self, seqstring):
+    self.seqstring = seqstring.upper()
+  def transcription(self):
+    tt = ""
+    for letter in self.seqstring:
+      if letter in 'ATCG':
+        tt += self.transcription_table[letter]
+    return tt
+```
+
+Esta clase tiene dos métodos y un atributo. El método `__init__` se utiliza para establecer el valor de *seqstring* en cada instancia:
+
+{line-numbers=off}
+```
+>>> dangerous_virus = Sequence('atggagagccttgttcttggtgtcaa')
+>>> dangerous_virus.seqstring
+'ATGGAGAGCCTTGTTCTTGGTGTCAA'
+>>> harmless_virus = Sequence('aatgctactactattagtagaattgatgcca')
+>>> harmless_virus.seqstring
+'AATGCTACTACTATTAGTAGAATTGATGCCA'
+```
+
+La clase de secuencia también tiene un método llamado *transcription* que tiene como único parámetro la instancia en sí misma (representada por *self*). Este parámetro no aparece cuando se llama a la función, porque está implícita. Observá que función *transcription* utiliza la variable de clase *transcription_table* (un diccionario) para convertir la secuencia de secuencias *seqstring* en su equivalente transcripto:
+
+{line-numbers=off}
+```
+>>> dangerous_virus.transcription()
+'GCUAAGAGCUCGCGUCCUCAGAGUUUAGGA'
+```
+
+Los métodos también pueden tener parámetros. Para mostrar esto, aquí hay un método nuevo (*restriction*) en la clase *Sequence*. Este método calcula cuántos sitios de restricción tiene una secuencia para una enzima dada.[^nota8-2] Por lo tanto este método requiere como parámetro el nombre de una enzima de restricción. Otra diferencia es que esta clase contendrá un diccionario que relaciona el nombre de la enzima con la secuencia de reconocimiento:
+
+[^nota8-2]: Una enzima de restricción es una proteína que reconoce una secuencia de ADN específica y produce un corte dentro de la zona de reconocimiento.
+
+**Listado 8.1:** `seqclass.py`: Clase Sequence
+
+```
+class Sequence:
+  transcription_table = {'A':'U', 'T':'A', 'C':'G' , 'G':'C'}
+  enz_dict = {'EcoRI':'GAATTC', 'EcoRV':'GATATC'}
+  def __init__(self, seqstring):
+    self.seqstring = seqstring.upper()
+  def restriction(self, enz):
+    try:
+      enz_target = Sequence.enz_dict[enz]
+      return self.seqstring.count(enz_target)
+    except KeyError:
+      return 0
+  def transcription(self):
+    tt = ""
+    for letter in self.seqstring:
+      if letter in 'ATCG':
+        tt += self.transcription_table[letter]
+    return tt
+```
+
+Usando la clase *Sequence*:
+
+{line-numbers=off}
+```
+>>> other_virus = Sequence('atgatatcggagaggatatcggtgtcaa')
+>>> other_virus.restriction('EcoRV')
+2
+```
+
+## HERENCIA
+
+La herencia de clases implica que la nueva (hija) clase “hereda” los métodos y atributos de la clase base. En el siguiente ejemplo se puede ver la sintaxis usada para crear una clase que se hereda de otra clase:
+
+{line-numbers=off}
+```
+class DerivedClass(BaseClass):
+  [body]
+```
+
+Siguiendo con el ejemplo de la clase `Orca` que heredó de la clase `Mammal`:
+
+**Listado 8.2:** `orca.py`: Clase Orca.
+
+```
+class Orca(Mammal):
+  """Docstring with class description"""
+  # Properties here
+  # Methods here
+```
+
+Veamos como ejemplo una clase llamada `Plasmid`[^nota8-3] que se basa en la clase `Sequence`. Debido a que el plásmido es un tipo de secuencia de ADN, creamos la clase `Plasmid` que hereda los métodos y propiedades de `Sequence`. También definimos métodos y atributos que son exclusivos de esta nueva clase, como `AbResDict` y `ABres`. El método `ABres` se usa para saber si nuestro plásmido tiene resistencia a un antibiótico particular, mientras que el atributo `AbResDict` tiene la información de las regiones que caracterizan las diferentes resistencias a antibióticos.
+
+[^nota8-3]: Un plásmido es es una molécula de ADN que es independiente del ADN cromosómico de un microorganismo.
+
+**Listado 8.3:** `plasmid.py`: Clase Plasmid.
+
+```
+class Plasmid(Sequence):
+  ab_res_dict = {'Tet':'ctagcat', 'Amp':'CACTACTG'}
+  def __init__(self, seqstring):
+    Sequence.__init__(self, seqstring)
+  def  ab_res(self, ab):
+    if self.ab_res_dict[ab] in self.seqstring:
+      return True
+    return False
+```
+
+Como se puede observar dentro del método `__init__` de `Plasmid`, llamamos el método `__init__` de `Sequence`. Esta es la forma en que nuestra clase hereda los atributos y métodos de la clase "padre". Veamos cómo la clase `Plasmid` usa sus propios métodos y los de su padre (`Sequence`). El método `ABres` funciona de manera similar a `Restriction` con la diferencia que en lugar de devolver la posición que estamos buscando simplemente nos informa si está presente o ausente.
+
+**Introduciendo algunos objetos de Biopython**
+
+Si bien hay una sección especial para Biopython, más adelante, veremos algunas estructuras de Biopython aquí para familiarizarnos con ellas.
+
+* **Clase IUPACAmbiguousDNA**: La clase **IUPACAmbiguousDNA**[^nota8-4] está en el módulo *IUPAC*. Es una clase que se deriva de **Alphabet** y contiene la información sobre las letras aprobadas por IUPAC[^nota8-5] para las secuencias de ADN. En este caso se tiene en cuenta la ambigüedad (*IUPACAmbiguousDNA*), es decir hay caracteres para codificar nucleótidos no completamente determinados en una posición dada. Por ejemplo, si un nucleótido en una posición específica puede ser A o G, se codifica con una R (consulte la Figura 8.1 para ver la tabla completa de notación para los ácidos nucleicos de IUPAC). Por este motivo `IUPACAmbiguousDNA` tiene una variable de clase que contiene la cadena `"GATCRYWSMKHBVDN"`. A primera vista no parece una clase muy útil, pero en la clase `Seq` se mostrará su utilidad.
+
+[^nota8-4]: Consulte <http://biopython.org/DIST/docs/api/Bio.Alphabet.IUPAC-module.html> para obtener más información.
+[^nota8-5]: IUPAC significa Unión Internacional para Química Pura y Aplicada; Es una federación internacional que regula la nomenclatura utilizada en química.
+
+* **Clase IUPACUnambiguousDNA**: Al igual que **IUPACAmbiguousDNA**, hay una **IUPACUnambiguousDNA**. Esta clase deriva de la anterior, por lo que mantiene sus propiedades. La única diferencia es que esta clase define nuevamente el atributo de **letters**, con `GATC` como contenido.
+
+
+* **Clase Seq**: en el módulo **Seq** hay una clase llamada **Seq**.[^nota8-6] Los objetos de esta clase almacenan la información de secuencia. Hasta este punto hemos representado las secuencias como cadenas. El problema con este enfoque es que la cadena solo contiene información de secuencia y no hay metadatos que nos digan qué tipo de secuencia es: ADN, ARN, aminoácidos. En la clase `Seq` hay dos parámetros: **data** y el **alphabet**. **Data** es una cadena con la secuencia y **alphabet** es un objeto del tipo **alphabet**. Contiene información sobre el tipo de secuencia del alfabeto. Otra característica de esta clase es que es "inmutable", es decir una vez que se define una secuencia no se puede modificar (solo como una cadena). De esta manera estamos seguros de que la secuencia sigue siendo la misma, incluso después de varias manipulaciones. Para cambiar la secuencia tenemos que usar un tipo de objeto **MutableSeq**.
+La clase **Seq** define varios métodos, algunos de los más importante son: *complement* (devuelve la secuencia complementaria), *reverse_complement* (devuelve la secuencia complementaria inversa), *tomutable* (devuelve un objeto **MutableSeq**) y *tostring* (devuelve la secuencia como una cadena). Vamos a verlo en acción:[^nota8-7]
+
+[^nota8-6]: Consulte <http://biopython.org/DIST/docs/api/Bio.Seq.Seq-class.html> para obtener más información.
+
+![**Figura 8.1** Tabla de notación IUPAC de ácidos nucleicos.](images/IUPACNotation.png)
+
+[^nota8-7]: Para ejecutar este código necesita instalar Biopyton; ver #página 159 más más información.
+
+{line-numbers=off}
+```
+>>> from Bio.Alphabet import IUPAC
+>>> from Bio.Seq import Seq
+>>> first_seq = Seq('GCTATGCAGC', IUPAC.unambiguous_dna) >>> first_seq
+Seq('GCTATGCAGC', IUPACUnambiguousDNA())
+>>> first_seq.complement()
+Seq('CGATACGTCG', IUPACUnambiguousDNA())
+>>> first_seq.tostring()
+'GCTATGCAGC'
+```
+
+Este objeto tiene métodos especiales que permiten al programador trabajar con un objeto de tipo `Seq` como si fuera una cadena:
+
+{line-numbers=off}
+```
+>>> first_seq[:10] # slice a sequence
+Seq('GCTAT', IUPACUnambiguousDNA())
+>>> len(first_seq) # get the length of the sequence
+10
+>>> first_seq[0] # get one character
+'G'
+```
+
+* **Clase MutableSeq**: Este es un objeto muy similar a `Seq`, con la diferencia principal de que su secuencia se puede modificar. Tiene los mismos métodos que `Seq`, más algunos métodos diseñados para manejar las secuencias mutables.
+Podemos crearlo desde cero o se puede hacer desde un objeto `Seq` usando el método *tomutable*.
+
+{line-numbers=off}
+```
+>>> first_seq
+Seq('GCTATGCAGC', IUPACUnambiguousDNA())
+>>> AnotherSeq=first_seq.tomutable()
+>>> AnotherSeq.extend("TTTTTTT")
+>>> print(AnotherSeq)
+MutableSeq('GCTATGCAGCTTTTTTT', IUPACUnambiguousDNA())
+>>> AnotherSeq.pop() 'T'
+>>> AnotherSeq.pop()
+'T'
+>>> print(AnotherSeq)
+MutableSeq('GCTATGCAGCTTTTT', IUPACUnambiguousDNA())
+```
+
+## MÉTODOS ESPECIALES
+
+Algunos métodos tienen un significado especial. Ya hemos visto el método `__init__` que se ejecuta cada vez que se crea una nueva instancia (o un nuevo objeto es instanceado). Cada método especial se ejecuta bajo una condición preestablecida. El desarrollador puede modificar la forma en que el objeto responde a cada una de estas condiciones preestablecidas.
+Tomemos como ejemplo el método `__len__`. Este método se activa en un objeto cada vez que se llama a la función **len(instance)**. Lo que devuelve este método depende del desarrollador. Recordemos que la clase *Sequence* (Listado 8.1) y veamos qué sucede cuando queremos averiguar la longitud de una secuencia:
+
+{line-numbers=off}
+```
+>>> len(Sequence("ACGACTCTCGACGGCATCCACCCTCTCTGAGA"))
+Traceback (most recent call last):
+File "<stdin>", line 1, in <module>
+AttributeError: Sequence instance has no attribute '__len__'
+```
+
+De alguna manera se esperaba esto, ya que no definimos cuál es el significado de la longitud de *Sequence*. Este objeto tiene varios atributos y el intérprete no tiene manera de saber qué atributo retorna cuando *len(Sequence)* es requerido. El mensaje de error nos da una pista sobre el problema: "La instancia de secuencia no tiene ningún atributo `__len__` ". Por lo tanto, si queremos establecer un comportamiento para la función **len()**, tenemos que definir el atributo del método especial `__len__`:
+
+{line-numbers=off}
+```
+def __len__(self):
+  return len(self.seqstring)
+```
+
+Este método debe incluirse en la definición de clase.
+
+**Listado 8.4:** `seqclass2.py`: Clase Sequence.
+
+```
+class Sequence:
+  transcription_table = {'A':'U', 'T':'A', 'C':'G' , 'G':'C'}
+  enz_dict = {'EcoRI':'GAATTC', 'EcoRV':'GATATC'}
+  def __init__(self, seqstring):
+    self.seqstring = seqstring.upper()
+  def __len__(self):
+    return len(self.seqstring)
+  def restriction(self, enz):
+    try:
+      enz_target = Sequence.enz_dict[enz]
+      return self.seqstring.count(enz_target) except KeyError:
+        return 0
+  def transcription(self):
+    tt=""
+    for letter in self.seqstring:
+      if letter in 'ATCG':
+        tt += self.transcription_table[letter]
+      return tt
+```
+
+Ahora que hemos definido el método `__len__`, podemos aplicar la función **len** a los objetos *Sequence*:
+
+{line-numbers=off}
+```
+>>> M13 = Sequence("ACGACTCTCGACGGCATCCACCCTCTCTGAGA")
+>>> len(M13)
+32
+```
+
+De la misma manera que podemos controlar lo que devuelve **len()**, podemos controlar otros métodos que se pueden programar en una clase. Veamos algunos de ellos[^nota8-8]:
+
+* __str__ Este método se invoca cuando se requiere la representación de la cadena de un objeto. Esta representación se obtiene con **str(object)** o con **print object**. Así el programador puede elegir cómo se ve su objeto, por ejemplo, la tabla de traducción proporcionada por Biopython, *Bio.Data.CodonTable*, se almacena como un diccionario, pero su representación aparece como una tabla:
+
+[^nota8-8]: En <https://docs.python.org/3.6/reference/datamodel.html#special-method-names> hay una lista de métodos especiales.
+
+{line-numbers=off}
+```
+>>> import Bio.Data.CodonTable
+>>> print(Bio.Data.CodonTable.standard_dna_table)
+Table 1 Standard, SGC0
+  |  T      |  C      |  A      |  G      |
+--+---------+---------+---------+---------+--
+T | TTT F   | TCT S   | TAT Y   | TGT C   | T
+T | TTC F   | TCC S   | TAC Y   | TGC C   | C
+T | TTA L   | TCA S   | TAA Stop| TGA Stop| A
+T | TTG L(s)| TCG S   | TAG Stop| TGG W   | G
+--+---------+---------+---------+---------+--
+C | CTT L   | CCT P   | CAT H   | CGT R   | T
+C | CTC L   | CCC P   | CAC H   | CGC R   | C
+C | CTA L   | CCA P   | CAA Q   | CGA R   | A
+C | CTG L(s)| CCG P   | CAG Q   | CGG R   | G
+--+---------+---------+---------+---------+--
+A | ATT I   | ACT T   | AAT N   | AGT S   | T
+A | ATC I   | ACC T   | AAC N   | AGC S   | C
+A | ATA I   | ACA T   | AAA K   | AGA R   | A
+A | ATG M(s)| ACG T   | AAG K   | AGG R   | G
+--+---------+---------+---------+---------+--
+G | GTT V   | GCT A   | GAT D   | GGT G   | T
+G | GTC V   | GCC A   | GAC D   | GGC G   | C
+G | GTA V   | GCA A   | GAA E   | GGA G   | A
+G | GTG V   | GCG A   | GAG E   | GGG G   | G
+--+---------+---------+---------+---------+--
+```
+
+* __repr__ se invoca con la función incorporada **repr()** y cuando el objeto se ingresa en el shell interactivo. Debería parecer una expresión válida de Python que podría usarse para recrear un objeto con el mismo valor, cuando no sea posible, una cadena de la forma <... alguna descripción útil ...>. Esto se utiliza principalmente en el debugging. Veamos el mismo objeto que el anterior pero con **repr()** en lugar de **print()**:
+
+{line-numbers=off}
+```
+>>> repr(Bio.Data.CodonTable.standard_dna_table)
+'<Bio.Data.CodonTable.NCBICodonTableDNA instance at 0xb7da0c>'
+```
+
+* __getitem__ se usa para acceder a un objeto de forma secuencial o mediante un sub-script como *object|n|*. Cada vez que intenta acceder a un objeto como *object|n|*, se ejecuta el objeto *__ getitem __(n)*. Este método requiere dos parámetros: el objeto (generalmente *self*) y el índice. Hay un ejemplo de uso en el listado 8.6.
+
+* __iter__ permite que se desplace de la secuencia. Con **__iter__** podemos iterar de la misma manera sobre muchos objetos diferentes, como diccionarios, listas, archivos, cadenas, etc. La instrucción **for** llama a la función incorporada **iter** en el objeto sobre el que se itera. **__iter__** define cómo se devuelven items cuando se usa el método especial **__next__**. En el primer ejemplo, creamos la clase *Straight*, donde sus elementos se devuelven en el mismo orden en el que se almacenan, mientras que la clase *Reverse* devuelve sus elementos utilizando un orden invertido:
+
+**Listado 8.5:** `straight.py`: Clases *Straight* y *Reverse*.
+
+```
+class Straight:
+  def __init__(self, data):
+    self.data = data
+    self.index = 0
+  def __iter__(self):
+    return self
+  def __next__(self):
+    if self.index == len(self.data):
+      raise StopIteration
+      answer = self.data[self.index]
+      self.index += 1
+      return answer
+
+class Reverse:
+  def __init__(self, data):
+    self.data = data
+    self.index = len(data)
+def __iter__(self):
+  return self __next__(self):
+    if self.index == 0:
+      raise StopIteration
+    self.index -= 1
+    return self.data[self.index]
+```
+
+Veamoslo en acción:
+
+{line-numbers=off}
+```
+>>> a = Straight("123")
+>>> for i in a:
+  print(i)
+
+1
+2
+3
+>>> b = reverse("123")
+>>> for i in b:
+  print(i)
+3
+2
+1
+```
+
+* __setitem__ se usa para asignar un valor a una clave (con la forma *self[key] = value*). Normalmente se utiliza para cambiar el valor de una clave en un diccionario. En este caso, se utiliza para reemplazar un carácter en una cadena:
+
+{line-numbers=off}
+```
+def __setitem__(self, key, value):
+  if len(value) == 1:
+    self.seq = self.seq[:key] + value + self.seq[key+1:]
+    return None
+  else:
+    raise ValueError
+```
+
+* __delitem__ implementa la eliminación de objetos de la forma *self[key]*. Puede ser utilizado con cualquier objeto que soporte la eliminación de sus elementos.
+
+Clase *Sequence* con algunos métodos especiales:
+
+**Listado 8.6:** `seqwitsm.py`: Clase Sequence con métodos de atributos especiales
+
+```
+class Sequence:
+  transcription_table = {'A':'U', 'T':'A', 'C':'G', 'G':'C'}
+  comp_table = {'A':'T', 'T':'A', 'C':'G', 'G':'C'}
+  def __init__(self, seqstring):
+    self.seqstring = seqstring.upper()
+  def restriction(self, enz):
+    enz_dict = {'EcoRI':'ACTGG', 'EcoRV':'AGTGC'}
+    try:
+      target = enz_dict[enz]
+    except KeyError:
+      raise ValueError('No such enzime in out enzime DB')
+    return self.seqstring.count(target)
+  def __getitem__(self,index):
+    return self.seqstring[index]
+  def __getslice__(self, low, high):
+    return self.seqstring[low:high]
+  def __len__(self):
+    return len(self.seqstring)
+  def __str__(self):
+    if len(self.seqstring) >= 28:
+      return '{0}...{1}'.format(self.seqstring[:25],
+        self.seqstring[-3:])
+    else:
+      return self.seqstring
+  def transcription(self):
+    tt=''
+    for x in self.seqstring:
+      if x in 'ATCG':
+        tt += self.transcription_table[x]
+      return tt
+  def complement(self):
+    tt = ''
+    for x in self.seqstring:
+      if x in 'ATCG':
+        tt += self.comp_table[x]
+      return tt
+```
+
+### Crear un nuevo tipo de datos usando un tipo de datos incorporado
+
+Podemos crear nuestras propias clases derivadas de los tipos de datos incorporados. Para ilustrar este punto veamos cómo crear una variante del tipo *dict*. `Zdict` es un objeto similar a un diccionario; se comporta como un diccionario con una diferencia, en lugar de generar una excepción al intentar recuperar un valor con una clave inexistente, devuelve 0 (cero).
+
+**Listado 8.7:** `zdict.py`: Extendiendo la clase diccionario.
+
+```
+class Zdic(dict):
+  """ A dictionary-like object that return 0 when a user
+      request a non-existent key.
+  """
+  def __missing__(self,x):
+    return 0
+```
+
+**Explicación del código**: en la línea 1 nombramos la clase y pasamos un tipo de datos como argumento (`dict`). Esto significa que la clase resultante (`Zdic`) hereda del tipo `dict`. En la línea 5 a la 6 está la definición de un método especial: **__missing__**. Este método se activa cuando el usuario intenta recuperar un valor con una clave inexistente. Toma como argumento el valor de la clave, pero en este caso el programa no usa dicho valor (x) ya que devuelve 0, sin tener en cuenta el valor de la clave:
+
+{line-numbers=off}
+```
+>>> a = Zdic()
+>>> a['blue'] = 'azul'
+>>> a['red']
+0
+```
+
+## HACIENDO NUESTRO CÓDIGO PRIVADO {#codigoprivado}
+
+Al comienzo de este capítulo se destacó que una de las características de la POO es la encapsulación. La encapsulación consiste en que los programadores ignoran el funcionamiento interno de los objetos y solo pueden ver sus métodos disponibles. Algunos de estos métodos que crearemos no serán para "consumo externo", sino que servirán como soporte para otros métodos de la clase que sí queremos, para ser utilizado desde otras secciones del programa. Algunos lenguajes permiten la ocultación de métodos y propiedades. En la jerga, esto se denomina “hacer que un método sea privado”. Python no permite que se oculte un método, ya que es una de sus premisas, no ser un obstáculo para el programador. Pero tiene una sintaxis que dificulta el acceso a un método o una propiedad desde fuera de una clase. Esto se denomina **mangling** y su sintaxis consiste en agregar dos guiones bajos al principio (pero no al final) del nombre del método o atributo que queremos que sea privado. Veamos un ejemplo de una clase que define 2 métodos, `a` y `__b`:
+
+{line-numbers=off}
+```
+class TestClass:
+  """A class with a "private" method (b)"""
+  def a(self):
+    pass
+  def __b(self):
+    # mangled to _TestClass__b
+    pass
+```
+
+Si intentamos acceder a `__b()` se genera un error:
+
+{line-numbers=off}
+```
+>>> my_object = TestClass()
+>>> my_object.a()
+>>> my_object.__b()
+
+Traceback (most recent call last):
+  File "<pyshell#14>", line 1, in <module>
+    my_object.__b()
+AttributeError: TestClass instance has no attribute '__b'
+```
+
+Es posible acceder al método `a`, pero no a `__b`, al menos no directamente. Se debe utilizar la notación *object._Class__method*. Por ejemplo:
+
+{line-numbers=off}
+```
+>>> my_object._TestClass__b()
+```
+
+Quizás se estén preguntando cuál es el punto de un método de privacidad que no es realmente privado. Por un lado, los métodos que tienen esta "semi-protección" son heredados/asociados por las clases hijas (y el espacio de nombres no está contaminado). Por otro lado, cuando se explora un objeto utilizando **dir**, esta clase de objetos no se verá. Una cosa importante a considerar es que la protección ofrecida por esta notación es una convención sobre cómo proceder más que una protección efectiva.
+
+
+## RECURSOS ADICIONALES
+
+* [Python programming/OOP](http://en.wikibooks.org/wiki/Python_Programming/OOP)
+
+* [Introduction to OOP with Python](http://www.voidspace.org.uk/python/articles/OOP.shtml)
+
+* [Dive into Python](http://diveintopython.org/object_oriented_framework), by Mark Pilgrim. Chapter 5, Objects and Object-Orientation.
+
+* [Python objects](http://www.effbot.org/zone/python-objects.htm), by Fredrik Lundh.
+
+* [Java tutorial](http://java.sun.com/docs/books/tutorial/java/concepts/): lesson: object-oriented programming concepts.
+
+* [The `seq` object](http://biopython.org/wiki/Seq)
+
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Por qué Python es caracterizado habitualmente como un lenguaje multiparadigma?
+X>
+X> 2- Nombrar las principales características de la programación orientada a objetos (POO).
+X>
+X> 3- Explique los siguientes conceptos: herencia, encapsulación y polimorfismo.
+X>
+X> 4- ¿Cuál es la diferencia entre los atributos de clase y los atributos de instancia? ¿Qué es un atributo de método especial? Nombrar al menos cuatro.
+X>
+X> 5- ¿Cuál es la diferencia entre __str__ y  __repr__?
+X>
+X> 6- ¿Qué es un método privado? ¿Son realmente privados en Python?
+X>
+X> 7- ¿Qué es self dentro de una definición de clase? ¿Cuál es la diferencia entre `self.var = 0` y `var = 0`?
+X>
+X> 8- Definir una clase que realiza un seguimiento de cuántas instancias se han instanciado.
+X>
+X> 9- Definir un nuevo tipo basado en un tipo incorporado.
