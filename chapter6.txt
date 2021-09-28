@@ -1,0 +1,994 @@
+{:: encoding="UTF-8" /}
+
+# Modularización del código
+
+## INTRODUCCIÓN A LA MODULARIZACIÓN DEL CÓDIGO
+
+Con lo que hemos visto hasta ahora tenemos una cantidad suficiente de recursos para iniciarnos en la programación con Python.[^nota6-1] Podemos leer archivos, hacer un procesamiento de datos y almacenar sus resultados. Aunque los programas realizados hasta ahora son muy cortos, es fácil imaginar que podrían alcanzar un tamaño que puede ser difícil de manejar.
+
+[^nota6-1]: Si les interesa aplicar lo que han aprendido hasta ahora, les recomiendo los ejercicios en esta página: <https://github.com/karan/Projects>.
+
+Hay varios recursos que se pueden usar para modularizar el código fuente de manera que podamos terminar con un pequeño programa que llame a bloques de código prefabricados. Este enfoque favorece la reutilización y legibilidad del código. Ambas características también ayudan al mantenimiento del código ya que se tiene que depurar solo una implementación de código, independientemente de cuántas veces se use este código. Como ventaja adicional ayuda a mejorar el rendimiento, ya que cualquier optimización en un código modular beneficia a todo código que lo llame.
+Para algunos autores, la modularización de código es "La invención más grande en informática".[^nota6-2] No sé si este es el "mayor invento" o no, pero ciertamente es un concepto fundamental que no podés desestimar si planeas programar seriamente.
+Python proporciona varias formas de modularizar el código fuente: funciones, módulos, paquetes y clases. Este capítulo cubre a todos ellos, a excepción de las clases, que tienen su propio capítulo.
+
+[^nota6-2]: Leer la columna de Steve McConnell en <http://www.stevemcconnell.com/ieeesoftware/bp16.htm>
+
+## FUNCIONES
+
+### Modo estándar de hacer un código modular en Python
+
+Las funciones son la forma tradicional de modularizar el código. Una función toma valores (llamados argumentos o parámetros) ejecuta alguna operación basada en ellos y devuelve un valor. Ya hemos visto varias funciones incorporadas de Python.[^nota6-3] Por ejemplo, **len()**, mencionado por primera vez en el [listado 1.2](#sample), toma un iterable como parámetro y devuelve un número:
+
+[^nota6-3]: Una lista de todas las funciones disponibles en Python está en: <https://docs.python.org/3/library/functions.html>.
+
+{line-numbers=off}
+```
+>>> len('Hello')
+5
+```
+
+Ahora veamos cómo hacer nuestras propias funciones. La sintaxis general de una función es:
+
+{line-numbers=off}
+```
+def function_name(argument1, argument2, ...):
+  """ Optional Function description (Docstring) """
+  ... FUNCTION CODE ...
+  return DATA
+```
+
+El código en el Listado 4.14 se puede reescribir como una función:
+
+**Listado 6.1:** `netchargefn1.py`: Función para calcular la carga neta de una proteína
+
+```
+def protcharge(aa_seq):
+  """Returns the net charge of a protein sequence"""
+  protseq = aa_seq.upper()
+  charge = -0.002
+  aa_charge = {'C':-.045, 'D':-.999, 'E':-.998, 'H':.091, 'K':1, 'R':1, 'Y':-.001}
+  for aa in protseq:
+    charge += aa_charge.get(aa,0)
+  return charge
+```
+
+Para "usar" la función esta debe ser llamada con el parámetro:
+
+{line-numbers=off}
+```
+>>> protcharge('EEARGPLRGKGDQKSAVSQKPRSRGILH')
+4.094
+```
+
+Si nos olvidamos de pasar el parámetro o si le pasamos un número incorrecto de parámetros nos dará un error:
+
+{line-numbers=off}
+```
+>>> protcharge()
+
+Traceback (most recent call last):
+  File "<pyshell#3>", line 1, in <module>
+    protcharge()
+TypeError: protcharge() takes exactly 1 argument (0 given)
+```
+
+En este ejemplo, la función devuelve un número (de tipo flotante). Si queremos que devuelva más de un valor podemos hacer que devuelva una lista o una tupla.[^nota6-4] La función *protcharge* (codificada en el Listado 6.1) podría modificarse para devolver, además de la carga neta, la proporción de aminoácidos cargados:
+
+[^nota6-4]: Tiene más sentido devolver una tupla en lugar de una lista, ya que para una función dada hay un número fijo de parémetros devueltos.
+
+**Listado 6.2:** `netchargefn2.py`: Función para calcular la carga neta de una proteína.
+
+```
+def charge_and_prop(aa_seq):
+  """ Returns the net charge of a protein sequence
+  and proportion of charged amino acids
+  """
+  protseq = aa_seq.upper()
+  charge = -0.002
+  cp=0
+  aa_charge = {'C':-.045, 'D':-.999, 'E':-.998, 'H':.091,
+  'K':1, 'R':1, 'Y':-.001}
+  for aa in protseq:
+    charge += aa_charge.get(aa,0)
+    if aa in aa_charge:
+      cp += 1
+  prop = 100.*cp/len(aa_seq)
+  return (charge,prop)
+```
+
+Si llamamos a la función con los mismos parámetros del último ejemplo, obtendremos otro resultado:
+
+{line-numbers=off}
+```
+>>> charge_and_prop('EEARGPLRGKGDQKSAVSQKPRSRGILH')
+(4.0940000000000003, 39.285714285714285)
+```
+
+Usando un index para obtener un valor:
+
+{line-numbers=off}
+```
+>>> charge_and_prop('EEARGPLRGKGDQKSAVSQKPRSRGILH')[1]
+39.285714285714285
+```
+
+Todas las funciones retornan algo. Una función puede ser usada para "hacer algo" en lugar de retornar un valor. En ese caso el valor retornado es None. Por ejemplo, la siguiente función almacena los contenidos de una lista en archivos de texto:[^nota5]
+
+[^nota5]: Para ver todas la maneras de guardar todos las estructuras de datos de Python consultar (**Pickle** en la sección 5.4)[picklesection].
+
+**Listado 6.3:** `convertlist.py`: Convertir una lista en un archivo de texto.
+
+{id="convertlist",line-numbers=on,lang=python}
+```
+def save_list(input_list, file_name):
+ """A list (input_list) is saved in a file (file_name)"""
+ with open(file_name, 'w') as fh:
+  for item in input_list:
+    fh.write('{0}\n'.format(item))
+return None
+```
+
+La declaración del **return None**. La función devolverá **None** sin ella pero los desarrolladores de Python prefieren declaraciones explícitas a suposiciones implícitas. Desde Python 3 el Listado 6.3 se puede escribir con la función **print()**. Simplemente reemplazamos la línea 5 por `print(item, file=fh)`. El "bucle for" en la línea 4 se puede evitar usando una propiedad que aún no hemos visto. El Listado 6.6 muestra una alternativa sin el bucle.
+
+**Alcance de la función**
+
+Las variables declaradas dentro de una función son válidas sólo dentro de la función. Es decir, si intentamos acceder a una variable desde afuera de la función Python no la encontrará. Para acceder al contenido de la variable de una función desde afuera de la función, la variable debe devolverse al programa principal utilizando la instrucción **return**. En el siguiente ejemplo, la variable `y`, definida dentro de la función `duplicate`, no puede usarse fuera de la función:
+
+{line-numbers=off}
+```
+>>> def duplicate(x):
+... y = 1
+... print('y = {0}'.format(y))
+... return(2*x)
+...
+>>> duplicate(5)
+y = 1
+10
+>>> y
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'y' is not defined
+```
+
+En este caso, el alcance de `y` está dentro de la función `duplicate`. Podemos decir que la función proporciona un espacio de nombres (**namespace**) donde "vive" el nombre `y`.
+Si el nombre se llama dentro de la función, pero no está definido allí, Python lo buscará fuera de la función; si no puede encontrarlo allí, devolverá un **NameError**. Hay que tener en cuenta que hay un orden de preferencia al buscar nombres. Primero en el alcance que se llamó, y luego fuera hasta alcanzar el alcance global:
+
+{line-numbers=off}
+```
+>>> def duplicate(x):
+... print('y = {0}'.format(y))
+... return(2*x)
+...
+>>> duplicate(5)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 2, in duplicate
+NameError: name 'y' is not defined
+```
+
+Si el nombre está definido en el alcance del padre, lo encontrará:
+
+{line-numbers=off}
+```
+>>> y = 3
+>>> def duplicate(x):
+... print('y = {0}'.format(y))
+... return(2*x)
+...
+>>> duplicate(5)
+y = 3
+10
+```
+
+Si el nombre está definido en el **namespace** provisto por la función y afuera, Python usará el primer nombre disponible, es decir, el que está dentro de la función:
+
+{line-numbers=off}
+```
+>>> y = 3
+>>> def duplicate(x):
+... y=1
+... print('y = {0}'.format(y))
+... return(2*x) ...
+>>> duplicate(5) y=1
+10
+```
+
+Puede especificarse dentro de una función si una variable es de tipo **global**, por lo tanto su vida no se limitará al lugar donde se definió. En general no es una buena idea usar variables globales, ya que pueden modificarse en lugares inesperados. Otro problema relacionado con las variables globales es que Python tiene que realizar un seguimiento de su valor durante todo el tiempo de ejecución lo cual no es eficiente en el uso de memoria.
+
+{line-numbers=off}
+```
+>>> def test(x):
+... global z
+... z=10
+... print('z = {0}'.format(z))
+... return x*2
+...
+>>> z = 1
+>>> test(4)
+z = 10
+8
+>>> z
+10
+```
+
+### Las opciones de parámetros en las funciones
+
+**"Orden" de los argumentos**
+
+Hasta este punto, los argumentos se pusieron en el mismo orden que se definió originalmente. La función *save_list* se puede llamar de esta manera:
+`save_list([1,2,3], 'list.txt')`.
+Si cambiamos el orden de los argumentos (`save_list ('temp.txt', [1,2,3]))`, aparece un mensaje de error:
+
+{line-numbers=off}
+```
+save_list('list.txt', [1,2,3])
+Traceback (most recent call last):
+
+  File "<ipython-input-5-fe7756f18e74>", line 1, in <module>
+    save_list('list.txt', [1,2,3,4,5])
+  File "save_list1.py", line 10, in save_list
+    with open(file_name, 'w') as fh:
+
+TypeError: invalid file: [1, 2, 3, 4, 5]
+```
+
+Este **TypeError** se produce porque esta función espera una lista como primer parámetro y una cadena como segundo parámetro. Para llamar a la función con los parámetros en un orden diferente al que se definió originalmente, el parámetro debe ser nombrado al llamar la función:
+
+{line-numbers=off}
+```
+>>> savelist(file_name='list.txt', input_list=[1,2,3])
+```
+
+Al usar nombres de variables el orden de los parámetros es irrelevante.
+
+**Argumentos con valores por defecto**
+
+Python permite valores por defecto en los argumentos. Esto se hace ingresando el valor predeterminado en la definición de la función:
+
+{line-numbers=off}
+```
+def name(arg1=default_value, arg2=default_value, ... ):
+```
+
+Por ejemplo la función `save_list`, que guarda los contenidos de una lista en un archivo, puede tener un nombre de archivo por default:
+
+**Listado 6.4:** `list2textdefault.py`: Función con un parámetro por default.
+
+```
+def save_list(input_list, file_name='temp.txt'):
+  """A list (input_list) is saved in a file (file_name)"""
+  with open(file_name, 'w') as fh:
+  for item in input_list:
+    fh.write('{0}\n'.format(item))
+  return None
+```
+
+Ahora la función puede ser llamada con un solo parámetro:
+
+{line-numbers=off}
+```
+>>> save_list(['MS233','MS772','MS120','MS93','MS912'])
+```
+
+**Números indeterminados de argumentos**
+
+Las funciones pueden tener números variables de argumentos si el parámetro final es precedido por un "*". Cualquier exceso de argumentos se asignará al último parámetro como una tupla:
+
+**Listado 6.5:** `getaverage.py`: Función para calcular el promedio de valores entrados como parámetros.
+
+```
+def average(*numbers):
+  if len(numbers)==0:
+    return None
+  else:
+    total = sum(numbers)
+    return total / len(numbers)
+```
+
+De esta forma la función `average` se puede llamar con un número indeterminado de argumentos:
+
+{line-numbers=off}
+```
+>>> average(2,3,4,3,2)
+2.8
+>>> average(2,3,4,3,2,1,8,10)
+4.125
+```
+
+Hay otro uso del asterisco (\*) en Python. Desde Python 3, una variable precedida por "\*" se convierte en una lista, que contiene los elementos de la secuencia correspondiente que no están asignados a los nombres de las variables.[^nota6-5] Esta propiedad se usa en la línea 5 en el Listado 6.6 para evitar el uso de un bucle que recorre todos los elementos de L:
+
+[^nota6-5]: Esto es explicado en detalle en PEP-3132 <http://www.python.org/dev/peps/pep-3132> y en el post de Startoverflow <https://stackoverflow.com/questions/6967632/unpacking-extended-unpacking-and-nested-extended-unpacking>
+
+**Listado 6.6:** `list2text2.py`: Convertir una lista en un archivo de texto usando **print** y `*`.
+
+{id="list2text2",line-numbers=on,lang=python}
+```
+def save_list(input_list, file_name='temp.txt'):
+  """A list (input_list) is saved to a file (file_name)"""
+  with open(file_name, 'w') as fh:
+    print(*input_list, sep='\n', file=fh)
+  return None
+```
+
+**Número indeterminado de argumentos de palabras claves**
+
+Las funciones también pueden aceptar un número arbitrario de argumentos con palabras claves. En este caso, utilizamos el parámetro final precedido por "**" (dos asteriscos). Los argumentos en exceso se pasan a la función como un diccionario:
+
+**Listado 6.7:** `list2text3.py`: Función que acepta una variable numérica como argumento.
+
+```
+def commandline(name, **parameters):
+  line = ''
+  for item in parameters:
+    line += ' -{0} {1}'.format(item, parameters[item])
+  return name + line
+```
+
+Esta función puede ser llamada con un número variable de parámetros de palabras claves:
+
+{line-numbers=off}
+```
+>>> commandline('formatdb', t='Caseins', i='indata.fas')
+'formatdb -t Caseins -i indata.fas'
+>>> commandline('formatdb', t='Caseins', i='indata.fas', p='F')
+'formatdb -t Caseins -p F -i indata.fas'
+```
+
+T> ### Algunas cuestiones sobre Docstrings
+T>
+T> Las funciones pueden tener una cadena de texto inmediatamente después de la definición de la función. Esta línea (o líneas) se llaman "docstring". El [listado 6.6](#list2text2) tiene un docstring de una línea.
+T>
+T> Estas líneas se utilizan para la ayuda en línea, los sistemas de generación automática de documentación y para cualquier persona que quiera leer el código fuente. Puede escribir cualquier cosa dentro de una docstring, pero hay pautas escritas para estandarizar la estructura de un docstring. Consultar PEP-257 (<http://www.python.org/dev/peps/pep-0257>) para obtener más información sobre las convenciones del formato de Docstring.
+T>
+T> No solo las funciones pueden tener docstrings; se espera que los módulos y las clases tengan su documentación como primera declaración.
+
+### Generadores
+
+Los generadores son un tipo especial de funciones. Las funciones hacen alguna acción utilizando variables en su espacio de nombres local. Estas variables se eliminan después de que se ejecuta la función. Este proceso ocurre cada vez que se llama a una función, para evitarlo hay un tipo especial de función llamada **generador**. Cuando se ejecuta un generador, su estado interno se mantiene, por lo que la próxima vez que se invoque se puede acceder a los valores de las variables. A veces se las llama funciones reanudables y se usan para evitar devolver un objeto enorme (como una lista grande, una tupla, etc.) a la vez.
+Tomemos, por ejemplo, una función que lee registros de un archivo y devuelve una estructura de datos con datos de este archivo. Si el archivo es demasiado grande (como varias veces la memoria disponible), es posible que la estructura de datos resultante no encaje en la memoria. Una solución a este problema es modificar la función para devolver un registro a la vez. Una función no puede hacer eso porque no mantiene un estado, por lo que cada vez que se ejecuta, tiene que procesar todos los datos nuevamente. Un generador son funciones que pueden mantener su estado interno introduciendo una nueva palabra clave: **yield**. Cuando se encuentra una declaración de **yield EXPRESSION**, devuelve (o produce) *EXPRESSION* a donde fue llamada (como una función) pero mantiene un registro de sus valores internos, por lo que la próxima vez que se llame, reanudará la operación con los valores que tenía antes de ceder el valor.
+
+**Creando un generador**
+
+El Listado 6.8 tiene una función (`all_primes()`) que retorna todos los números primos disponibles hasta un valor dado, todos juntos en una lista:
+
+**Listado 6.8:** `allprimes.py`: Función que retorna todos los valores primos hasta una valor dado.
+
+```
+def is_prime(n):
+  """Returns True is n is prime, False if not"""
+  for i in range(2,n-1):
+    if n%i == 0:
+      return False
+    return True
+
+def all_primes(n):
+  primes = []
+  for number in range(1,n):
+    if isprime(number):
+      primes.append(number)
+  return p
+```
+
+La función `all_primes()` del Listado 6.8 puede ser reemplazada por un generador `g_all_primes()`:
+
+**Listado 6.9:** `allprimesg.py`: Generados que reemplaza `puyn()` en el listado 6.8.
+
+```
+def g_all_primes(n):
+  for number in range(1,n):
+    if is_prime(number):
+      yield number
+```
+
+Como podemos ver en el código del Listado 6.9 no usa una lista, ya que no es necesario porque produce un resultado a la vez. Ambas funciones se pueden utilizar para recorrer los resultados, pero `all_primes()` genera una lista, mientras que `g_all_primes()` no.
+
+## MÓDULOS Y PAQUETES
+
+Un módulo es un archivo con definiciones de funciones, constantes o cualquier tipo de objeto que se pueda usar desde otros módulos o desde un programa principal. Los módulos también proporcionan espacios de nombres, por lo que dos funciones pueden recibir el mismo nombre siempre que estén definidas en módulos diferentes. El nombre del módulo se toma del nombre del archivo. Si el nombre de archivo del módulo es `my_module.py`, el nombre del módulo es `my_module`.
+
+### Usando módulos
+
+Para acceder a los contenidos de un módulo usamos **import**. Normalmente la importación se realiza al inicio del programa. No es obligatorio colocar las importaciones al principio del archivo, pero se debe colocar antes de llamar a cualquiera de los elementos del módulo. Sin embargo, es habitual colocar la declaración **import** al comienzo del programa. Hay muchas maneras de usar la importación, la forma más utilizada es llamar a un módulo por su nombre. Para llamar al módulo incorporado **os**, usamos:
+
+{line-numbers=off}
+```
+>>> import os
+```
+
+Cuando un módulo se importa por primera vez, su contenido se ejecuta. Si el módulo se importa más de una vez, las importaciones sucesivas no tendrán ningún efecto. Esto nos da la seguridad de que podemos colocar una declaración de importación dentro de una función y no preocuparnos si se llama repetidamente.
+Una vez que se importa un módulo, para acceder a una función o una variable, usamos el nombre del módulo como prefijo:
+
+{line-numbers=off}
+```
+>>> os.getcwd()
+'/mnt/hda2'
+>>> os.sep
+'/'
+```
+
+También es posible importar desde un módulo sólo una función requerida. De esta manera podemos llamarlo sin tener que usar el nombre del módulo como prefijo.
+
+{line-numbers=off}
+```
+>>> from os import getcwd
+>>> getcwd()
+'/mnt/hda2'
+```
+
+Para importar todo el contenido de un módulo, usamos el operador “`*`” (asterisco):
+
+{line-numbers=off}
+```
+>>> from os import *
+>>> getcwd()
+'/mnt/hda2'
+>>> sep
+'/'
+```
+
+W> No uses `from module import  *` a menos que sepas lo que estás haciendo. La importación de todos los elementos del módulo puede generar conflictos con los nombres ya definidos en el programa principal (o definidos en otros módulos e importados de la misma manera). En los estándares de programación de Python, las importaciones de comodines (*) son equivalentes al lado oscuro de la fuerza. Son más rápidos, más fáciles y más seductores, pero peligrosos.
+
+También es posible importar un módulo con un nombre diferente:
+
+{line-numbers=off}
+```
+>>> import xml.etree.ElementTree as et
+>>> tree = et.parse('/home/sb/bioinfo/smallUniprot.xml')
+```
+
+No te preocupes si no sabes qué es `xml.etree.ElementTree`, lo veremos en el de capítulo XML. Pero tene en cuenta que este nombre completo (`xml.etree.ElementTree`) se llama "ET".
+
+### Paquetes
+
+Un **paquete** (**package**) es un grupo de módulos con algunas características en común. Los paquetes son los directorios con los módulos u otros directorios dentro. El paquete también contiene un archivo especial llamado `__init__.py`. Este archivo indica que el directorio que contiene es un paquete de Python y se puede importar como un módulo.
+
+{line-numbers=off,lang=text}
+```
+Bio/      Top-level package
+  __init__.py     Initialize the sound package
+  Align/      Subpackage for Alignment related software
+    __init__.py
+    AlignInfo.py
+  Alphabet/     Subpackage for amino-acid alphabets
+    __init__.py
+    IUPAC.py
+    Reduced.py
+  Blast/      Subpackage for Blast parsers
+    __init__.py
+    Applications.py
+    NCBIStandalone.py
+    NCBIWWW.py
+    NCBIXML.py
+    ParseBlastTable.py
+    Record.py
+```
+
+Los archivos `__init__.py` son necesarios para que Python trate los directorios como paquetes contenidos. En la mayoría de los casos `__init__.py` es un archivo vacío, pero también puede ejecutar el código de inicialización del paquete.
+Los usuarios del paquete pueden importar módulos individuales del paquete, por ejemplo:
+
+{line-numbers=off}
+```
+import Bio.Blast.Aplications
+```
+
+Incluso si hay diferencias entre los módulos y los paquetes, ambos términos se usan indistintamente.
+
+### Instalación de módulos de terceros {#paquetesexternos}
+
+Python viene con varios módulos incorporados (built-in modules). Estos módulos se combinan con Python, por lo que están listos para se usados tan pronto como tenga un intérprete de Python en funcionamiento.[^nota6-6]
+También hay módulos de terceros que amplían la funcionalidad de Python. La instalación puede ser tan fácil como copiar un solo archivo a una ubicación específica hasta ejecutar varios programas en un orden predeterminado. Depende de la complejidad de los módulos. Los módulos van desde un archivo a varios archivos distribuidos en varios directorios que interactúan con otros programas, en este caso se lo denomina paquete. Por lo tanto, no existe una forma única de instalar todos los módulos externos disponibles para Python.
+
+[^nota6-6]: Consulte http://docs.python.org/library/index.html para obtener una descripción completa de la biblioteca estándar de Python, incluidos los módulos incorporados.
+
+**Pip es el método preferido**
+
+La mayoría de los paquetes admiten la instalación de **pip**. **pip** es la forma nativa de instalar paquetes de Python y es el método preferido.[^nota6-7] Para este tipo de instalación, necesitas **pip** y **setuptools**. Lo más probable es que ya los tengas instalados (viene con los binarios de Python 3.4), sino hay que instalarlo, en Linux basado en Debian se instala con:
+
+[^nota6-7]: Hay otro método llamado easy_install que se presentó en la primera edición de este libro, pero pip tiene más funciones, por lo que easy_install se eliminó de este libro. Para comparar ambos sistemas, consulte <https://packaging.python.org/pip_easy_install/>.
+
+{line-numbers=off,lang=text}
+```
+$ sudo apt install python-pip
+```
+
+En Ubuntu el paquete se llama `python3-pip`. Luego actualízalo a la última versión.
+
+En Linux o macOS:
+
+{line-numbers=off,lang=text}
+```
+$ pip install -U pip setuptools
+```
+
+En Ubuntu el comando es:
+
+{line-numbers=off,lang=text}
+```
+$ pip3 install -U pip setuptools
+```
+
+En Windows:
+
+{line-numbers=off,lang=text}
+```
+$ python -m pip install -U pip setuptools
+```
+
+Una vez instalados y actualizados, los módulos de Python se pueden instalar con:
+
+{line-numbers=off,lang=text}
+```
+$ pip install MODULE_NAME
+```
+
+Por ejemplo, para instalar **xlrd**, un paquete para leer archivos de Excel:
+
+{line-numbers=off,lang=text}
+```
+$ pip install xlrd
+Collecting xlrd-1.0.0
+  Downloading xlrd-1.0.0.tar.gz
+Building wheels for collected packages: xlrd
+  Running setup.py bdist_wheel for xlrd ... done
+  Stored in directory: /home/sb/.cache/pip/wheels/55/e2/c6f97024749<=
+  ea24f67400fb4c55eab7f2b49cbf39379805ef5
+Successfully built xlrd
+Installing collected packages: xlrd
+Successfully installed xlrd-1.0.0
+```
+
+Se necesita una conexión a Internet que funcione para ejecutar el comando anterior. **pip** recuperará el paquete del repositorio de PyPi en <https://pypi.python.org>. Para saber qué paquetes están disponibles para instalar usando **pip**, consulte la lista en <https://pypi.org/search/>.
+Otra advertencia a tener en cuenta es quién utilizará el paquete instalado. Para que el paquete esté disponible para todos los usuarios de Python en la máquina, debe ser un usuario administrador o instalarlo con sudo:
+
+{line-numbers=off,lang=text}
+```
+$ sudo pip install xlrd
+```
+
+Pero el método preferido de instalación es como usuario y dentro de un entorno virtual.
+
+**Uso de la gestión de paquetes del sistema**
+
+Algunos módulos de Python pueden instalarse como cualquier otro programa que instale en su computadora, como hacer doble clic en un instalador (Windows / macOS) o usar la administración de paquetes del sistema como apt-get en Ubuntu.
+La ventaja de usar la administración de paquetes del sistema es que puede realizar un seguimiento de los módulos de Python instalados de la misma manera que realiza un seguimiento de todos los demás programas de su sistema. Las actualizaciones y desinstalaciones son más fáciles y sin consecuencias desagradables, como archivos huérfanos o instalaciones rotas. Este método también tiene sus inconvenientes, como una brecha entre la versión actual del paquete y la versión disponible en su repositorio de distribución de Linux. Algunos módulos se desarrollan a un ritmo rápido, a veces tan rápido que los administradores de paquetes no pueden mantenerse actualizados. Por ejemplo, los usuarios de Ubuntu que desean instalar Biopython usando los repositorios del sistema operativo, al momento de escribir, están limitados a la versión 1.70, cuando 1.78 es la última versión disponible en el sitio web de Biopython. Otro problema es que en algunos sistemas se necesitan derechos de administración para utilizar la administración de paquetes. Los instaladores de Windows no proporcionan todo el software requerido y no lo buscan de forma automática, por lo que es posible que deba instalar algún software de requisito previo antes de ejecutar el instalador. El principal problema relacionado con la administración de paquetes es que a veces el paquete requerido no está disponible. Por todas estas razones esta no es la forma recomendada de instalar nuevos paquetes.
+
+**Copiando a PYTHONPATH**
+
+Este no es el procedimiento de instalación de módulos más frecuente, pero se menciona primero porque es muy sencillo. Simplemente copie el módulo donde Python busca módulos. ¿Dónde busca Python los módulos? Hay tres lugares:
+
+* En el mismo directorio donde se encuentra el programa que llamará al módulo.
+
+* En el mismo directorio donde se encuentra el ejecutable de Python, este directorio es diferente en cada sistema operativo.[^nota6-9]
+
+* En un directorio creado especialmente para nuestros módulos. En este caso, debe especificarse en la variable de entorno *PYTHONPATH* o en la variable *sys.path*. Esta variable final enumera todas las rutas donde Python debe buscar un módulo. Para agregar un directorio a *sys.path*, debe modificarlo como lo haría con cualquier lista utilizando el método **append()**:
+
+[^nota6-9]: En Windows, generalmente se encuentra en C:\archivos de programa\Python, mientras que en Linux se encuentra en /usr/bin/python. Para encontrar la ruta al ejecutable de Python en \*nix, usá `which python`.
+
+{line-numbers=off}
+```
+>>> import sys
+>>> sys.path
+['/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-<=
+ linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/loc<=
+ al/lib/python3.5/dist-packages', '/usr/lib/python3/dist<=
+ -packages']
+>>> sys.path.append('/home/sb/MyPyModules')
+
+```
+
+### Virtualenv: Entornos Python aislados
+
+**virtualenv** es un programa que crea entornos aislados de Python. Cada entorno creado con **virtualenv** tiene su propio conjunto de módulos externos (de terceros). Esto le permite tener múltiples proyectos independientes cada uno en su propio entorno, evitando el conflicto que se produce por las dependencias incompatibles. Un proyecto puede requerir un módulo en la versión X y otro proyecto puede necesitar el mismo módulo pero en la versión Y. Ya que no se pueden instalar dos versiones diferentes del mismo módulo en la misma instalación de Python, necesita una manera de aislar cada una las instalaciones. Esto es lo que proporciona **virtualenv**. ¿Cuándo debes usar **virtualenv**? Respuesta corta: Siempre. Respuesta larga: cada vez que empezamos a trabajar con un nuevo proyecto es mejor tener un entorno Python dedicado. Esto también tiene la ventaja de poder reproducir la configuración de un programa en particular en otra máquina cuando sea necesario.
+Si tiene Python 3.6 o superior, no necesita **virtualenv** como un programa independiente, ya que está incluido con Python.
+Con una versión de Python anterior a 3.6, instalamos **virtualenv** usando pip:
+
+{line-numbers=off,lang=text}
+```
+# pip install virtualenv
+```
+
+Hay que tener en cuenta que en Windows, **pip** puede estar ubicado en el directorio `Scripts`. Una vez instalado se crea un **virtualenv** de esta manera:
+
+{line-numbers=off,lang=text}
+```
+$ virtualenv <DIRECTORY>
+```
+
+Si tenés Python 3.6 o superior, no necesitas instalar **virtualenv** para crear un nuevo entorno virtual. En su lugar, simplemente tenés que hacer:
+
+{line-numbers=off,lang=text}
+```
+python3 -m venv <DIRECTORY>
+```
+
+Ejemplo con una versión anterior de Python:
+
+{line-numbers=off,lang=text}
+```
+$ virtualenv bioinfo
+Using base prefix '/usr'
+New python executable in /home/sb/bioinfo/bin/python3
+Also creating executable in /home/sb/bioinfo/bin/python
+Installing setuptools, pip, wheel...done.
+$
+```
+
+o con Python 3.6 o superior:
+
+{line-numbers=off,lang=text}
+```
+python3 -m venv bioinfo
+```
+
+Esto generará un directorio `bioinfo` dentro del directorio actual. Una vez creado, hay que activarlo.
+
+macOS y Linux:
+
+{line-numbers=off,lang=text}
+```
+$ source <DIRECTORY>/bin/activate
+```
+
+En el ejemplo anterior, el comando de activación sería:
+
+{line-numbers=off,lang=text}
+```
+$ source bioinfo/bin/activate
+```
+
+Tenga en cuenta que en Windows, el entorno virtual se activa de esta manera:
+
+{line-numbers=off,lang=text}
+```
+<DIRECTORY>\Scripts\activate
+```
+
+Después de activar el entorno virtual, el indicador cambiará a:
+
+{line-numbers=off,lang=text}
+```
+(bioinfo) $
+```
+
+Esto se usa para indicar que el **virtualenv** está activado y cada paquete que instale desde ese punto estará disponible sólo dentro de este **virtualenv**.
+Para instalar un paquete proceda de la misma manera que antes (utilizando pip) pero dentro del entorno, por ejemplo:
+
+{line-numbers=off,lang=text}
+```
+(bioinfo) $ pip install xlrd
+```
+
+De esta manera, el paquete **xlrd** estará disponible sólo en el entorno `bioinfo` y no interferirá con ninguna otra instalación de Python.
+Una vez que haya terminado de trabajar con el entorno virtual, debe desactivarlo para volver a su solicitud estándar:
+
+{line-numbers=off,lang=text}
+```
+(bioinfo) $ deactivate
+$
+```
+
+En Windows:
+
+{line-numbers=off,lang=text}
+```
+(bioinfo)> \path\to\env\bin\deactivate.bat
+>
+```
+
+### Conda: Entorno Virtual Anaconda
+
+Si está utilizando la distribución de Anaconda Python, debe usar `conda create` en lugar de **virtualenv**. Si está utilizando el Python normal, simplemente omita esta sección.
+Para crear el nuevo entorno, use este comando:
+
+{line-numbers=off,lang=text}
+```
+$ conda create -n NAME
+```
+
+Donde `NAME` es el nombre que desea usar para el nuevo entorno, si lo desea para usar `bioinfo`, el comando es:
+
+{line-numbers=off,lang=text}
+```
+$ conda create -n bioinfo
+Fetching package metadata .......
+.Solving package specifications: .
+Package plan for installation in environment /home/sb/anaconda3/<=
+envs/bioinfo:
+
+The following empty environments will be CREATED:
+
+/home/sb/anaconda3/envs/bioinfo
+
+Proceed ([y]/n)?
+#
+# To activate this environment, use:
+# > source activate bioinfo
+#
+# To deactivate this environment, use: # > source deactivate bioinfo
+#
+```
+
+Para activar el entorno escriba:
+
+{line-numbers=off,lang=text}
+```
+$ source activate bioinfo
+(bioinfo) $
+```
+
+Al igual que en el entorno **virtualenv** todo lo que instales dentro de este entorno será local al entorno y no afectará a ninguna otra instalación de Python. Para instalar un paquete en el entorno activo, la forma preferida es usar conda `install`. Para instalar el paquete **pillow**:
+
+{line-numbers=off,lang=text}
+```
+(bioinfo) $ conda install pillow
+```
+
+Si el paquete no está disponible en el repositorio de **conda**, puede usar `pip install`
+
+{line-numbers=off,lang=text}
+```
+(bioinfo)$ pip install beautifulsoup4
+```
+
+Mi consejo es usar **conda** cuando trabajes con **Anaconda** y **pip** si usas la distribución estándar de Python.[^nota6-8]
+Conda también permite crear un entorno virtual e instalar paquetes en un solo comando. Solo agregá el nombre del paquete después del comando `conda create`:
+
+[^nota6-8]: Consulte el artículo en este sitio para obtener más información: <https://goo.gl/Ki8zks>.
+
+{line-numbers=off,lang=text}
+```
+$ conda create -n excelprocessing xlrd
+Fetching package metadata .......
+Solving package specifications: ..........
+Package plan for installation in environment /sb/anaconda3/envs/excelprocessing:
+The following packages will be downloaded:
+
+package            |        build
+-------------------|-------------
+python-3.6.0       |            0      16.3 MB
+setuptools-27.2.0  |       py36_0       523 KB
+wheel-0.29.0       |       py36_0        88 KB
+xlrd-1.0.0         |       py36_0       185 KB
+pip-9.0.1          |       py36_1       1.7 MB
+----------------------------------------------
+                           Total:      18.8 MB
+
+The following NEW packages will be INSTALLED:
+
+    openssl:    1.0.2j-0
+    pip:        9.0.1-py36_1
+    python:     3.6.0-0
+    readline:   6.2-2
+    setuptools: 27.2.0-py36_0
+    sqlite:     3.13.0-0
+(...)
+Proceed ([y]/n)? y
+
+Fetching packages ...
+python-3.6.0-0 100% |#####################| Time: 0:00:01  10.99 MB/s
+setuptools-27. 100% |#####################| Time: 0:00:00   5.72 MB/s
+(...)
+Extracting packages ...
+[      COMPLETE      ]|########################################| 100%
+Linking packages ...
+[      COMPLETE      ]|########################################| 100%
+#
+# To activate this environment, use:
+# > source activate excelprocessing
+#
+# To deactivate this environment, use:
+# > source deactivate excelprocessing
+#
+```
+
+Activá y comprobá que el paquete este instalado:
+
+{line-numbers=off,lang=text}
+```
+$ source activate excelprocessing
+(excelprocessing) $ python
+Python 3.6.0 |Continuum Analytics, Inc.| (Dec 23 2016, 12:22:00)
+[GCC 4.4.7 20120313 (Red Hat 4.4.7-1)] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import xlrd
+>>>
+```
+
+Para ver todos los entornos instalados (nombre y ruta), ejecute `conda info –envs`:
+
+{line-numbers=off,lang=text}
+```
+$ conda info --envs
+# conda environments:
+#
+AEML      /home/sb/anaconda3/envs/AEML
+bioinfo     /home/sb/anaconda3/envs/bioinfo
+biopy1      /home/sb/anaconda3/envs/biopy1
+excelprocessing     /home/sb/anaconda3/envs/excelprocessing
+py4bio      /home/sbassi/anaconda3/envs/py4bio
+root      *  /home/sbassi/anaconda3
+```
+
+El asterisco (`*`) muestra el entorno activo.
+Usar **virtualenv** (o **conda** si usa Anaconda) es tan importante que habrá varias referencias en este libro sobre cómo usarlo.
+
+**Construir e instalar manualmente**
+
+Si no puede usar paquetes del sistema y no quiere (o no puede) usar **pip**, siempre hay una forma manual de instalar paquetes. Descargue los archivos del módulo (generalmente en formato `.tar.gz`), descomprímelos y busca un archivo `setup.py`. En la mayoría de los casos, instalarlo es cuestión de ejecutar:
+
+{line-numbers=off,lang=text}
+```
+python setup.py install
+```
+
+Si hay algún problema, mire el archivo `README`. De hecho es recomendable revisar el archivo `README` antes de intentar instalar el programa (¿quién hace eso?). En la mayoría de los casos, el problema surge por la falta de dependencias (como necesita el módulo X para ejecutar el módulo Y), que deberá cumplir. Es por eso que es mejor instalar módulos Python con **pip** o con la administración de paquetes de su sistema.
+
+### Creando módulos
+
+Para crear un módulo, debe crear un archivo y guardarlo con la extensión "`.py`". Debe guardarse en un directorio donde el intérprete de Python lo busque, como los de la variable `PYTHONPATH`.
+Por ejemplo, almacene la función `save_list` en un módulo y llamarlo `utils`. Para esto, crea el archivo *utils.py* con los siguientes contenidos:
+
+{line-numbers=off}
+```
+# utils.py file
+def save_list(input_list, file_name='temp.txt'):
+  """A list (input_list) is saved to a file (file_name)"""
+  with open(file_name, 'w') as fh:
+    print(*input_list, sep='\n', file=fh)
+  return None
+```
+
+De esta manera, esta función (`save_list`) se puede usar desde cualquier programa, siempre que este archivo se guarde en una ubicación accesible desde Python:
+
+{line-numbers=off}
+```
+>>> import utils
+>>> utils.save_list([1,2,3])
+```
+
+### Módulos de prueba
+
+Una buena práctica de programación implica la creación de pruebas para verificar el correcto funcionamiento de tu código.
+Como los módulos están diseñados para ser utilizados desde un programa, estas pruebas deben ejecutarse sólo cuando se llaman desde la línea de comandos. De esta manera las pruebas no interferiran con el funcionamiento normal del programa.
+Para lograr esto debemos poder diferenciar cuando el código se ejecuta como un programa independiente y cuando se ejecuta como un módulo desde otro programa. Cuando el código se ejecuta como un programa, la variable `__name__` toma el valor `"__main__"`. Como resultado, la forma de incorporar el código de prueba es hacerlo después de verificar que el programa se ejecuta de forma independiente.
+
+{line-numbers=off}
+```
+if __name__ == '__main__':
+    #Hacer algo
+```
+
+Este tipo de prueba generalmente se incluye al final de un módulo. En el [Listado 6.10](#prime5) podemos ver una prueba en acción. Python proporciona un módulo que facilita la tarea de probar que nuestro código funciona como esperamos. Este módulo se llama **doctest**.
+
+**Doctest, probando módulos de forma automática**
+
+**Doctest** es un módulo que busca piezas de código Python dentro de un docstring. Este código se ejecuta como si fuera una sesión interactiva de Python. El módulo comprueba si este código funciona exactamente como se muestra en el docstring o en un archivo externo.
+En el Listado 6.10 tenemos `is_prime()`, una función que verifica si un número dado (n) es primo. Veamos cómo podemos incorporar un test unit y ejecutarla:
+
+{#prime5}
+**Listado 6.10:** `prime5.py`: Módulo con doctest.
+
+```
+def is_prime(n):
+  """ Check if n is a prime number.
+  Sample usage:
+  >>> is_prime(0)
+  False
+  >>> is_prime(1)
+  True
+  >>> is_prime(2)
+  True
+  >>> is_prime(3)
+  True
+  >>> is_prime(4)
+  False
+  >>> is_prime(5)
+  True
+  """
+
+  if n<= 0:
+    # This is only for numbers > 0.
+    return False
+  for x in range(2, n):
+    if n%x == 0:
+        return False
+  return True
+
+def _test():
+  import doctest
+  doctest.testmod()
+
+if __name__ == '__main__':
+  _test()
+```
+
+**Explicación del código**: la función `is_prime(n)` se define desde la línea 1 a la 24, pero la funcionalidad real comienza en la línea 18. Hasta esta línea, hay algunas pruebas. Estas pruebas no se ejecutan si el programa se llama desde otro programa, que se verifica en la línea 30. Si el programa se ejecuta como un programa independiente, todas las pruebas se ejecutan:
+
+{line-numbers=off,lang=text}
+```
+$ python prime5.py
+$
+```
+
+El programa no devuelve nada. Esto es bueno. Veamos qué sucede cuando introducimos un error, por ejemplo cambiando la línea 21 a `for x in range(1,n):`:
+En este caso, la prueba falla:
+
+{line-numbers=off,lang=text}
+```
+$ python prime5.py
+****************************************************************
+File "./prime5.py", line 10, in __main__.is_prime
+Failed example:
+  is_prime(2)
+Expected:
+  True
+Got:
+  False
+****************************************************************
+File "./prime5.py", line 12, in __main__.is_prime
+Failed example:
+  is_prime(3)
+Expected:
+  True
+Got:
+  False
+****************************************************************
+File "./prime5.py", line 16, in __main__.is_prime
+  Failed example:
+    is_prime(5)
+  Expected:
+    True
+  Got:
+    False
+****************************************************************
+1 items had failures:
+  3 of 6 in __main__.is_prime
+***Test Failed*** 3 failures.
+
+```
+
+Las pruebas son tan importantes que existe una metodología llamada desarrollo guiado por pruebas (TDD por sus siglas en inglés). Se propone diseñar una prueba para cada función antes de comenzar a escribir código. Es posible que las pruebas no se perciban como una necesidad primaria de un programa, pero no se puede estar seguro de que una función funcione a menos que se la pruebe. Las pruebas también son útiles para asegurarse de que un cambio en el código no tenga consecuencias involuntarias.
+Python tiene un amplio soporte para pruebas de software (con módulos **doctest** y **unittest**), pero esto está fuera del alcance de este libro. Para obtener más información sobre las pruebas consulte los "Recursos adicionales".
+
+
+## RECURSOS ADICIONALES
+
+* [Modules, the Python tutorial](http://docs.python.org/tutorial/modules.html)
+
+* [Default parameter values in Python, by Fredrik Lundh](http://effbot.org/zone/default-values.htm)
+
+* [Python library reference. Unittest API.](https://docs.python.org/3.6/library/unittest.html)
+
+* [Installing Python modules](http://docs.python.org/install/index.html)
+
+* [PIP](https://pip.pypa.io/en/stable/)
+
+* [Extreme programming. Wikipedia article](http://en.wikipedia.org/wiki/Extreme_Programming)
+
+
+X> ## AUTOEVALUACIÓN
+X>
+X> 1- ¿Qué es una función?
+X>
+X> 2- ¿Cuántos valores puede devolver una función?
+X>
+X> 3- ¿Se puede llamar a una función sin parámetros?
+X>
+X> 4- ¿Qué es un docstring y por qué está relacionada con las funciones y los módulos?
+X>
+X> 5- ¿Es necesario que cada función sepa de antemano cuántos parámetros recibirá?
+X>
+X> 6- Escribir una función de generador.
+X>
+X> 7- ¿Por qué todos los argumentos opcionales en una función se colocan al final de la llamada de la función?
+X>
+X> 8- ¿Qué es un módulo?
+X>
+X> 9- ¿Por qué se invocan los módulos al principio del programa?
+X>
+X> 10- ¿Cómo importar todos los contenidos de un módulo? ¿Es recomendable este procedimiento?
+X>
+X> 11- ¿Cómo podés datete cuenta si tu código se está ejecutando como un programa independiente o como un módulo?
+X>
+X> 12- ¿Qué es **virtualenv** y cuándo lo usarías?
